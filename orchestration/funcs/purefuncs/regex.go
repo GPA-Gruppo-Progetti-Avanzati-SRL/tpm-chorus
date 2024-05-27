@@ -1,4 +1,4 @@
-package simple
+package purefuncs
 
 import (
 	"github.com/rs/zerolog/log"

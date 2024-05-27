@@ -92,38 +92,3 @@ func initializeRedisCache(cfg *redislks.Config) error {
 func GetRedisCacheLinkedService() (*redislks.LinkedService, error) {
 	return registry.redis, nil
 }
-
-/*
- * Kafka Initialization
-
-
-func initializeKafka(cfg *kafkalks.Config) error {
-	log.Info().Msg("initializing kafka backend service")
-	if cfg != nil {
-		azk, err := kafkalks.NewKafkaServiceInstanceWithConfig(*cfg)
-		if err != nil {
-			return err
-		}
-
-		registry.kafka = azk
-		log.Info().Msg("kafka instance configured")
-	}
-	return nil
-}
-
-func NewKafkaConsumer(gId string) (*kafka.Consumer, error) {
-	if registry.kafka != nil {
-		return registry.kafka.NewConsumer(gId)
-	}
-
-	return nil, errors.New("kafka consumer not available")
-}
-
-func NewKafkaProducer(ctx context.Context, tId string) (*kafka.Producer, error) {
-	if registry.kafka != nil {
-		return registry.kafka.NewProducer(ctx, tId)
-	}
-
-	return nil, errors.New("kafka producer not available")
-}
-*/

@@ -6,14 +6,14 @@ import (
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/rs/zerolog/log"
 	"strings"
-	"tpm-chorus/orchestration/funcs/cfgdependent"
-	"tpm-chorus/orchestration/funcs/simple"
+	"tpm-chorus/orchestration/funcs/purefuncs"
+	"tpm-chorus/orchestration/funcs/withenvfuncs"
 )
 
 func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins := make(map[string]interface{})
 	builtins["dict"] = func(dict string, elems ...string) string {
-		return cfgdependent.Dict(wfc.Dicts, dict, elems...)
+		return withenvfuncs.Dict(wfc.Dicts, dict, elems...)
 	}
 	/* Not really needed....
 	builtins["var"] = func(varContext string, varReference string) interface{} {
@@ -72,24 +72,24 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 		return resp
 	}
 
-	builtins["now"] = simple.Now
-	builtins["isDate"] = simple.IsDate
-	builtins["parseDate"] = simple.ParseDate
-	builtins["parseAndFormatDate"] = simple.ParseAndFmtDate
-	builtins["dateDiff"] = simple.DateDiff
-	builtins["printf"] = simple.Printf
-	builtins["amtConv"] = simple.AmtConv
-	builtins["amtCmp"] = simple.AmtCmp
-	builtins["amtAdd"] = simple.AmtAdd
-	builtins["amtDiff"] = simple.AmtDiff
-	builtins["padLeft"] = simple.PadLeft
-	builtins["left"] = simple.Left
-	builtins["right"] = simple.Right
-	builtins["len"] = simple.Len
-	builtins["isDef"] = simple.IsDefined
-	builtins["b64"] = simple.Base64
-	builtins["uuid"] = simple.Uuid
-	builtins["regexMatch"] = simple.RegexMatch
+	builtins["now"] = purefuncs.Now
+	builtins["isDate"] = purefuncs.IsDate
+	builtins["parseDate"] = purefuncs.ParseDate
+	builtins["parseAndFormatDate"] = purefuncs.ParseAndFmtDate
+	builtins["dateDiff"] = purefuncs.DateDiff
+	builtins["printf"] = purefuncs.Printf
+	builtins["amtConv"] = purefuncs.AmtConv
+	builtins["amtCmp"] = purefuncs.AmtCmp
+	builtins["amtAdd"] = purefuncs.AmtAdd
+	builtins["amtDiff"] = purefuncs.AmtDiff
+	builtins["padLeft"] = purefuncs.PadLeft
+	builtins["left"] = purefuncs.Left
+	builtins["right"] = purefuncs.Right
+	builtins["len"] = purefuncs.Len
+	builtins["isDef"] = purefuncs.IsDefined
+	builtins["b64"] = purefuncs.Base64
+	builtins["uuid"] = purefuncs.Uuid
+	builtins["regexMatch"] = purefuncs.RegexMatch
 
 	return builtins
 }

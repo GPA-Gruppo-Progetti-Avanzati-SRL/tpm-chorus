@@ -7,7 +7,7 @@ import (
 	"github.com/qntfy/kazaam/transform"
 	"github.com/rs/zerolog/log"
 	"strconv"
-	"tpm-chorus/orchestration/funcs/simple"
+	"tpm-chorus/orchestration/funcs/purefuncs"
 )
 
 type conversion struct {
@@ -101,7 +101,7 @@ func Format(_ kazaam.Config) func(spec *transform.Config, data []byte) ([]byte, 
 			iv := 0
 			switch conv.convType {
 			case "amt":
-				s, err = simple.Amt(simple.AmountOpAdd, conv.sourceUnit, conv.targetUnit, conv.decimalFormat, s)
+				s, err = purefuncs.Amt(purefuncs.AmountOpAdd, conv.sourceUnit, conv.targetUnit, conv.decimalFormat, s)
 				if err == nil {
 					data, err = jsonparser.Set(data, []byte(s), conv.targetRef.Keys...)
 				}
