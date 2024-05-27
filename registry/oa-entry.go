@@ -7,9 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"tpm-chorus/constants"
+	"tpm-chorus/orchestration/config"
 	"tpm-chorus/registry/configBundle"
-	"tpm-symphony/constants"
-	"tpm-symphony/orchestration/config"
 )
 
 type OpenApiRegistryEntry struct {

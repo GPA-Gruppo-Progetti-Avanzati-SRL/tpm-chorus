@@ -1,0 +1,20 @@
+{"offerte":[
+    {
+      "idOfferta": "202309300000001",
+      "dataInizio": "2023-02-27",
+      "dataFine": "2029-02-27",
+      "nomeOfferta": "Offerta supersmart standard1"
+    },
+    {
+      "idOfferta": "202309300000002",
+      "dataInizio": "2023-03-27",
+      "dataFine": "2029-03-27",
+      "nomeOfferta": "Offerta supersmart standard2"
+    },
+    {
+      "idOfferta": "202310120000001",
+      "dataInizio": "2023-04-27",
+      "dataFine": "2029-04-27",
+      "nomeOfferta": "Offerta supersmart standard3"
+    }
+  ],"smp-xform":{"idsOfferteCollegate":["202309300000001","202309300000002","202310120000001"]}}

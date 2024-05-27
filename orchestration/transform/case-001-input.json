@@ -1,0 +1,87 @@
+{
+  "idOfferta": "202309300000001",
+  "dataInizio": "2020-01-01",
+  "dataFine": "2025-12-31",
+  "nomeGenerico": "value",
+  "nomeOfferta": "value",
+  "codiceNomeFamiglia": "02",
+  "nomeFamiglia": "NUOVA LIQUIDITA'",
+  "abilitazFeu": "S",
+  "abilitazWeb": "S",
+  "abilitazApp": "S",
+  "abilitaz3270": "N",
+  "abilitazSDP": "N",
+  "durata": 366,
+  "tasso": 10,
+  "taglio": 500000,
+  "importoMinimo": 100000,
+  "tipoControlloCliente": "N",
+  "maxImportoSingolo": 1000000,
+  "maxImportoCross": 1000000,
+  "attributi": [
+    {
+      "nomeAttributo": "FEU-NUM-ACCANTONAMENTI-SINGOLA",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "FEU-NUM-ACCANTONAMENTI-CROSS",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "WEB-NUM-ACCANTONAMENTI-SINGOLA",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "WEB-NUM-ACCANTONAMENTI-CROSS",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "APP-NUM-ACCANTONAMENTI-SINGOLA",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "APP-NUM-ACCANTONAMENTI-CROSS",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "3270-NUM-ACCANTONAMENTI-SINGOLA",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "3270-NUM-ACCANTONAMENTI-CROSS",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "FEU-NUM-ACCANTONAMENTI-SINGOLA-COLL",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "FEU-NUM-ACCANTONAMENTI-CROSS-COLL",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "WEB-NUM-ACCANTONAMENTI-SINGOLA-COLL",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "WEB-NUM-ACCANTONAMENTI-CROSS-COLL",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "APP-NUM-ACCANTONAMENTI-SINGOLA-COLL",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "APP-NUM-ACCANTONAMENTI-CROSS-COLL",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "3270-NUM-ACCANTONAMENTI-SINGOLA-COLL",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "3270-NUM-ACCANTONAMENTI-CROSS-COLL",
+      "valore": 1234567890
+    }
+  ]
+}

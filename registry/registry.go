@@ -8,10 +8,10 @@ import (
 	"github.com/rs/zerolog/log"
 	"regexp"
 	"strings"
+	"tpm-chorus/constants"
+	"tpm-chorus/orchestration/config"
 	"tpm-chorus/registry/configBundle"
 	"tpm-chorus/registry/oapiextensions"
-	"tpm-symphony/constants"
-	"tpm-symphony/orchestration/config"
 )
 
 type OpenApiRegistry struct {

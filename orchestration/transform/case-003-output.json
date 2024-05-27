@@ -1,0 +1,50 @@
+{"smp-xform":{"idsRappCollegati":[1234,1009247329]},"data":{
+    "anagrafica": {
+      "datiAnag": {
+
+      },
+      "numRapporti": "6",
+      "datiRapp": [
+        {
+          "ndgRapp": "55321856",
+          "servizio": "CC",
+          "categoria": "1210",
+          "filiale": "01006",
+          "numero": "1234",
+          "flagEstinzione": "0",
+          "flagTrasferimento": "0",
+          "dataAccensRapp": "20230824",
+          "dataUltimoAgg": "20230824",
+          "dataPrimoIns": "20230824",
+          "operatore": "TEST0186",
+          "terminale": "NFEU",
+          "filialeOperante": "01006",
+          "dataOraAggiorn": "20230824150336",
+          "dataInizioValid": "20230824",
+          "codDivisa": "EUR",
+          "classeTraspBancaria": "1",
+          "iban": "IT04H0760110400001009245455"
+        },
+        {
+          "ndgRapp": "55321856",
+          "servizio": "CC",
+          "categoria": "1210",
+          "filiale": "01006",
+          "numero": "1009247329",
+          "flagEstinzione": "0",
+          "flagTrasferimento": "0",
+          "dataAccensRapp": "20230908",
+          "dataUltimoAgg": "20230908",
+          "dataPrimoIns": "20230908",
+          "operatore": "TEST0186",
+          "terminale": "NFEU",
+          "filialeOperante": "01006",
+          "dataOraAggiorn": "20230908110534",
+          "dataInizioValid": "20230908",
+          "codDivisa": "EUR",
+          "classeTraspBancaria": "1",
+          "iban": "IT36G0760110400001009247329"
+        }
+      ]
+    }
+  }}

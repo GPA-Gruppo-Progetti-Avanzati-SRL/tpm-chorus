@@ -1,0 +1,24 @@
+id: "case003b"
+rules:
+  - operation: shift-array-items
+    spec:
+      source-ref: tabPvr
+      target-ref: tabPvrReduced
+      sub-rules:
+        - operation: shift
+          spec:
+            rapporto: numRapp
+            idOfferta: idOfferta
+            statoPvr: statoPvr
+            dtAperturaPvr: dtAperturaPvr
+            dtScandenzaPvr: dtScandenzaPvr
+            dtSvincoloPvr: dtSvincoloPvr
+            impoPvr: importoPvr
+        - operation: format
+          spec:
+            conversions:
+              - target-ref: impoPvr
+                type: amt
+                source-unit: decimal-2
+                target-unit: cent
+                decimal-format: false

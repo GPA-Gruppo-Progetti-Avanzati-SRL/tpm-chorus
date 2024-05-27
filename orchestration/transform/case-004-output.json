@@ -1,0 +1,39 @@
+{
+  "retCode": 0,
+  "descrErr": " ",
+  "rapporto": {
+    "numRapp": 34041077,
+    "righeTabPvr": 1,
+    "saldoContabile": 10000000,
+    "flagSaldoContabile": "A",
+    "saldoDisponibile": 10000000,
+    "flagSaldoDisponibile": "A",
+    "saldoLibretto": 10000000,
+    "flagSaldoLibretto": "A",
+    "filAppa": "55999"
+  },
+  "tabPvr": [
+    {
+      "progrPvr": 1,
+      "numRapp": 34041077,
+      "idOfferta": 20231107,
+      "statoPvr": "ATTIVA",
+      "nomeCommerciale": "OSS rinnova pensioni",
+      "motivPvr": "",
+      "dtAperturaPvr": "20230915",
+      "dtScandenzaPvr": "20240401",
+      "dtSvincoloPvr": "",
+      "durataPvr": 200,
+      "tassoPvr": 5000,
+      "importoPvr": 355120,
+      "interesseNetto": null,
+      "segnoInteresseNetto": null,
+      "interesseLordo": null,
+      "segnoInteresseLordo": null,
+      "interessiNettiScad": 7188,
+      "segnoInteressiNettiScad": "A",
+      "interessiLordoScad": 9714,
+      "segnoInteressiLordoScad": "A"
+    }
+  ]
+,"smp-xform":{"tabPvr":[{"dtAperturaPvr":"20230915","dtScandenzaPvr":"20240401","dtSvincoloPvr":"","idOfferta":20231107,"impoPvr":355.12,"rapporto":34041077,"statoPvr":"ATTIVA"}]}}
