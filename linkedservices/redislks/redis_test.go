@@ -3,10 +3,10 @@ package redislks_test
 import (
 	"context"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices/redislks"
 	"github.com/stretchr/testify/require"
 	"sync"
 	"testing"
-	"tpm-chorus/linkedservices/redislks"
 )
 
 func TestNewInstanceWithConfig(t *testing.T) {

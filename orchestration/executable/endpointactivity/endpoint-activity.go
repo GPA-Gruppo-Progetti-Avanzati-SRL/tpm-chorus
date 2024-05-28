@@ -2,6 +2,13 @@ package endpointactivity
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client/restclient"
@@ -10,13 +17,6 @@ import (
 	"gopkg.in/yaml.v2"
 	"strings"
 	"time"
-	"tpm-chorus/constants"
-	"tpm-chorus/linkedservices"
-	"tpm-chorus/orchestration/config"
-	"tpm-chorus/orchestration/executable"
-	"tpm-chorus/orchestration/transform"
-	"tpm-chorus/orchestration/wfcase"
-	"tpm-chorus/smperror"
 )
 
 const (

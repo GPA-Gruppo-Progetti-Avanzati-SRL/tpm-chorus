@@ -3,13 +3,13 @@ package wfcase
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"os"
 	"reflect"
 	"strings"
-	"tpm-chorus/constants"
-	"tpm-chorus/orchestration/transform"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/rs/zerolog/log"

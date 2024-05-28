@@ -1,12 +1,12 @@
 package wfcase_test
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/PaesslerAG/gval"
 	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
-	"tpm-chorus/constants"
-	"tpm-chorus/orchestration/wfcase"
 )
 
 var j = []byte(`

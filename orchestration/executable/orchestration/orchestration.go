@@ -3,15 +3,15 @@ package orchestration
 import (
 	"errors"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/echoactivity"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/endpointactivity"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/kafkactivity"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/requestactivity"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/responseactivity"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/rs/zerolog/log"
-	"tpm-chorus/orchestration/config"
-	"tpm-chorus/orchestration/executable"
-	"tpm-chorus/orchestration/executable/echoactivity"
-	"tpm-chorus/orchestration/executable/endpointactivity"
-	"tpm-chorus/orchestration/executable/kafkactivity"
-	"tpm-chorus/orchestration/executable/requestactivity"
-	"tpm-chorus/orchestration/executable/responseactivity"
-	"tpm-chorus/orchestration/wfcase"
 )
 
 type Orchestration struct {

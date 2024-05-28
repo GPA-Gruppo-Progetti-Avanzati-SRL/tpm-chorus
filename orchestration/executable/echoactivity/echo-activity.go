@@ -1,12 +1,12 @@
 package echoactivity
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/rs/zerolog/log"
-	"tpm-chorus/constants"
-	"tpm-chorus/orchestration/config"
-	"tpm-chorus/orchestration/executable"
-	"tpm-chorus/orchestration/wfcase"
-	"tpm-chorus/smperror"
 )
 
 type EchoActivity struct {

@@ -3,11 +3,11 @@ package wfcase
 import (
 	"encoding/base64"
 	"encoding/json"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/withenvfuncs"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/rs/zerolog/log"
 	"strings"
-	"tpm-chorus/orchestration/funcs/purefuncs"
-	"tpm-chorus/orchestration/funcs/withenvfuncs"
 )
 
 func GetFuncMap(wfc *WfCase) map[string]interface{} {

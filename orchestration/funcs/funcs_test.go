@@ -2,11 +2,11 @@ package funcs_test
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs"
 	"os"
 	"strconv"
 	"testing"
 	"time"
-	"tpm-chorus/orchestration/funcs/purefuncs"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"

@@ -1,12 +1,12 @@
 package registry
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/registry/configBundle"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
 	"strings"
-	"tpm-chorus/registry/configBundle"
 )
 
 type Config struct {

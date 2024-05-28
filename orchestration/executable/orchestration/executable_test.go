@@ -1,14 +1,14 @@
 package orchestration_test
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/orchestration"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"strings"
 	"testing"
-	"tpm-chorus/orchestration/config"
-	"tpm-chorus/orchestration/executable/orchestration"
-	"tpm-chorus/orchestration/wfcase"
 )
 
 const (

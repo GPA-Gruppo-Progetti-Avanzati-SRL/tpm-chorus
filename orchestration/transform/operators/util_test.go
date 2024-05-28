@@ -2,9 +2,9 @@ package operators_test
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform/operators"
 	"github.com/stretchr/testify/require"
 	"testing"
-	"tpm-chorus/orchestration/transform/operators"
 )
 
 type InputWanted struct {

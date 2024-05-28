@@ -2,12 +2,12 @@ package operators
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs"
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam"
 	"github.com/qntfy/kazaam/transform"
 	"github.com/rs/zerolog/log"
 	"strconv"
-	"tpm-chorus/orchestration/funcs/purefuncs"
 )
 
 type conversion struct {

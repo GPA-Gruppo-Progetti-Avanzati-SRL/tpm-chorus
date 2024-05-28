@@ -3,9 +3,9 @@ package transform
 import (
 	"errors"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform/operators"
 	"github.com/qntfy/kazaam"
 	"github.com/rs/zerolog/log"
-	"tpm-chorus/orchestration/transform/operators"
 )
 
 var kc kazaam.Config

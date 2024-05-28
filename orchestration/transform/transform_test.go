@@ -2,6 +2,7 @@ package transform_test
 
 import (
 	_ "embed"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
@@ -9,7 +10,6 @@ import (
 	"io/fs"
 	"os"
 	"testing"
-	"tpm-chorus/orchestration/transform"
 )
 
 func handleErrorTestMain(err error) {

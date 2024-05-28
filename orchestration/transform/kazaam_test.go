@@ -3,11 +3,11 @@ package transform_test
 import (
 	_ "embed"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform/operators"
 	"github.com/qntfy/kazaam"
 	"github.com/stretchr/testify/require"
 	"testing"
-	"tpm-chorus/orchestration/transform"
-	"tpm-chorus/orchestration/transform/operators"
 )
 
 var coalesceRule = []byte(`

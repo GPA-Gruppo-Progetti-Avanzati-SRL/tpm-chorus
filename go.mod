@@ -1,4 +1,4 @@
-module tpm-chorus
+module github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus
 
 go 1.22
 

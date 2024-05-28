@@ -1,6 +1,8 @@
 package config_test
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v2"
 	"io/fs"
@@ -8,8 +10,6 @@ import (
 	"net/http"
 	"strings"
 	"testing"
-	"tpm-chorus/constants"
-	"tpm-chorus/orchestration/config"
 )
 
 const (

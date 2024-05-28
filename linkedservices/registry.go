@@ -2,10 +2,10 @@ package linkedservices
 
 import (
 	"errors"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices/redislks"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client/restclient"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common/kafkalks"
 	"github.com/rs/zerolog/log"
-	"tpm-chorus/linkedservices/redislks"
 )
 
 type ServiceRegistry struct {

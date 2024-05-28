@@ -2,6 +2,9 @@ package wfcase
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
+	utils2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/jsonmask"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/templateutil"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
@@ -16,9 +19,6 @@ import (
 	"strings"
 	"text/template"
 	"time"
-	"tpm-chorus/constants"
-	"tpm-chorus/orchestration/config"
-	utils2 "tpm-chorus/util"
 )
 
 type BreadcrumbStep struct {

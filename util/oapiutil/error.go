@@ -2,11 +2,11 @@ package oapiutil
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/getkin/kin-openapi/openapi3filter"
 	"net/http"
 	"strings"
-	"tpm-chorus/smperror"
 )
 
 func ValidationError(err error) error {

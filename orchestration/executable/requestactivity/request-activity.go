@@ -2,14 +2,14 @@ package requestactivity
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"time"
-	"tpm-chorus/constants"
-	"tpm-chorus/orchestration/config"
-	"tpm-chorus/orchestration/executable"
-	"tpm-chorus/orchestration/wfcase"
-	"tpm-chorus/smperror"
 )
 
 const (

@@ -3,15 +3,15 @@ package registry
 import (
 	"context"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/registry/configBundle"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/registry/oapiextensions"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/rs/zerolog/log"
 	"regexp"
 	"strings"
-	"tpm-chorus/constants"
-	"tpm-chorus/orchestration/config"
-	"tpm-chorus/registry/configBundle"
-	"tpm-chorus/registry/oapiextensions"
 )
 
 type OpenApiRegistry struct {
