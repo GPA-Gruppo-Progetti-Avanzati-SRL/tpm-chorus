@@ -1,0 +1,23 @@
+topic-name: test.tpm-symphony
+trace-op-name: produce-to-topic
+headers:
+- name: requestId
+  value: '{h:requestId}'
+- name: correlationId
+  value: '{h:trackId}'
+key: '{ "data-op": "{$.dataOperazione}-{v:uuid}" }'
+body:
+  name: kafka01-body
+  type: template
+  external-value: kafka01-body.tmpl
+on-response:
+- status-code: 202
+  process-vars:
+  - name: hello_async
+    value: '{$.topic}'
+  - name: kafkaRes
+    value: dict("sample", "200")
+- status-code: -1
+  error:
+  - ambit: kafka01
+    message: '{v:dict,sample,500} - {$.message}'

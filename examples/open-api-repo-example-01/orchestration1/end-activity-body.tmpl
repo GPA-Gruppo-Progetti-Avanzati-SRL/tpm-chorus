@@ -1,0 +1,18 @@
+{
+  "msg": "{v:msg}",
+  "response": {
+    "response_code" : "{v:response_code}",
+    "response_ip" : "{v:ip}",
+    "kafkaResFromDict": "{v:kafkaRes}"
+  },
+  "numberAndDates": {
+    "modifiedNumero": "{v:modifiedNumero}",
+    "saldoDisponibile" : {v:saldoDisp},
+    "diffDateFromNow": "{v:diffDateFromNow}"
+  },
+  {{- if ne `{v:modifiedArray}` "" }}
+  "modifiedArray": {v:modifiedArray},{{ end }}
+  {{- if ne `{v:attributiList}` "" }}
+  "attributiList": {v:attributiList},{{ end }}
+  "pathParam": "{v:pathParam}"
+}

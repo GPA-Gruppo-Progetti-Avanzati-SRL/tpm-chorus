@@ -1,0 +1,39 @@
+id: "kazaam_rule"
+rules:
+  - operation: set-properties
+    spec:
+      properties:
+        - name-ref: attributi
+          value: []
+          if-missing: true
+        - name-ref: doc.arr
+          value: []
+          if-missing: true
+  - operation: shift-array-items
+    spec:
+      source-ref: doc.arr
+      sub-rules:
+        - operation: set-properties
+          spec:
+            properties:
+              - name-ref: importo
+                value: "0"
+                if-missing: true
+        - operation: shift
+          spec:
+            mod-a: a
+            mod-importo: importo
+        - operation: format
+          spec:
+            conversions:
+              - target-ref: mod-importo
+                type: amt
+                source-unit: decimal-2
+                target-unit: cent
+                decimal-format: false
+  - operation: reduce-array
+    spec:
+      source-ref: attributi
+      target-ref: attributiList
+      name-ref: nomeAttributo
+      value-ref: valore

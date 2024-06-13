@@ -149,13 +149,18 @@ func (o *Orchestration) ExecuteBoundary(wfc *wfcase.WfCase, boundary config.Exec
 	const semLogContext = "orchestration::execute-boundary"
 
 	log.Trace().Str("boundary", boundary.Name).Msg(semLogContext)
+	withError := false
 	for _, na := range boundary.Activities {
 		a := o.Executables[na]
 		err := a.Execute(wfc)
 		if err != nil {
+			withError = true
 			log.Error().Err(err).Msg(semLogContext)
 		}
 	}
 
+	if withError {
+		return errors.New("boundary errors")
+	}
 	return nil
 }

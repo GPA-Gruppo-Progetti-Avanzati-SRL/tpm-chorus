@@ -1,6 +1,9 @@
 package constants
 
 const (
+	ContentTypeApplicationJson = "application/json"
+	ContentTypeHeader          = "Content-Type"
+
 	DebugMode = true
 
 	SemLogOpenApi          = "open-api"
@@ -11,13 +14,12 @@ const (
 	SemLogName             = "name"
 	SemLogMethod           = "method"
 
-	SemLogActivity             = "act"
-	SemLogNextActivity         = "next-act"
-	SemLogActivityName         = "name"
-	SemLogActivityNumOutputs   = "len-outputs"
-	SemLogActivityNumInputs    = "len-inputs"
-	SemLogCacheKey             = "cache-key"
-	ContentTypeApplicationJson = "application/json"
+	SemLogActivity           = "act"
+	SemLogNextActivity       = "next-act"
+	SemLogActivityName       = "name"
+	SemLogActivityNumOutputs = "len-outputs"
+	SemLogActivityNumInputs  = "len-inputs"
+	SemLogCacheKey           = "cache-key"
 
 	VERSION string = "0.0.1-SNAPSHOT"
 )

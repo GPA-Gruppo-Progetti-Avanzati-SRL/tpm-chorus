@@ -16,7 +16,6 @@ import (
 	"time"
 
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
-	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
 
@@ -119,7 +118,7 @@ func (a *ResponseActivity) IsValid() bool {
 	return b
 }
 
-func (a *ResponseActivity) ResponseJSON(c *gin.Context, wfc *wfcase.WfCase) (*har.Response, error) {
+func (a *ResponseActivity) ResponseJSON(wfc *wfcase.WfCase) (*har.Response, error) {
 
 	const semLogContext = string(config.ResponseActivityType) + "::response-json"
 

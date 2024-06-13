@@ -1,0 +1,8 @@
+test-tpm-symphony:
+  name: test-tpm-symphony
+  fields:
+    - path: "*fiscalCode"
+    - path: "*codiceFiscale"
+    - path: "*cfOrd"
+    - path: "*codice-fiscale"
+    - path: "*codFisc"

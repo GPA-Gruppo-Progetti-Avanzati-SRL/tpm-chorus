@@ -24,7 +24,7 @@ func NewOrchestrationRepoFromFolder(mountPoint string) (OrchestrationBundle, err
 
 	m := make(map[string]AssetGroup)
 	for _, fld := range subFolders {
-		fldName, assetGroup, err := scan4OrchestrationFiles(fld)
+		fldName, assetGroup, err := LoadOrchestrationRepo(fld)
 		if err != nil {
 			return repo, err
 		}
@@ -133,7 +133,7 @@ func Scan4AssetFiles(dir string) ([]Asset, error) {
 	return assets, nil
 }
 
-func scan4OrchestrationFiles(dir string) (string, AssetGroup, error) {
+func LoadOrchestrationRepo(dir string) (string, AssetGroup, error) {
 
 	g := AssetGroup{}
 	files, err := util.FindFiles(dir, util.WithFindFileType(util.FileTypeFile), util.WithFindOptionIgnoreList(DefaultIgnoreList))
@@ -186,6 +186,29 @@ func scan4OrchestrationFiles(dir string) (string, AssetGroup, error) {
 		}
 	}
 	return filepath.Base(dir), g, nil
+}
+
+func LoadOrchestrationData(workPath string, aGroup AssetGroup) ([]byte, []Asset, error) {
+
+	orchestrationFile := filepath.Join(workPath, aGroup.Root.Path)
+	orchestrationData, err := util.ReadFileAndResolveEnvVars(orchestrationFile) // ioutil.ReadFile(orchestrationFile)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var assets []Asset
+	for i, ref := range aGroup.Refs {
+		resolvedPath := filepath.Join(workPath, ref.Path)
+		b, err := util.ReadFileAndResolveEnvVars(resolvedPath) // ioutil.ReadFile(resolvedPath)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		aGroup.Refs[i].Data = b
+		assets = append(assets, aGroup.Refs[i])
+	}
+
+	return orchestrationData, assets, err
 }
 
 func FindAssetIndexByPath(assets []Asset, p string) int {

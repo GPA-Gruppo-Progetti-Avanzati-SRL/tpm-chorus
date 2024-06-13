@@ -7,9 +7,9 @@ import (
 )
 
 type Config struct {
-	RestClient *restclient.Config `mapstructure:"rest-client"`
-	Kafka      []kafkalks.Config  `mapstructure:"kafka"`
-	Redis      *redislks.Config   `mapstructure:"redis-cache"`
+	RestClient *restclient.Config `json:"rest-client" yaml:"rest-client" mapstructure:"rest-client"`
+	Kafka      []kafkalks.Config  `json:"kafka" yaml:"kafka" mapstructure:"kafka"`
+	Redis      *redislks.Config   `json:"redis-cache" yaml:"redis-cache" mapstructure:"redis-cache"`
 }
 
 func (c *Config) PostProcess() error {
