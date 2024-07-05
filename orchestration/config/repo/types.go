@@ -26,8 +26,8 @@ const (
 )
 
 type AssetGroup struct {
-	Root Asset
-	Refs []Asset `yaml:"references" json:"data" mapstructure:"references"`
+	Asset Asset
+	Refs  []Asset `yaml:"references" json:"data" mapstructure:"references"`
 }
 
 func (g AssetGroup) FindAssetIndexByPath(p string) int {
@@ -73,7 +73,7 @@ func (r *OrchestrationBundle) ShowInfo() {
 	log.Info().Str(SemLogPath, r.Path).Msg(semLogContext)
 
 	log.Info().Str("path", r.Path).Msg(semLogContext)
-	log.Info().Str(SemLogType, r.AssetGroup.Root.Type).Str(SemLogFile, r.AssetGroup.Root.Path).Msg(semLogContext)
+	log.Info().Str(SemLogType, r.AssetGroup.Asset.Type).Str(SemLogFile, r.AssetGroup.Asset.Path).Msg(semLogContext)
 	for _, a := range r.AssetGroup.Refs {
 		log.Info().Str(SemLogType, a.Type).Str(SemLogPath, r.Path).Str(SemLogFile, a.Path).Msg(semLogContext)
 	}

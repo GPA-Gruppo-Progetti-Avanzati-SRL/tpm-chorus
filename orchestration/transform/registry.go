@@ -57,6 +57,16 @@ func InitializeKazaamRegistry() error {
 }
 
 func GetRegistry() Registry {
+
+	const semLogContext = "transform-registry::get"
+
+	if registry == nil {
+		err := InitializeKazaamRegistry()
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+		}
+	}
+
 	return registry
 }
 

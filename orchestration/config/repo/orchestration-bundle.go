@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-func LoadOrchestrationRepo(dir string) (OrchestrationBundle, error) {
+func NewOrchestrationBundleFromFolder(dir string) (OrchestrationBundle, error) {
 
 	bundle := OrchestrationBundle{
 		Path: dir,
@@ -26,20 +26,22 @@ func LoadOrchestrationRepo(dir string) (OrchestrationBundle, error) {
 		fileType, fileQualifier := GetFileTypeByName(na)
 		switch fileType {
 		case AssetTypeOrchestration:
-			bundle.AssetGroup.Root = Asset{Name: na, Path: pa, Type: AssetTypeOrchestration}
+			bundle.AssetGroup.Asset = Asset{Name: na, Path: pa, Type: AssetTypeOrchestration}
 		case AssetTypeDictionary:
 			bundle.AssetGroup.Refs = append(bundle.AssetGroup.Refs, Asset{Type: AssetTypeDictionary, Name: fileQualifier, Path: pa})
 		case AssetTypeVersion:
-			bundle.AssetGroup.Refs = append(bundle.AssetGroup.Refs, Asset{Type: AssetTypeVersion, Name: na, Path: pa})
+			bundle.Version = ReadVersionFile(a)
+			// bundle.AssetGroup.Refs = append(bundle.AssetGroup.Refs, Asset{Type: AssetTypeVersion, Name: na, Path: pa})
 		case AssetTypeSHA:
-			bundle.AssetGroup.Refs = append(bundle.AssetGroup.Refs, Asset{Type: AssetTypeSHA, Name: na, Path: pa})
+			bundle.SHA = ReadSHAFile(a)
+			// bundle.AssetGroup.Refs = append(bundle.AssetGroup.Refs, Asset{Type: AssetTypeSHA, Name: na, Path: pa})
 		default:
 			bundle.AssetGroup.Refs = append(bundle.AssetGroup.Refs, Asset{Type: AssetTypeExternalValue, Name: na, Path: pa})
 		}
 	}
 
 	// Need to skip sub-folders without orchestration files.
-	if bundle.AssetGroup.Root.IsZero() {
+	if bundle.AssetGroup.Asset.IsZero() {
 		log.Info().Str("folder", dir).Msg("not an orchestration folder")
 		return bundle, nil
 	}
@@ -68,7 +70,7 @@ func LoadOrchestrationRepo(dir string) (OrchestrationBundle, error) {
 
 func (r *OrchestrationBundle) LoadOrchestrationData() ([]byte, []Asset, error) {
 
-	orchestrationFile := filepath.Join(r.Path, r.AssetGroup.Root.Path)
+	orchestrationFile := filepath.Join(r.Path, r.AssetGroup.Asset.Path)
 	orchestrationData, err := util.ReadFileAndResolveEnvVars(orchestrationFile) // ioutil.ReadFile(orchestrationFile)
 	if err != nil {
 		return nil, nil, err
@@ -150,7 +152,7 @@ func Scan4AssetFiles(dir string) ([]Asset, error) {
 
 func LoadOrchestrationData(workPath string, aGroup AssetGroup) ([]byte, []Asset, error) {
 
-	orchestrationFile := filepath.Join(workPath, aGroup.Root.Path)
+	orchestrationFile := filepath.Join(workPath, aGroup.Asset.Path)
 	orchestrationData, err := util.ReadFileAndResolveEnvVars(orchestrationFile) // ioutil.ReadFile(orchestrationFile)
 	if err != nil {
 		return nil, nil, err

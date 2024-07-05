@@ -3,8 +3,12 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config/repo"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/registry/configBundle"
 	"github.com/mitchellh/mapstructure"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
+	"strings"
 )
 
 /*
@@ -124,6 +128,56 @@ type Orchestration struct {
 	References    DataReferences                    `yaml:"-" mapstructure:"-" json:"-"`
 	Dictionaries  Dictionaries                      `yaml:"-" mapstructure:"-" json:"-"`
 	PII           PersonallyIdentifiableInformation `yaml:"pii,omitempty" mapstructure:"pii,omitempty" json:"pii,omitempty"`
+}
+
+func NewOrchestrationDefinitionFromFolder(orchestration1Folder string) (Orchestration, error) {
+	const semLogContext = "config::new-orchestration-definition-from-folder"
+	bundle, err := repo.NewOrchestrationBundleFromFolder(orchestration1Folder)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return Orchestration{}, err
+	}
+
+	orchestrationDefinition, err := NewOrchestrationDefinitionFromBundle(&bundle)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+	}
+
+	return orchestrationDefinition, err
+}
+
+func NewOrchestrationDefinitionFromBundle(bundle *repo.OrchestrationBundle) (Orchestration, error) {
+
+	orchestrationDefinitionData, assets, err := bundle.LoadOrchestrationData()
+	if err != nil {
+		return Orchestration{}, err
+	}
+
+	o, err := NewOrchestrationFromYAML(orchestrationDefinitionData)
+	if err != nil {
+		return Orchestration{}, err
+	}
+
+	for _, a := range assets {
+		switch a.Type {
+		case configBundle.AssetTypeDictionary:
+			var d Dictionary
+			d, err = NewDictionary(a.Name, a.Data)
+			o.Dictionaries = append(o.Dictionaries, d)
+		case configBundle.AssetTypeSHA:
+			o.SHA = strings.TrimSpace(string(a.Data))
+		case configBundle.AssetTypeVersion:
+			o.Version = strings.TrimSpace(string(a.Data))
+		default:
+			o.References = append(o.References, DataReference{Path: a.Name, Data: a.Data})
+		}
+
+		if err != nil {
+			return Orchestration{}, err
+		}
+	}
+
+	return o, nil
 }
 
 func NewOrchestrationFromJSON(data []byte) (Orchestration, error) {

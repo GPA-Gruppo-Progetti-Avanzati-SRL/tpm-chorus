@@ -1,7 +1,6 @@
 package examples_test
 
 import (
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/registry"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/registry/configBundle"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
@@ -13,6 +12,7 @@ const (
 	OrchestrationFolder = "./open-api-repo-example-01/orchestration1"
 )
 
+/*
 func TestLoadOrchestrationRepo1(t *testing.T) {
 
 	sarr := []string{
@@ -30,6 +30,7 @@ func TestLoadOrchestrationRepo1(t *testing.T) {
 		reg.ShowInfo()
 	}
 }
+*/
 
 func TestLoadOrchestrationRepo(t *testing.T) {
 

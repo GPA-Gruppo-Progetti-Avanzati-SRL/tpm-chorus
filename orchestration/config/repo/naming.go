@@ -1,6 +1,8 @@
 package repo
 
 import (
+	"github.com/rs/zerolog/log"
+	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -60,6 +62,16 @@ func NameIsVersion(n string) (string, bool) {
 	return "", false
 }
 
+func ReadVersionFile(fn string) string {
+	const semLogContext = "registry::Read-version-file"
+	version, err := readStringFromFile(fn)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+	}
+
+	return version
+}
+
 func NameIsSHA(n string) (string, bool) {
 	baseName := strings.ToUpper(filepath.Base(n))
 	if baseName == SHAFileName {
@@ -67,6 +79,24 @@ func NameIsSHA(n string) (string, bool) {
 	}
 
 	return "", false
+}
+
+func ReadSHAFile(fn string) string {
+	const semLogContext = "registry::Read-sha-file"
+	sha, err := readStringFromFile(fn)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+	}
+
+	return sha
+}
+
+func readStringFromFile(fn string) (string, error) {
+	b, err := os.ReadFile(fn)
+	if err != nil {
+		return "", err
+	}
+	return string(b), nil
 }
 
 func GetFileTypeByName(fn string) (string, string) {

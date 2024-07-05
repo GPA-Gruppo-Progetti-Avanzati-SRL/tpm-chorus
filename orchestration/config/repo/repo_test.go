@@ -18,14 +18,14 @@ func TestLoadOrchestrationRepo(t *testing.T) {
 	}
 
 	for _, dir := range sarr {
-		bundle, err := repo.LoadOrchestrationRepo(dir)
+		bundle, err := repo.NewOrchestrationBundleFromFolder(dir)
 		require.NoError(t, err)
 
-		log.Info().Str("fld", bundle.Path).Msg(semLogContext)
+		log.Info().Str("fld", bundle.Path).Str("version", bundle.Version).Str("sha", bundle.SHA).Msg(semLogContext)
 		log.Info().
-			Str("asset-root-path", bundle.AssetGroup.Root.Path).
-			Str("asset-root-name", bundle.AssetGroup.Root.Name).
-			Str("asset-root-type", bundle.AssetGroup.Root.Type).Msg(semLogContext)
+			Str("asset-root-path", bundle.AssetGroup.Asset.Path).
+			Str("asset-root-name", bundle.AssetGroup.Asset.Name).
+			Str("asset-root-type", bundle.AssetGroup.Asset.Type).Msg(semLogContext)
 		for _, a := range bundle.AssetGroup.Refs {
 			log.Info().Str("type", a.Type).Str("asset-path", a.Path).Str("asset-name", a.Name).Msg(semLogContext)
 		}

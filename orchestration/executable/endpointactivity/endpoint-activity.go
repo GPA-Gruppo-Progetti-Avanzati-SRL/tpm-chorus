@@ -1,6 +1,7 @@
 package endpointactivity
 
 import (
+	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices"
@@ -83,6 +84,11 @@ func NewEndpointActivity(item config.Configurable, refs config.DataReferences) (
 
 func registerTransformations(ts []config.TransformReference, refs config.DataReferences) error {
 	tReg := transform.GetRegistry()
+	if tReg == nil {
+		err := errors.New("transformation registry not initialized")
+		return err
+	}
+
 	for _, tref := range ts {
 		trasDef, _ := refs.Find(tref.DefinitionRef)
 		if len(trasDef) == 0 {
