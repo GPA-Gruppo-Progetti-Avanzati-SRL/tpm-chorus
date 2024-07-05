@@ -1,14 +1,13 @@
 package examples_test
 
 import (
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/registry/configBundle"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config/repo"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 const (
-	CrawlerMountPoint   = "./open-api-repo-example-01"
 	OrchestrationFolder = "./open-api-repo-example-01/orchestration1"
 )
 
@@ -41,16 +40,16 @@ func TestLoadOrchestrationRepo(t *testing.T) {
 	}
 
 	for _, dir := range sarr {
-		orchestrationFld, assetGroup, err := configBundle.LoadOrchestrationRepo(dir)
+		bundle, err := repo.NewOrchestrationBundleFromFolder(dir)
 		require.NoError(t, err)
 
-		log.Info().Str("fld", orchestrationFld).Str("type", assetGroup.Root.Type).Msg(semLogContext)
+		log.Info().Str("fld", bundle.Path).Str("type", bundle.AssetGroup.Asset.Type).Msg(semLogContext)
 
-		for _, a := range assetGroup.Refs {
+		for _, a := range bundle.AssetGroup.Refs {
 			log.Info().Str("type", a.Type).Str("asset-path", a.Path).Msg(semLogContext)
 		}
 
-		_, _, err = configBundle.LoadOrchestrationData(CrawlerMountPoint, assetGroup)
+		_, _, err = bundle.LoadOrchestrationData()
 		require.NoError(t, err)
 	}
 

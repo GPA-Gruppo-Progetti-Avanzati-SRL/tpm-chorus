@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config/repo"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/registry/configBundle"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v2"
@@ -160,13 +159,13 @@ func NewOrchestrationDefinitionFromBundle(bundle *repo.OrchestrationBundle) (Orc
 
 	for _, a := range assets {
 		switch a.Type {
-		case configBundle.AssetTypeDictionary:
+		case repo.AssetTypeDictionary:
 			var d Dictionary
 			d, err = NewDictionary(a.Name, a.Data)
 			o.Dictionaries = append(o.Dictionaries, d)
-		case configBundle.AssetTypeSHA:
+		case repo.AssetTypeSHA:
 			o.SHA = strings.TrimSpace(string(a.Data))
-		case configBundle.AssetTypeVersion:
+		case repo.AssetTypeVersion:
 			o.Version = strings.TrimSpace(string(a.Data))
 		default:
 			o.References = append(o.References, DataReference{Path: a.Name, Data: a.Data})

@@ -164,3 +164,8 @@ func (o *Orchestration) ExecuteBoundary(wfc *wfcase.WfCase, boundary config.Exec
 	}
 	return nil
 }
+
+func (o *Orchestration) ShowInfo() {
+	const semLogContext = "orchestration::show"
+	log.Info().Str("id", o.Cfg.Id).Msg(semLogContext)
+}

@@ -12,7 +12,7 @@ const (
 	SHAFileName                  = "SHA"
 	VERSIONFileName              = "VERSION"
 	DictionaryFileNamePattern    = "^dict-([a-zA-Z_-]+)\\.(?:yaml|yml)$"
-	OrchestrationFileNamePattern = "^tpm-symphony-orchestration\\.(yml|yaml)$"
+	OrchestrationFileNamePattern = "^(tpm-symphony-orchestration|tpm-orchestration)\\.(yml|yaml)$"
 )
 
 const (
