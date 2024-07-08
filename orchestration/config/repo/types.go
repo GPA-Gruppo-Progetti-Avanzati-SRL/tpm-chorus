@@ -1,7 +1,9 @@
 package repo
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
+	"path/filepath"
 )
 
 const (
@@ -27,27 +29,27 @@ const (
 
 type AssetGroup struct {
 	Asset Asset
-	Refs  []Asset `yaml:"references" json:"data" mapstructure:"references"`
+	Refs  Assets `yaml:"references" json:"data" mapstructure:"references"`
 }
 
 func (g AssetGroup) FindAssetIndexByPath(p string) int {
-	for i, a := range g.Refs {
-		if a.Path == p {
-			return i
-		}
-	}
+	//for i, a := range g.Refs {
+	//	if a.Path == p {
+	//		return i
+	//	}
+	//}
 
-	return -1
+	return g.Refs.IndexByPath(p)
 }
 
 func (g AssetGroup) FindAssetIndexByType(t string) int {
-	for i, a := range g.Refs {
-		if a.Type == t {
-			return i
-		}
-	}
+	//for i, a := range g.Refs {
+	//	if a.Type == t {
+	//		return i
+	//	}
+	//}
 
-	return -1
+	return g.Refs.IndexByType(t)
 }
 
 type Asset struct {
@@ -59,6 +61,38 @@ type Asset struct {
 
 func (a Asset) IsZero() bool {
 	return a.Type == ""
+}
+
+func (a Asset) ReadData(mountPoint string) ([]byte, error) {
+	resolvedPath := filepath.Join(mountPoint, a.Path)
+	b, err := util.ReadFileAndResolveEnvVars(resolvedPath)
+	if err != nil {
+		return nil, err
+	}
+
+	return b, err
+}
+
+type Assets []Asset
+
+func (as Assets) IndexByPath(p string) int {
+	for i, a := range as {
+		if a.Path == p {
+			return i
+		}
+	}
+
+	return -1
+}
+
+func (as Assets) IndexByType(t string) int {
+	for i, a := range as {
+		if a.Type == t {
+			return i
+		}
+	}
+
+	return -1
 }
 
 type OrchestrationBundle struct {

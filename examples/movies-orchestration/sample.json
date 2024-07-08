@@ -1,0 +1,77 @@
+{
+  "fullplot": "In this charming film based on the popular L. Frank Baum stories, Dorothy and her dog Toto are caught in a tornado's path and somehow end up in the land of Oz. Here she meets some memorable friends and foes in her journey to meet the Wizard of Oz who everyone says can help her return home and possibly grant her new friends their goals of a brain, heart and courage.",
+  "imdb": {
+    "rating": 8.1,
+    "votes": 262132,
+    "id": 32138
+  },
+  "year": 1939,
+  "plot": "Dorothy Gale is swept away to a magical land in a tornado and embarks on a quest to see the Wizard who can help her return home.",
+  "genres": [
+    "Adventure",
+    "Family",
+    "Fantasy"
+  ],
+  "rated": "PASSED",
+  "metacritic": 100,
+  "title": "The Wizard of Oz",
+  "lastupdated": "2015-09-01 00:29:05.490000000",
+  "languages": [
+    "English"
+  ],
+  "writers": [
+    "Noel Langley (screenplay)",
+    "Florence Ryerson (screenplay)",
+    "Edgar Allan Woolf (screenplay)",
+    "Noel Langley (adaptation)",
+    "L. Frank Baum (from the book by)"
+  ],
+  "type": "movie",
+  "tomatoes": {
+    "website": "http://thewizardofoz.warnerbros.com/",
+    "viewer": {
+      "rating": 3.7,
+      "numReviews": 872115,
+      "meter": 89
+    },
+    "dvd":  "1999-10-19T00:00:00.000Z"
+  ,
+    "critic": {
+      "rating": 9.4,
+      "numReviews": 108,
+      "meter": 99
+    },
+    "lastUpdated": "2015-09-12T17:53:21.000Z"
+  ,
+    "consensus": "An absolute masterpiece whose groundbreaking visuals and deft storytelling are still every bit as resonant, The Wizard of Oz is a must-see film for young and old.",
+    "rotten": 1,
+    "production": "Warner Bros. Pictures",
+    "fresh": 107
+  },
+  "poster": "https://m.media-amazon.com/images/M/MV5BNjUyMTc4MDExMV5BMl5BanBnXkFtZTgwNDg0NDIwMjE@._V1_SY1000_SX677_AL_.jpg",
+  "num_mflix_comments": 139,
+  "released": "-957916800000"
+,
+  "awards": {
+    "wins": 9,
+    "nominations": 13,
+    "text": "Won 2 Oscars. Another 7 wins & 13 nominations."
+  },
+  "countries": [
+    "USA"
+  ],
+  "cast": [
+    "Judy Garland",
+    "Frank Morgan",
+    "Ray Bolger",
+    "Bert Lahr"
+  ],
+  "directors": [
+    "Victor Fleming",
+    "George Cukor",
+    "Mervyn LeRoy",
+    "Norman Taurog",
+    "King Vidor"
+  ],
+  "runtime": 102
+}
