@@ -6,6 +6,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"os"
 	"reflect"
@@ -99,56 +100,102 @@ func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 		s = strings.TrimPrefix(s, "!")
 	}
 
-	pfix, err := pvr.getPrefix(s)
-	if err != nil {
-		return "", false
+	variable, _ := varResolver.ParseVariable(s)
+	if variable.Deferred {
+		return variable.Raw(), variable.Deferred
 	}
 
+	pfix, err := pvr.getPrefix(s)
+	if err != nil {
+		return "", variable.Deferred
+	}
+
+	var varValue interface{}
+	var skipVariableOpts bool
+	var ok bool
 	switch pfix {
 	case "$[":
-		fallthrough
-	case "$.":
-		var v interface{}
-		v, err = jsonpath.Get(s, pvr.body)
-		// log.Trace().Str("path-name", s).Interface("value", v).Msg("evaluation of var")
+		// Hack because need to change tpm-common...
+		variable.Name = strings.TrimSuffix(variable.Name, "]")
+		temp := pfix + variable.Name + "]"
+		varValue, err = jsonpath.Get(temp, pvr.body)
 		if err == nil {
-			s, err = pvr.resolveJsonPathExpr(v)
-			if err == nil {
-				return pvr.JSONEscape(s, doEscape), false
-			}
+			ok = true
 		}
+	case "$.":
+		temp := pfix + variable.Name
+		varValue, err = jsonpath.Get(temp, pvr.body)
+		if err == nil {
+			ok = true
+		}
+		// log.Trace().Str("path-name", s).Interface("value", v).Msg("evaluation of var")
+		/*
+			if err == nil {
+				s, err = pvr.resolveJsonPathExpr(v)
+				if err == nil {
+					return pvr.JSONEscape(s, doEscape), false
+				}
+			}
+		*/
 
 		//log.Info().Err(err).Str("path-name", s).Msg(semLogContext + " json-path error")
 
 	case "h:":
-		s = pvr.headers.GetFirst(s[2:]).Value
-		return pvr.JSONEscape(s, doEscape), false
+		varValue = pvr.headers.GetFirst(variable.Name).Value
+		if varValue.(string) != "" {
+			ok = true
+		}
+		// return pvr.JSONEscape(s, doEscape), false
 
 	case "p:":
-		s = pvr.params.GetFirst(s[2:]).Value
-		return pvr.JSONEscape(s, doEscape), false
+		varValue = pvr.params.GetFirst(variable.Name).Value
+		if varValue.(string) != "" {
+			ok = true
+		}
+		// return pvr.JSONEscape(s, doEscape), false
 
 	case "v:":
 		vComp := strings.Split(s[2:], ",")
-		v, ok := pvr.vars.Get(vComp[0])
+		varValue, ok = pvr.vars.Get(variable.Name)
 		if ok {
-			if reflect.ValueOf(v).Kind() == reflect.Func {
-				s = pvr.resolveFunctionVar(v, vComp[0], vComp[1:]...)
-			} else {
+			if reflect.ValueOf(varValue).Kind() == reflect.Func {
+				varValue = pvr.resolveFunctionVar(varValue, variable.Name, vComp[1:]...)
+				skipVariableOpts = true
+			} /* else {
 				s = fmt.Sprintf("%v", v)
 			}
-			return pvr.JSONEscape(s, doEscape), false
+			return pvr.JSONEscape(s, doEscape), false */
 		}
 
 	default:
-		v, ok := os.LookupEnv(s)
-		if ok {
-			return pvr.JSONEscape(v, doEscape), false
+		varValue, ok = os.LookupEnv(s)
+	}
+
+	if !ok {
+		log.Info().Str("var-name", s).Msg(semLogContext + " could not resolve variable!")
+	}
+
+	if err != nil {
+		if !isJsonPathUnknownKey(err) {
+			log.Error().Err(err).Msg(semLogContext)
+			return "", variable.Deferred
 		}
 	}
 
-	log.Info().Str("var-name", s).Msg("could not resolve variable")
-	return "", false
+	s, err = variable.ToString(varValue, doEscape, skipVariableOpts)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+	}
+
+	return s, false
+}
+
+func isJsonPathUnknownKey(err error) bool {
+	if err != nil {
+		return strings.HasPrefix(err.Error(), "unknown key")
+	}
+
+	return false
 }
 
 func (pvr *ProcessVarResolver) resolveFunctionVar(v interface{}, funcName string, params ...string) string {

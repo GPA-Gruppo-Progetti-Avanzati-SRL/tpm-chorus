@@ -80,6 +80,10 @@ func NewOrchestration(cfg *config.Orchestration) (Orchestration, error) {
 		ex.AddInput(p)
 	}
 
+	if !o.IsValid() {
+		return o, fmt.Errorf("the configured orchestration is invalid")
+	}
+
 	return o, nil
 }
 

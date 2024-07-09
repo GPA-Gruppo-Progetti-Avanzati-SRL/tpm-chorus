@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	OrchestrationWorkPath     = "~/examples/open-api-repo-example-01/movies-orchestration/"
+	OrchestrationWorkPath     = "~/examples/movies-orchestration/"
 	OrchestrationYAMLFileName = OrchestrationWorkPath + "tpm-orchestration.yml"
 
 	descriptionSuffix           = " description"

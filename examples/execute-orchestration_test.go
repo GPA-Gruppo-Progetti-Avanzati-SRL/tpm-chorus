@@ -93,11 +93,12 @@ func TestExecuteOrchestration2(t *testing.T) {
 					resp.Headers,
 				),
 				exec.Cfg.PII)
-			log.Error().Str("response", string(resp.Content.Data)).Msg(semLogContext)
+			log.Info().Str("response", string(resp.Content.Data)).Msg(semLogContext)
 		}
 	}
 
 	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
 		sc, ct, resp := produceErrorResponse(err)
 		err = wfCase.AddEndpointResponseData(
 			"request",

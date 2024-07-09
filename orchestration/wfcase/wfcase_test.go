@@ -26,7 +26,7 @@ var j = []byte(`
   },
   "operazione": {
     "divisa": "EUR",
-    "importo": 0,
+    "importo": 10,
     "descrizione": "string",
     "tipo": "RPAU"
   },
@@ -62,6 +62,9 @@ func TestNewProcessVarResolver(t *testing.T) {
 	require.NoError(t, err)
 
 	err = pvs.Set("beneficiario_numero3", "{$.operazioni[0].pippo}", resolver)
+	require.NoError(t, err)
+
+	err = pvs.Set("operazione_importo", "{$.operazione.importo}", resolver)
 	require.NoError(t, err)
 
 	t.Log(pvs)

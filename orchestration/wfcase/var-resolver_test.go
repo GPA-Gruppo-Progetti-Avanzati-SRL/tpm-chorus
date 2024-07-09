@@ -24,7 +24,7 @@ var j1 = []byte(`
   },
   "operazione": {
     "divisa": "EUR",
-    "importo": 0,
+    "importo": 20,
     "descrizione": "string",
     "tipo": "RPAU"
   },
@@ -65,6 +65,10 @@ func TestJsonPath(t *testing.T) {
 	} else {
 		t.Log(v)
 	}
+
+	v, err = jsonpath.Get("$.operazione.importo", m)
+	require.NoError(t, err)
+	t.Log(v)
 
 	v, err = jsonpath.Get("$.array", m)
 	require.NoError(t, err)
