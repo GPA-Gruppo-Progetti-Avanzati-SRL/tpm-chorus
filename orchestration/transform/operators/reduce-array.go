@@ -97,7 +97,7 @@ func ReduceArray(kc kazaam.Config) func(spec *transform.Config, data []byte) ([]
 				return
 			}
 
-			propertyValueValue, err := getJsonValue(value, params.propertyValueRef.Path)
+			propertyValueValue, dataType, err := getJsonValue(value, params.propertyValueRef.Path)
 			if err != nil {
 				// Note: how to signal back an error?
 				loopErr = err
@@ -107,6 +107,10 @@ func ReduceArray(kc kazaam.Config) func(spec *transform.Config, data []byte) ([]
 
 			if propertyValueValue == nil {
 				return
+			}
+			if dataType == jsonparser.String {
+				quote := []byte("\"")
+				propertyValueValue = append(quote, append(propertyValueValue, quote...)...)
 			}
 
 			result, err = jsonparser.Set(result, propertyValueValue, propertyName)

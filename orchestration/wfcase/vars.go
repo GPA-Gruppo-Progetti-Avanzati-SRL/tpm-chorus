@@ -24,12 +24,12 @@ type ProcessVars map[string]interface{}
 
 func (vs ProcessVars) Set(n string, expr string, resolver *ProcessVarResolver) error {
 
-	isExpr := isExpression(expr)
-
 	val, _, err := varResolver.ResolveVariables(expr, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
 	if err != nil {
 		return err
 	}
+
+	isExpr := isExpression(val)
 
 	// Was isExpression(val) but in doing this I use the evaluated value and I depend on the value of the variables  with potentially weird values.
 	if isExpr {

@@ -2,6 +2,7 @@ package operators
 
 import (
 	"encoding/json"
+
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam"
 	"github.com/qntfy/kazaam/transform"
@@ -76,7 +77,7 @@ func SetProperties(_ kazaam.Config) func(spec *transform.Config, data []byte) ([
 
 			if pcfg.IfMissing {
 				_, vt, _, _ := jsonparser.Get(data, pcfg.Name.Keys...)
-				if vt == jsonparser.NotExist {
+				if vt == jsonparser.NotExist || vt == jsonparser.Null {
 					data, err = jsonparser.Set(data, pcfg.Value, pcfg.Name.Keys...)
 					if err != nil {
 						log.Error().Err(err).Msg(semLogContext)

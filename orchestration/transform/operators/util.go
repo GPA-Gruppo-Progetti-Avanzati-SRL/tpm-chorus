@@ -2,9 +2,10 @@ package operators
 
 import (
 	"fmt"
+	"regexp"
+
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam/transform"
-	"regexp"
 )
 
 func getJsonArray(data []byte, ref JsonReference) ([]byte, error) {
@@ -44,22 +45,22 @@ func getJsonString(data []byte, targetRef string, required bool) (string, error)
 	return string(jsonValue), nil
 }
 
-func getJsonValue(data []byte, targetRef string) ([]byte, error) {
+func getJsonValue(data []byte, targetRef string) (jsonValue []byte, dataType jsonparser.ValueType, err error) {
 	targetRefKeys, err := SplitKeySpecifier(targetRef)
 	if err != nil {
-		return nil, err
+		return nil, jsonparser.NotExist, err
 	}
 
-	jsonValue, dataType, _, err := jsonparser.Get(data, targetRefKeys...)
+	jsonValueRes, dataTypeRes, _, err := jsonparser.Get(data, targetRefKeys...)
 	if err != nil {
-		return nil, err
+		return nil, jsonparser.NotExist, err
 	}
 
-	if dataType == jsonparser.NotExist {
-		return nil, nil
+	if dataTypeRes == jsonparser.NotExist {
+		return nil, dataTypeRes, nil
 	}
 
-	return jsonValue, nil
+	return jsonValueRes, dataTypeRes, nil
 }
 
 var KeyPatternRegexp = regexp.MustCompile("([a-zA-Z0-9-_]+|\\.|\\[\\*])")
