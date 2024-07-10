@@ -19,7 +19,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins["var"] = func(varContext string, varReference string) interface{} {
 		const semLogContext = "builtins-funcs::var"
 		log.Trace().Str("var-ctx", varContext).Str("var-reference", varReference).Msg(semLogContext)
-		pvr, err := wfc.GetResolverForEntry(varContext, true, true)
+		pvr, err := wfc.GetResolverByContext(varContext, true, true)
 		if err != nil {
 			log.Error().Err(err).Str("var-ctx", varContext).Str("var-reference", varReference).Msg(semLogContext)
 		}
@@ -38,7 +38,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 			return ""
 		}
 
-		resolver, err := wfc.GetResolverForEntry("request", true, "", false)
+		resolver, err := wfc.GetResolverByContext(InitialRequestResolverContext, true, "", false)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return err.Error()

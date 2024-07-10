@@ -90,7 +90,7 @@ func (a *ResponseActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	//if len(cfg.ProcessVars) > 0 {
-	err := wfc.SetVars("request", cfg.ProcessVars, "", false)
+	err := wfc.SetVars(wfcase.InitialRequestResolverContext, cfg.ProcessVars, "", false)
 	if err != nil {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
@@ -131,7 +131,7 @@ func (a *ResponseActivity) ResponseJSON(wfc *wfcase.WfCase) (*har.Response, erro
 
 	tcfg := a.Cfg.(*config.ResponseActivity)
 
-	resolver, err := wfc.GetResolverForRequestEntry("request", true, "")
+	resolver, err := wfc.GetResolverByContext(wfcase.InitialRequestResolverContext, true, "", false)
 	if err != nil {
 		return nil, err
 	}

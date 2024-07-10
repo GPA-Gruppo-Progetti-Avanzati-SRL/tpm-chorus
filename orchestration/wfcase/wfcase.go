@@ -36,6 +36,17 @@ type EndpointData struct {
 	Params  gin.Params
 }
 
+const (
+	InitialRequestResolverContextName = "request"
+)
+
+var InitialRequestResolverContext = ResolverContext{EntryId: InitialRequestResolverContextName}
+
+type ResolverContext struct {
+	EntryId     string
+	UseResponse bool
+}
+
 type WfCase struct {
 	SymphonyId  string
 	Browser     *har.Creator
@@ -275,85 +286,82 @@ func (wfc *WfCase) GetHeaderFromContext(ctxName string, hn string) string {
 	return ""
 }
 
-func (wfc *WfCase) GetResolverForEntry(ctxName string, withVars bool, withTransformationId string, ignoreNonApplicationJsonResponseContent bool) (*ProcessVarResolver, error) {
+func (wfc *WfCase) GetResolverByContext(resolverContext ResolverContext, withVars bool, withTransformationId string, ignoreNonApplicationJsonResponseContent bool) (*ProcessVarResolver, error) {
 	var resolver *ProcessVarResolver
 	var err error
-	if ctxName == "request" {
-		resolver, err = wfc.GetResolverForRequestEntry(ctxName, withVars, withTransformationId)
+	if entry, ok := wfc.Entries[resolverContext.EntryId]; ok {
+		if resolverContext.UseResponse {
+			resolver, err = wfc.GetResolverForResponseEntry(entry, withVars, withTransformationId, ignoreNonApplicationJsonResponseContent)
+		} else {
+			resolver, err = wfc.GetResolverForRequestEntry(entry, withVars, withTransformationId)
+		}
 	} else {
-		resolver, err = wfc.GetResolverForResponseEntry(ctxName, withVars, withTransformationId, ignoreNonApplicationJsonResponseContent)
+		return nil, fmt.Errorf("cannot find ctxName %s in case", resolverContext.EntryId)
 	}
 
 	return resolver, err
 }
 
-func (wfc *WfCase) GetResolverForRequestEntry(ctxName string, withVars bool, withTransformationId string) (*ProcessVarResolver, error) {
+func (wfc *WfCase) GetResolverForRequestEntry(endpointData *har.Entry, withVars bool, withTransformationId string) (*ProcessVarResolver, error) {
 
 	var err error
 	var resolver *ProcessVarResolver
-	if endpointData, ok := wfc.Entries[ctxName]; ok {
 
-		opts := []VarResolverOption{WithHeaders(endpointData.Request.Headers)}
-		if endpointData.Request.PostData != nil {
-			opts = append(opts, WithBody(endpointData.Request.PostData.MimeType, endpointData.Request.PostData.Data, withTransformationId), WithParams(endpointData.Request.PostData.Params))
-		}
+	opts := []VarResolverOption{WithHeaders(endpointData.Request.Headers)}
+	if endpointData.Request.PostData != nil {
+		opts = append(opts, WithBody(endpointData.Request.PostData.MimeType, endpointData.Request.PostData.Data, withTransformationId), WithParams(endpointData.Request.PostData.Params))
+	}
 
-		if withVars {
-			opts = append(opts, WithProcessVars(wfc.Vars))
-		}
-		resolver, err = NewProcessVarResolver(opts...)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, fmt.Errorf("cannot find ctxName %s in case", ctxName)
+	if withVars {
+		opts = append(opts, WithProcessVars(wfc.Vars))
+	}
+	resolver, err = NewProcessVarResolver(opts...)
+	if err != nil {
+		return nil, err
 	}
 
 	return resolver, nil
 }
 
-func (wfc *WfCase) GetRequestEntry(ctxName string) (*har.Entry, error) {
-	if endpointData, ok := wfc.Entries[ctxName]; ok {
+func (wfc *WfCase) GetHarEntry(entryId string) (*har.Entry, error) {
+	if endpointData, ok := wfc.Entries[entryId]; ok {
 		return endpointData, nil
 	}
-	return nil, fmt.Errorf("cannot find ctxName %s in case", ctxName)
+	return nil, fmt.Errorf("cannot find ctxName %s in case", entryId)
 }
 
-func (wfc *WfCase) GetResolverForResponseEntry(ctxName string, withVars bool, withTransformationId string, ignoreNonApplicationJsonContent bool) (*ProcessVarResolver, error) {
+func (wfc *WfCase) GetResolverForResponseEntry(endpointData *har.Entry, withVars bool, withTransformationId string, ignoreNonApplicationJsonContent bool) (*ProcessVarResolver, error) {
 
 	var err error
 	var resolver *ProcessVarResolver
-	if endpointData, ok := wfc.Entries[ctxName]; ok {
-		opts := []VarResolverOption{WithHeaders(endpointData.Response.Headers)}
-		if endpointData.Response.Content != nil && len(endpointData.Response.Content.Data) > 0 {
-			// This condition should not consider the body if is not application json and the ignore flag has been set to true
-			if strings.HasPrefix(endpointData.Response.Content.MimeType, constants.ContentTypeApplicationJson) || !ignoreNonApplicationJsonContent {
-				opts = append(opts, WithBody(endpointData.Response.Content.MimeType, endpointData.Response.Content.Data, withTransformationId))
-			} else {
-				log.Debug().Str("content-type", endpointData.Response.Content.MimeType).Msg("ignoring body")
-			}
+
+	opts := []VarResolverOption{WithHeaders(endpointData.Response.Headers)}
+	if endpointData.Response.Content != nil && len(endpointData.Response.Content.Data) > 0 {
+		// This condition should not consider the body if is not application json and the ignore flag has been set to true
+		if strings.HasPrefix(endpointData.Response.Content.MimeType, constants.ContentTypeApplicationJson) || !ignoreNonApplicationJsonContent {
+			opts = append(opts, WithBody(endpointData.Response.Content.MimeType, endpointData.Response.Content.Data, withTransformationId))
+		} else {
+			log.Debug().Str("content-type", endpointData.Response.Content.MimeType).Msg("ignoring body")
 		}
-		if withVars {
-			opts = append(opts, WithProcessVars(wfc.Vars))
-		}
-		resolver, err = NewProcessVarResolver(opts...)
-		if err != nil {
-			return nil, err
-		}
-	} else {
-		return nil, fmt.Errorf("cannot find ctxName %s in case", ctxName)
+	}
+	if withVars {
+		opts = append(opts, WithProcessVars(wfc.Vars))
+	}
+	resolver, err = NewProcessVarResolver(opts...)
+	if err != nil {
+		return nil, err
 	}
 
 	return resolver, nil
 }
 
-func (wfc *WfCase) SetVars(ctxName string, vars []config.ProcessVar, transformationId string, ignoreNonApplicationJsonResponseContent bool) error {
+func (wfc *WfCase) SetVars(resolverContext ResolverContext, vars []config.ProcessVar, transformationId string, ignoreNonApplicationJsonResponseContent bool) error {
 
 	if len(vars) == 0 {
 		return nil
 	}
 
-	resolver, err := wfc.GetResolverForEntry(ctxName, true, transformationId, ignoreNonApplicationJsonResponseContent)
+	resolver, err := wfc.GetResolverByContext(resolverContext, true, transformationId, ignoreNonApplicationJsonResponseContent)
 
 	if err != nil {
 		return err
@@ -378,9 +386,9 @@ func (wfc *WfCase) SetVars(ctxName string, vars []config.ProcessVar, transformat
 	return nil
 }
 
-func (wfc *WfCase) ResolveStrings(ctxName string, expr []string, transformationId string, ignoreNonApplicationJsonResponseContent bool) ([]string, error) {
+func (wfc *WfCase) ResolveStrings(resolverContext ResolverContext, expr []string, transformationId string, ignoreNonApplicationJsonResponseContent bool) ([]string, error) {
 
-	resolver, err := wfc.GetResolverForEntry(ctxName, true, transformationId, ignoreNonApplicationJsonResponseContent)
+	resolver, err := wfc.GetResolverByContext(resolverContext, true, transformationId, ignoreNonApplicationJsonResponseContent)
 	if err != nil {
 		return nil, err
 	}

@@ -57,7 +57,7 @@ func (a *RequestActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	// if len(cfg.ProcessVars) > 0 {
-	err = wfc.SetVars("request", cfg.ProcessVars, "", false)
+	err = wfc.SetVars(wfcase.InitialRequestResolverContext, cfg.ProcessVars, "", false)
 	if err != nil {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}

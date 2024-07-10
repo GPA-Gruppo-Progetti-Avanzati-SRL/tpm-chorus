@@ -139,7 +139,7 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 
 	// if len(cfg.ProcessVars) > 0 {
 	// note the ignoreNonApplicationJsonResponseContent has been set to false since it doesn't apply to the request processing
-	err = wfc.SetVars("request", cfg.ProcessVars, "", false)
+	err = wfc.SetVars(wfcase.InitialRequestResolverContext, cfg.ProcessVars, "", false)
 	if err != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
@@ -205,7 +205,7 @@ func processResponseAction(wfc *wfcase.WfCase, activityName string, ep Endpoint,
 	}
 
 	if len(act.ProcessVars) > 0 {
-		err := wfc.SetVars(ep.Id, act.ProcessVars, transformId, ignoreNonJSONResponseContent)
+		err := wfc.SetVars(wfcase.ResolverContext{EntryId: ep.Id}, act.ProcessVars, transformId, ignoreNonJSONResponseContent)
 		if err != nil {
 			log.Error().Err(err).Str("ctx", ep.Id).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in setting variables")
 			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(ep.Name), smperror.WithCode("500"), smperror.WithErrorMessage("error processing response body"), smperror.WithDescription(err.Error()))
@@ -233,7 +233,7 @@ func processResponseAction(wfc *wfcase.WfCase, activityName string, ep Endpoint,
 			statusCode = e.StatusCode
 		}
 
-		m, err := wfc.ResolveStrings(ep.Id, []string{e.Code, e.Message, e.Description, step}, "", ignoreNonJSONResponseContent)
+		m, err := wfc.ResolveStrings(wfcase.ResolverContext{EntryId: ep.Id}, []string{e.Code, e.Message, e.Description, step}, "", ignoreNonJSONResponseContent)
 		if err != nil {
 			log.Error().Err(err).Msgf("error resolving values %s, %s and %s", e.Code, e.Message, e.Description)
 			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambit), smperror.WithStep(step), smperror.WithCode(e.Code), smperror.WithErrorMessage(e.Message), smperror.WithDescription(err.Error()))
@@ -346,7 +346,7 @@ func (a *EndpointActivity) Invoke(wfc *wfcase.WfCase, ep Endpoint, req *har.Requ
 func (a *EndpointActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Endpoint) (*har.Request, error) {
 
 	// note the ignoreNonApplicationJsonResponseContent has been set to false since it doesn't apply to the request processing
-	resolver, err := wfc.GetResolverForEntry("request", true, "", false)
+	resolver, err := wfc.GetResolverByContext(wfcase.InitialRequestResolverContext, true, "", false)
 	if err != nil {
 		return nil, err
 	}

@@ -36,7 +36,7 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	if len(tcfg.ProcessVars) > 0 {
-		err := wfc.SetVars("request", tcfg.ProcessVars, "", false)
+		err := wfc.SetVars(wfcase.InitialRequestResolverContext, tcfg.ProcessVars, "", false)
 		if err != nil {
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
