@@ -94,6 +94,8 @@ var resolverTypePrefix = []string{"$.", "$[", "h:", "p:", "v:"}
 func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 
 	const semLogContext = "process-var-resolver::resolve-var"
+	var err error
+
 	doEscape := false
 	if strings.HasPrefix(s, "!") {
 		doEscape = true
@@ -105,9 +107,13 @@ func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 		return variable.Raw(), variable.Deferred
 	}
 
-	pfix, err := pvr.getPrefix(s)
-	if err != nil {
-		return "", variable.Deferred
+	// This is to give the possibility of overriding or extending supported prefixes.
+	pfix := string(variable.Prefix)
+	if variable.Prefix == varResolver.VariablePrefixNotSpecified {
+		pfix, err = pvr.getPrefix(variable.Name)
+		if err != nil {
+			return "", variable.Deferred
+		}
 	}
 
 	var varValue interface{}
@@ -116,14 +122,14 @@ func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 	switch pfix {
 	case "$[":
 		// Hack because need to change tpm-common...
-		variable.Name = strings.TrimSuffix(variable.Name, "]")
-		temp := pfix + variable.Name + "]"
+		// variable.Name = strings.TrimSuffix(variable.Name, "]")
+		temp := variable.JsonPathName()
 		varValue, err = jsonpath.Get(temp, pvr.body)
 		if err == nil {
 			ok = true
 		}
 	case "$.":
-		temp := pfix + variable.Name
+		temp := variable.JsonPathName()
 		varValue, err = jsonpath.Get(temp, pvr.body)
 		if err == nil {
 			ok = true

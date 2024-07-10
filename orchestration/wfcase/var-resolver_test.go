@@ -50,6 +50,10 @@ func TestJsonPath(t *testing.T) {
 	err := json.Unmarshal(j1, &m)
 	require.NoError(t, err)
 
+	v1, err := jsonpath.Get("$", m)
+	require.NoError(t, err)
+	t.Log(v1)
+
 	v, err := jsonpath.Get("$[\"can-ale\"]", m)
 	require.NoError(t, err)
 	t.Log(v)

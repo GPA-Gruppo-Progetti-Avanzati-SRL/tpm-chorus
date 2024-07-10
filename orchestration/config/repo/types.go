@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"errors"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 	"path/filepath"
@@ -28,8 +29,35 @@ const (
 )
 
 type AssetGroup struct {
-	Asset Asset
-	Refs  Assets `yaml:"references" json:"data" mapstructure:"references"`
+	MountPoint string `yaml:"mount-point,omitempty" json:"mount-point,omitempty" mapstructure:"mount-point,omitempty"`
+	Asset      Asset  `yaml:"root-asset,omitempty" json:"root-asset,omitempty" mapstructure:"root-asset,omitempty"`
+	Refs       Assets `yaml:"assets,omitempty" json:"assets,omitempty" mapstructure:"assets,omitempty"`
+}
+
+var ZeroAssetGroup = AssetGroup{}
+
+func (g AssetGroup) ReadRefsData(resource string) ([]byte, error) {
+	const semLogContext = "asset-group::read-data"
+	var err error
+
+	ndx := g.Refs.IndexByPath(resource)
+	if ndx < 0 {
+		err = errors.New("cannot find schema file")
+		log.Error().Err(err).Str("resource-file", resource).Msg(semLogContext)
+		return nil, err
+	}
+
+	b, err := g.Refs[ndx].ReadData(g.MountPoint)
+	if err != nil {
+		log.Error().Err(err).Str("resource-file", resource).Msg(semLogContext)
+		return nil, err
+	}
+
+	return b, nil
+}
+
+func (g AssetGroup) AssetIndexByPath(p string) int {
+	return g.Refs.IndexByPath(p)
 }
 
 func (g AssetGroup) FindAssetIndexByPath(p string) int {

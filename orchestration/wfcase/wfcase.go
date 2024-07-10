@@ -312,6 +312,13 @@ func (wfc *WfCase) GetResolverForRequestEntry(ctxName string, withVars bool, wit
 	return resolver, nil
 }
 
+func (wfc *WfCase) GetRequestEntry(ctxName string) (*har.Entry, error) {
+	if endpointData, ok := wfc.Entries[ctxName]; ok {
+		return endpointData, nil
+	}
+	return nil, fmt.Errorf("cannot find ctxName %s in case", ctxName)
+}
+
 func (wfc *WfCase) GetResolverForResponseEntry(ctxName string, withVars bool, withTransformationId string, ignoreNonApplicationJsonContent bool) (*ProcessVarResolver, error) {
 
 	var err error
