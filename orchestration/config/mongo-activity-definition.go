@@ -1,0 +1,84 @@
+package config
+
+import (
+	"errors"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/jsonops"
+	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v3"
+	"strings"
+)
+
+type MongoActivityOpType string
+
+const (
+	MongoActivityFindOne = "find-one"
+
+	MongoActivityFindOneStatementProperty  = "statement"
+	MongoActivityFindOneQueryProperty      = "query"
+	MongoActivityFindOneSortProperty       = "sort"
+	MongoActivityFindOneProjectionProperty = "projection"
+	MongoActivityFindOneOptsProperty       = "opts"
+)
+
+var opTypes = map[jsonops.MongoJsonOperationType]struct{}{
+	jsonops.FindOneOperationType:      struct{}{},
+	jsonops.ReplaceOneOperationType:   struct{}{},
+	jsonops.AggregateOneOperationType: struct{}{},
+}
+
+type MongoActivityDefinition struct {
+	OpType            jsonops.MongoJsonOperationType                     `yaml:"op-type,omitempty" json:"op-type,omitempty" mapstructure:"op-type,omitempty"`
+	LksName           string                                             `yaml:"lks-name,omitempty" json:"lks-name,omitempty" mapstructure:"lks-name,omitempty"`
+	CollectionId      string                                             `yaml:"collection-id,omitempty" json:"collection-id,omitempty" mapstructure:"collection-id,omitempty"`
+	StatementData     map[jsonops.MongoJsonOperationStatementPart]string `yaml:"statement,omitempty" json:"statement,omitempty" mapstructure:"statement,omitempty"`
+	OnResponseActions []OnResponseAction                                 `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
+	Statement         interface{}                                        `yaml:"-" json:"-" mapstructure:"-"`
+}
+
+func UnmarshalMongoActivityDefinition(opType jsonops.MongoJsonOperationType, def string, refs DataReferences) (MongoActivityDefinition, error) {
+	const semLogContext = "mongo-activity-definition::unmarshal"
+
+	var err error
+	maDef := MongoActivityDefinition{OpType: opType}
+	data, ok := refs.Find(def)
+	if len(data) == 0 || !ok {
+		err = errors.New("cannot find mongo activity definition")
+		log.Error().Err(err).Msg(semLogContext)
+		return maDef, err
+	}
+
+	err = yaml.Unmarshal(data, &maDef)
+	if err != nil {
+		return maDef, err
+	}
+
+	if _, ok := opTypes[opType]; !ok {
+		err = errors.New("unsupported op-type")
+		log.Error().Err(err).Str("op-type", string(opType)).Msg(semLogContext)
+		return maDef, err
+	}
+
+	return maDef, nil
+}
+
+func (def *MongoActivityDefinition) LoadStatementConfig(refs DataReferences) (map[jsonops.MongoJsonOperationStatementPart][]byte, error) {
+	const semLogContext = "mongo-activity-definition::load-statement-config"
+	var err error
+
+	var statementData = map[jsonops.MongoJsonOperationStatementPart][]byte{}
+	for n, p := range def.StatementData {
+		sdata := []byte(p)
+		if !(strings.HasPrefix(p, "{") || strings.HasPrefix(p, "[")) {
+			var ok bool
+			sdata, ok = refs.Find(p)
+			if !ok {
+				err = errors.New("cannot find mongo activity definition")
+				log.Error().Err(err).Msg(semLogContext)
+				return nil, err
+			}
+		}
+		statementData[jsonops.MongoJsonOperationStatementPart(n)] = sdata
+	}
+
+	return statementData, err
+}

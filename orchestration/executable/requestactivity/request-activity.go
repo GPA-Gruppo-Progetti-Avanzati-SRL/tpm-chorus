@@ -47,17 +47,24 @@ func (a *RequestActivity) Execute(wfc *wfcase.WfCase) error {
 		a.SetMetrics(start, metricsLabels)
 	}(beginOf)
 
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", "request").Msg(semLogContext + " start activity")
+	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionScope())
+	if err != nil {
+		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+		return err
+	}
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.EntryId).Msg(semLogContext + " start")
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 
 	cfg, ok := a.Cfg.(*config.RequestActivity)
 	if !ok {
-		err := fmt.Errorf("not a proper config for request activity %v", a.Cfg)
+		err = fmt.Errorf("this is weird %T is not %s config type", a.Cfg, config.RequestActivityType)
+		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+		log.Error().Err(err).Msg(semLogContext)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
 	// if len(cfg.ProcessVars) > 0 {
-	err = wfc.SetVars(wfcase.InitialRequestResolverContext, cfg.ProcessVars, "", false)
+	err = wfc.SetVars(wfcase.InitialRequestResolverScope, cfg.ProcessVars, "", false)
 	if err != nil {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
@@ -65,7 +72,7 @@ func (a *RequestActivity) Execute(wfc *wfcase.WfCase) error {
 
 	if len(cfg.Validations) > 0 {
 		for _, v := range cfg.Validations {
-			b, err := wfc.Vars.BoolEval(v.Expr)
+			b, err := wfc.Vars.EvalToBool(v.Expr)
 			if err != nil {
 				return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 			}
@@ -88,6 +95,7 @@ func (a *RequestActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	metricsLabels[MetricIdStatusCode] = fmt.Sprint(200)
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
 	return nil
 }
 

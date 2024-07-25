@@ -1,0 +1,12 @@
+lks-name: default
+collection-id: movies
+statement:
+    $filter: '{ "year": {v:year}, "title": "{v:title}" }'
+    $opts: '{ "upsert": true }'
+    $replacement: '{$.}'
+on-response:
+    - status-code: 200
+    - status-code: -1
+      error:
+        - ambit: mongo-activity-replace-one
+          message: '{v:dict,sample,500}'

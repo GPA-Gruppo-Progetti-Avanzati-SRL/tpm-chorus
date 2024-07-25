@@ -34,15 +34,13 @@
       "numReviews": 872115,
       "meter": 89
     },
-    "dvd":  "1999-10-19T00:00:00.000Z"
-  ,
+    "dvd":  "1999-10-19T00:00:00.000Z",
     "critic": {
       "rating": 9.4,
       "numReviews": 108,
       "meter": 99
     },
-    "lastUpdated": "2015-09-12T17:53:21.000Z"
-  ,
+    "lastUpdated": "2015-09-12T17:53:21.000Z",
     "consensus": "An absolute masterpiece whose groundbreaking visuals and deft storytelling are still every bit as resonant, The Wizard of Oz is a must-see film for young and old.",
     "rotten": 1,
     "production": "Warner Bros. Pictures",

@@ -50,6 +50,11 @@ func (c *EndpointActivity) WithDescription(n string) *EndpointActivity {
 	return c
 }
 
+func (c *EndpointActivity) WithExpressionContext(n string) *EndpointActivity {
+	c.ExprScope = n
+	return c
+}
+
 func NewEndpointActivity() *EndpointActivity {
 	s := EndpointActivity{}
 	s.Tp = EndpointActivityType

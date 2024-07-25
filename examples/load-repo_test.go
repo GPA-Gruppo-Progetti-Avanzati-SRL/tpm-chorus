@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	OrchestrationFolder = "./open-api-repo-example-01/orchestration1"
+	OrchestrationFolder = "./movies-orchestration"
 )
 
 /*

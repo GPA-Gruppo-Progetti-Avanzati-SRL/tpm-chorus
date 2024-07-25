@@ -1,0 +1,92 @@
+{
+  "uuid": "b015f0ba-0b16-456b-8577-97ca8cbcf560",
+  "lastMigration": 32,
+  "name": "Movies",
+  "endpointPrefix": "",
+  "latency": 0,
+  "port": 3007,
+  "hostname": "",
+  "folders": [],
+  "routes": [
+    {
+      "uuid": "62def2ef-d7e0-4d1c-b14b-a863bfc18318",
+      "type": "http",
+      "documentation": "",
+      "method": "get",
+      "endpoint": "movies/:year/:title",
+      "responses": [
+        {
+          "uuid": "25cede86-7f38-4224-9dea-82d29293dfc9",
+          "body": "{\n  \"fullplot\": \"In this charming film based on the popular L. Frank Baum stories, Dorothy and her dog Toto are caught in a tornado's path and somehow end up in the land of Oz. Here she meets some memorable friends and foes in her journey to meet the Wizard of Oz who everyone says can help her return home and possibly grant her new friends their goals of a brain, heart and courage.\",\n  \"imdb\": {\n    \"rating\": 8.1,\n    \"votes\": 262132,\n    \"id\": 32138\n  },\n  \"year\": 1939,\n  \"plot\": \"Dorothy Gale is swept away to a magical land in a tornado and embarks on a quest to see the Wizard who can help her return home.\",\n  \"genres\": [\n    \"Adventure\",\n    \"Family\",\n    \"Fantasy\"\n  ],\n  \"rated\": \"PASSED\",\n  \"metacritic\": 100,\n  \"title\": \"The Wizard of Oz\",\n  \"lastupdated\": \"2015-09-01 00:29:05.490000000\",\n  \"languages\": [\n    \"English\"\n  ],\n  \"writers\": [\n    \"Noel Langley (screenplay)\",\n    \"Florence Ryerson (screenplay)\",\n    \"Edgar Allan Woolf (screenplay)\",\n    \"Noel Langley (adaptation)\",\n    \"L. Frank Baum (from the book by)\"\n  ],\n  \"type\": \"movie\",\n  \"tomatoes\": {\n    \"website\": \"http://thewizardofoz.warnerbros.com/\",\n    \"viewer\": {\n      \"rating\": 3.7,\n      \"numReviews\": 872115,\n      \"meter\": 89\n    },\n    \"dvd\":  \"1999-10-19T00:00:00.000Z\",\n    \"critic\": {\n      \"rating\": 9.4,\n      \"numReviews\": 108,\n      \"meter\": 99\n    },\n    \"lastUpdated\": \"2015-09-12T17:53:21.000Z\",\n    \"consensus\": \"An absolute masterpiece whose groundbreaking visuals and deft storytelling are still every bit as resonant, The Wizard of Oz is a must-see film for young and old.\",\n    \"rotten\": 1,\n    \"production\": \"Warner Bros. Pictures\",\n    \"fresh\": 107\n  },\n  \"poster\": \"https://m.media-amazon.com/images/M/MV5BNjUyMTc4MDExMV5BMl5BanBnXkFtZTgwNDg0NDIwMjE@._V1_SY1000_SX677_AL_.jpg\",\n  \"num_mflix_comments\": 139,\n  \"released\": \"-957916800000\"\n,\n  \"awards\": {\n    \"wins\": 9,\n    \"nominations\": 13,\n    \"text\": \"Won 2 Oscars. Another 7 wins & 13 nominations.\"\n  },\n  \"countries\": [\n    \"USA\"\n  ],\n  \"cast\": [\n    \"Judy Garland\",\n    \"Frank Morgan\",\n    \"Ray Bolger\",\n    \"Bert Lahr\"\n  ],\n  \"directors\": [\n    \"Victor Fleming\",\n    \"George Cukor\",\n    \"Mervyn LeRoy\",\n    \"Norman Taurog\",\n    \"King Vidor\"\n  ],\n  \"runtime\": 102\n}\n",
+          "latency": 0,
+          "statusCode": 200,
+          "label": "",
+          "headers": [],
+          "bodyType": "INLINE",
+          "filePath": "",
+          "databucketID": "",
+          "sendFileAsBody": false,
+          "rules": [],
+          "rulesOperator": "OR",
+          "disableTemplating": false,
+          "fallbackTo404": false,
+          "default": true,
+          "crudKey": "id",
+          "callbacks": []
+        }
+      ],
+      "responseMode": null
+    }
+  ],
+  "rootChildren": [
+    {
+      "type": "route",
+      "uuid": "62def2ef-d7e0-4d1c-b14b-a863bfc18318"
+    }
+  ],
+  "proxyMode": false,
+  "proxyHost": "",
+  "proxyRemovePrefix": false,
+  "tlsOptions": {
+    "enabled": false,
+    "type": "CERT",
+    "pfxPath": "",
+    "certPath": "",
+    "keyPath": "",
+    "caPath": "",
+    "passphrase": ""
+  },
+  "cors": true,
+  "headers": [
+    {
+      "key": "Content-Type",
+      "value": "application/json"
+    },
+    {
+      "key": "Access-Control-Allow-Origin",
+      "value": "*"
+    },
+    {
+      "key": "Access-Control-Allow-Methods",
+      "value": "GET,POST,PUT,PATCH,DELETE,HEAD,OPTIONS"
+    },
+    {
+      "key": "Access-Control-Allow-Headers",
+      "value": "Content-Type, Origin, Accept, Authorization, Content-Length, X-Requested-With"
+    }
+  ],
+  "proxyReqHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "proxyResHeaders": [
+    {
+      "key": "",
+      "value": ""
+    }
+  ],
+  "data": [],
+  "callbacks": []
+}

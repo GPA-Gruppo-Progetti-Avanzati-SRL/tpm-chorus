@@ -38,6 +38,11 @@ func (c *KafkaActivity) WithDescription(n string) *KafkaActivity {
 	return c
 }
 
+func (c *KafkaActivity) WithExpressionContext(n string) *KafkaActivity {
+	c.ExprScope = n
+	return c
+}
+
 func NewKafkaActivity() *KafkaActivity {
 	s := KafkaActivity{}
 	s.Tp = KafkaActivityType

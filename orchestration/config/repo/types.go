@@ -124,10 +124,11 @@ func (as Assets) IndexByType(t string) int {
 }
 
 type OrchestrationBundle struct {
-	Path       string     `yaml:"path,omitempty" mapstructure:"path,omitempty"`
-	Version    string     `yaml:"version,omitempty" mapstructure:"version,omitempty"`
-	SHA        string     `yaml:"sha,omitempty" mapstructure:"sha,omitempty"`
-	AssetGroup AssetGroup `yaml:"asset-group,omitempty" mapstructure:"asset-group,omitempty"`
+	Path          string                `yaml:"path,omitempty" mapstructure:"path,omitempty"`
+	Version       string                `yaml:"version,omitempty" mapstructure:"version,omitempty"`
+	SHA           string                `yaml:"sha,omitempty" mapstructure:"sha,omitempty"`
+	AssetGroup    AssetGroup            `yaml:"asset-group,omitempty" mapstructure:"asset-group,omitempty"`
+	NestedBundles []OrchestrationBundle `yaml:"nested-bundles,omitempty" mapstructure:"nested-bundles,omitempty"`
 }
 
 func (r *OrchestrationBundle) ShowInfo() {

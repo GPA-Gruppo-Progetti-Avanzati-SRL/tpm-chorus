@@ -20,6 +20,11 @@ func (c *EchoActivity) WithDescription(n string) *EchoActivity {
 	return c
 }
 
+func (c *EchoActivity) WithExpressionContext(n string) *EchoActivity {
+	c.ExprScope = n
+	return c
+}
+
 func NewEchoActivity() *EchoActivity {
 	s := EchoActivity{}
 	s.Tp = EchoActivityType

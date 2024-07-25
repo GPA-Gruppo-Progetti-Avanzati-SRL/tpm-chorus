@@ -1,0 +1,20 @@
+lks-name: default
+collection-id: movies
+statement:
+    $query: '{ "year": {v:year}, "title": "{v:title}" }'
+    $sort: '{ "title": 1 }'
+on-response:
+    - status-code: 200
+      process-vars:
+        - name: movieFound
+          value: :true
+        - name: movieContextName
+          value: mongo-activity-find-one
+    - status-code: 404
+      process-vars:
+        - name: movieFound
+          value: :false
+    - status-code: -1
+      error:
+        - ambit: mongo-activity-find-one
+          message: '{v:dict,sample,500}'

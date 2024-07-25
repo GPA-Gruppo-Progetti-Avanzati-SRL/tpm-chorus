@@ -38,7 +38,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 			return ""
 		}
 
-		resolver, err := wfc.GetResolverByContext(InitialRequestResolverContext, true, "", false)
+		resolver, err := wfc.GetResolverByContext(InitialRequestResolverScope, true, "", false)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return err.Error()
@@ -121,16 +121,20 @@ var expressionSmell = []string{
 // didn't parse the thing but try to find if there is any 'reserved' word in there.
 // example: 'hello' is not an expression, '"hello"' is an expression which evaluates to 'hello'. This trick is to avoid something like
 // value: '"{$.operazione.commissione}"' in the yamls. Someday I'll get to there.... sure...
-func isExpression(e string) bool {
+func isExpression(e string) (string, bool) {
 	if e == "" {
-		return false
+		return e, false
+	}
+
+	if strings.HasPrefix(e, ":") {
+		return strings.TrimPrefix(e, ":"), true
 	}
 
 	for _, s := range expressionSmell {
 		if strings.Contains(e, s) {
-			return true
+			return e, true
 		}
 	}
 
-	return false
+	return e, false
 }

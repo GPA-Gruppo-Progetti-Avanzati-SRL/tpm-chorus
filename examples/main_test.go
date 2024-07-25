@@ -90,6 +90,31 @@ linked-services:
         # exit:
         #   on-fail: true
         #   on-eof: false
+   mongo-db:
+     - name: default
+       #   host: "mongodb://10.70.150.88:27017,10.70.150.78:27017"
+       host: "mongodb://localhost:27017"
+       db-name: "tpm_orchestra"
+       #   user: env ----> K2M_MONGO_USER
+       #   pwd:  env ----> K2M_MONGO_PWD
+       # TLS or PLAIN
+       security-protocol: PLAIN
+       tls:
+         skip-verify: true
+       bulkWriteOrdered: true
+       # Admitted values: 1, majority
+       write-concern: majority
+       write-timeout: 120s
+       pool:
+         min-conn: 1
+         max-conn: 20
+         max-wait-queue-size: 1000
+         max-wait-time: 1000
+         max-connection-idle-time: 30000
+         max-connection-life-time: 6000000
+       collections:
+         - id: movies
+           name: movies
 
 metrics:
    activity:

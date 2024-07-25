@@ -80,22 +80,34 @@ func NewResponseActivity(item config.Configurable, refs config.DataReferences) (
 }
 
 func (a *ResponseActivity) Execute(wfc *wfcase.WfCase) error {
+	const semLogContext = string(config.ResponseActivityType) + "::execute"
+
 	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", "response").Msg("start activity")
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 
+	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionScope())
+	if err != nil {
+		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+		return err
+	}
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.EntryId).Msg(semLogContext + " start")
+
 	cfg, ok := a.Cfg.(*config.ResponseActivity)
 	if !ok {
-		err := fmt.Errorf("not a proper config for response activity %v", a.Cfg)
+		err = fmt.Errorf("this is weird %T is not %s config type", a.Cfg, config.RequestActivityType)
+		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+		log.Error().Err(err).Msg(semLogContext)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
 	//if len(cfg.ProcessVars) > 0 {
-	err := wfc.SetVars(wfcase.InitialRequestResolverContext, cfg.ProcessVars, "", false)
+	err = wfc.SetVars(wfcase.InitialRequestResolverScope, cfg.ProcessVars, "", false)
 	if err != nil {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 	//}
 
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
 	return nil
 }
 
@@ -130,8 +142,8 @@ func (a *ResponseActivity) ResponseJSON(wfc *wfcase.WfCase) (*har.Response, erro
 	}
 
 	tcfg := a.Cfg.(*config.ResponseActivity)
-
-	resolver, err := wfc.GetResolverByContext(wfcase.InitialRequestResolverContext, true, "", false)
+	expressionCtx, _ := wfc.ResolveExpressionContextName(a.Cfg.ExpressionScope())
+	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
 	if err != nil {
 		return nil, err
 	}

@@ -1,0 +1,86 @@
+id: movies-orchestration
+description: movies-orchestration description
+paths:
+    - source: start-activity
+      target: mongo-activity-find-one
+    - source: mongo-activity-find-one
+      target: endpoint-get-movie
+      constraint: '!movieFound'
+    - source: endpoint-get-movie
+      target: mongo-activity-replace-one
+    - source: mongo-activity-replace-one
+      target: mongo-activity-aggregate-one
+    - source: mongo-activity-find-one
+      target: mongo-activity-aggregate-one
+      constraint: movieFound
+    - source: mongo-activity-aggregate-one
+      target: nested-orchestration-activity
+    - source: nested-orchestration-activity
+      target: end-activity
+activities:
+    - activity:
+        name: start-activity
+        type: request-activity
+        description: start-activity description
+        process-vars:
+            - name: year
+              value: '{$.year,sprf=.0f}'
+              type: number
+            - name: title
+              value: '{$.title}'
+              type: string
+    - activity:
+        name: mongo-activity-find-one
+        type: mongo-activity
+        description: mongo-activity-find-one description
+        ref-definition: mongo-activity-find-one.yml
+      op-type: find-one
+    - activity:
+        name: endpoint-get-movie
+        type: rest-activity
+        description: endpoint-get-movie description
+        enabled: "true"
+      endpoints:
+        - id: endpoint-get-movie-1
+          name: endpoint-get-movie
+          description: endpoint-get-movie-1 description
+          ref-definition: endpoint-get-movie-1.yml
+    - activity:
+        name: mongo-activity-replace-one
+        type: mongo-activity
+        description: mongo-activity-replace-one description
+        ref-definition: mongo-activity-replace-one.yml
+      op-type: replace-one
+    - activity:
+        name: mongo-activity-aggregate-one
+        type: mongo-activity
+        description: mongo-activity-aggregate-one description
+        ref-definition: mongo-activity-aggregate-one.yml
+      op-type: aggregate-one
+    - activity:
+        name: nested-orchestration-activity
+        type: nested-orchestration-activity
+        description: nested-orchestration-activity description
+    - activity:
+        name: end-activity
+        type: response-activity
+        description: end-activity description
+        expression-scope: :movieContextName
+      responses:
+        - id: app1
+          guard: year == 1939
+          ref-simple-response: end-activity-body.tmpl
+          headers:
+            - name: smp-id
+              value: '{v:smp_orchestration_id}'
+            - name: smp-descr
+              value: '{v:smp_orchestration_descr}'
+          status-code: 200
+        - id: otherwise
+          ref-simple-response: end-activity-body.tmpl
+          headers:
+            - name: smp-id
+              value: '{v:smp_orchestration_id}'
+            - name: smp-descr
+              value: '{v:smp_orchestration_descr}'
+          status-code: 200

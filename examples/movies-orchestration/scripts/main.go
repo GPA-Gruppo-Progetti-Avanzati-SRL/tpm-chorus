@@ -4,20 +4,24 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
+
 	"io/fs"
 	"io/ioutil"
 )
 
 const (
-	OrchestrationWorkPath     = "~/examples/movies-orchestration/"
-	OrchestrationYAMLFileName = OrchestrationWorkPath + "tpm-orchestration.yml"
+	OrchestrationWorkPath                  = "~/examples/movies-orchestration/"
+	OrchestrationYAMLFileName              = OrchestrationWorkPath + "tpm-orchestration.yml"
+	NestedOrchestrationYAMLFileName        = OrchestrationWorkPath + "nested-orchestration/tpm-orchestration.yml"
+	descriptionSuffix                      = " description"
+	RequestActivityName                    = "start-activity"
+	RequestActivityDescription             = RequestActivityName + descriptionSuffix
+	EchoActivityName                       = "echo-activity"
+	EchoActivityDescription                = EchoActivityName + descriptionSuffix
+	NestedOrchestrationActivityName        = "nested-orchestration-activity"
+	NestedOrchestrationActivityDescription = NestedOrchestrationActivityName + descriptionSuffix
 
-	descriptionSuffix           = " description"
-	RequestActivityName         = "start-activity"
-	RequestActivityDescription  = RequestActivityName + descriptionSuffix
-	EchoActivityName            = "echo-activity"
-	EchoActivityDescription     = EchoActivityName + descriptionSuffix
 	ResponseActivityName        = "end-activity"
 	ResponseActivityDescription = ResponseActivityName + descriptionSuffix
 
@@ -27,12 +31,38 @@ const (
 func main() {
 	err := writeOrchestrationToFile(OrchestrationYAMLFileName, SetUpOrchestration())
 	requireNoError(err)
+
+	err = writeOrchestrationToFile(NestedOrchestrationYAMLFileName, SetUpNestedOrchestration())
+	requireNoError(err)
+
+	var b []byte
+	mongoDef := SetUpMongoActivityFindOneMovie()
+	b, err = yaml.Marshal(mongoDef)
+	requireNoError(err)
+	err = writeActivityDefinitionToFile(MongoActivityFindOneName, MongoActivityFindOneRefDefinitionFileName, b)
+	requireNoError(err)
+
+	epDef := SetUpEndpoint01Definition()
+	b, err = yaml.Marshal(epDef)
+	requireNoError(err)
+	err = writeActivityDefinitionToFile(Endpoint01ActivityName, Endpoint01EndpointFileName, b)
+	requireNoError(err)
+
+	mongoDef = SetUpMongoActivityReplaceOneMovie()
+	b, err = yaml.Marshal(mongoDef)
+	requireNoError(err)
+	err = writeActivityDefinitionToFile(MongoActivityReplaceOneName, MongoActivityReplaceOneRefDefinitionFileName, b)
+	requireNoError(err)
+
+	mongoDef = SetUpMongoActivityAggregateOneMovie()
+	b, err = yaml.Marshal(mongoDef)
+	requireNoError(err)
+	err = writeActivityDefinitionToFile(MongoActivityAggregateOneName, MongoActivityAggregateOneRefDefinitionFileName, b)
+	requireNoError(err)
 }
 
 func writeOrchestrationToFile(fn string, orc *config.Orchestration) error {
-
 	log.Info().Msgf(SemLogContext, "Orchestration")
-
 	b, err := yaml.Marshal(orc)
 	if err != nil {
 		return err
@@ -41,27 +71,8 @@ func writeOrchestrationToFile(fn string, orc *config.Orchestration) error {
 	return writeToFile(fn, b)
 }
 
-func writeEndpointDefinitionToFile(activityName string, fn string, ep config.EndpointDefinition) error {
-
+func writeActivityDefinitionToFile(activityName string, fn string, b []byte) error {
 	log.Info().Msgf(SemLogContext, activityName)
-
-	b, err := yaml.Marshal(ep)
-	if err != nil {
-		return err
-	}
-
-	return writeToFile(fn, b)
-}
-
-func writeProducerDefinitionToFile(activityName string, fn string, ep config.ProducerDefinition) error {
-
-	log.Info().Msgf(SemLogContext, activityName)
-
-	b, err := yaml.Marshal(ep)
-	if err != nil {
-		return err
-	}
-
 	return writeToFile(fn, b)
 }
 

@@ -2,17 +2,17 @@ package reporter
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/jsonmask"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common/kafkalks"
-	"github.com/prometheus/client_golang/prometheus"
-	"sync"
-
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	jsoniter "github.com/json-iterator/go"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
+	"sync"
 )
 
 const CountHarMessagesMetricId = "har-messages"
@@ -79,7 +79,7 @@ func (kr *KafkaReporter) doWorkLoop() {
 			fallthrough
 		case wfcase.ReportLogHARRequest:
 			har := wfc.GetHarData(kr.cfg.DetailLevel, kr.jsonMask)
-			b, err = jsoniter.Marshal(har)
+			b, err = json.Marshal(har)
 		default:
 			err = errors.New("invalid detail level")
 			log.Error().Err(err).Str("lev", string(kr.cfg.DetailLevel)).Msg(semLogContext)
@@ -92,7 +92,7 @@ func (kr *KafkaReporter) doWorkLoop() {
 			_ = kr.SetMetrics(metricLabels)
 		} else {
 			//Recupero requestId dal wfc per utilizzarlo come Key del message kafka
-			requestId := wfc.GetHeaderFromContext("request", "requestId")
+			requestId := wfc.GetHeaderFromContext(config.InitialRequestResolverExpressionScope, "requestId")
 			/*			reqEntry, ok := wfc.Entries["request"]
 						if ok {
 							requestId = reqEntry.Request.Headers.GetFirst("requestId").Value

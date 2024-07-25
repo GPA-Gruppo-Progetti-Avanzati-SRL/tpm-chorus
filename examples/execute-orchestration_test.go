@@ -3,6 +3,7 @@ package examples_test
 import (
 	"context"
 	_ "embed"
+	"encoding/json"
 	"errors"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
@@ -24,7 +25,7 @@ var movieSample []byte
 
 const orchestration1Folder = "./movies-orchestration"
 
-func TestExecuteOrchestration2(t *testing.T) {
+func TestExecuteMoviesOrchestration(t *testing.T) {
 
 	const semLogContext = "examples::test-execute-orchestration-1"
 
@@ -71,7 +72,7 @@ func TestExecuteOrchestration2(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = wfCase.AddEndpointRequestData("request", req, exec.Cfg.PII)
+	err = wfCase.AddEndpointRequestData(config.InitialRequestResolverExpressionScope, req, exec.Cfg.PII)
 	require.NoError(t, err)
 
 	finalExec, err := exec.Execute(wfCase)
@@ -86,7 +87,7 @@ func TestExecuteOrchestration2(t *testing.T) {
 		resp, err = respExec.ResponseJSON(wfCase)
 		if err == nil {
 			_ = wfCase.AddEndpointResponseData(
-				"request",
+				config.InitialRequestResolverExpressionScope,
 				har.NewResponse(
 					resp.Status, resp.StatusText,
 					resp.Content.MimeType, resp.Content.Data,
@@ -101,7 +102,7 @@ func TestExecuteOrchestration2(t *testing.T) {
 		log.Error().Err(err).Msg(semLogContext)
 		sc, ct, resp := produceErrorResponse(err)
 		err = wfCase.AddEndpointResponseData(
-			"request",
+			config.InitialRequestResolverExpressionScope,
 			har.NewResponse(
 				sc, "execution error",
 				constants.ContentTypeApplicationJson, resp,
@@ -118,8 +119,12 @@ func TestExecuteOrchestration2(t *testing.T) {
 			log.Error().Err(err).Msg(semLogContext)
 		}
 	}
-
 	require.NoError(t, err)
+
+	har := wfCase.GetHarData(wfcase.ReportLogHAR, nil)
+	b, err := json.Marshal(har)
+	require.NoError(t, err)
+	t.Log(string(b))
 }
 
 func produceErrorResponse(err error) (int, string, []byte) {

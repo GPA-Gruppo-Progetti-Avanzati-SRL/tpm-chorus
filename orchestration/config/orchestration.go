@@ -6,7 +6,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config/repo"
 	"github.com/mitchellh/mapstructure"
 	"github.com/rs/zerolog/log"
-	"gopkg.in/yaml.v2"
+	"gopkg.in/yaml.v3"
 	"strings"
 )
 
@@ -115,18 +115,19 @@ type ExecBoundary struct {
  */
 
 type Orchestration struct {
-	Id            string                            `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
-	Description   string                            `yaml:"description,omitempty" mapstructure:"description,omitempty" json:"description,omitempty"`
-	Version       string                            `yaml:"version,omitempty" mapstructure:"version,omitempty" json:"version,omitempty"`
-	SHA           string                            `yaml:"sha,omitempty" mapstructure:"sha,omitempty" json:"sha,omitempty"`
-	StartActivity string                            `json:"-" yaml:"-"`
-	Paths         []Path                            `yaml:"paths,omitempty" mapstructure:"paths,omitempty" json:"paths,omitempty"`
-	Activities    []Configurable                    `json:"-" yaml:"activities"`
-	Boundaries    []ExecBoundary                    `yaml:"boundaries,omitempty" mapstructure:"boundaries,omitempty" json:"boundaries,omitempty"`
-	RawActivities []json.RawMessage                 `json:"activities" yaml:"-"`
-	References    DataReferences                    `yaml:"-" mapstructure:"-" json:"-"`
-	Dictionaries  Dictionaries                      `yaml:"-" mapstructure:"-" json:"-"`
-	PII           PersonallyIdentifiableInformation `yaml:"pii,omitempty" mapstructure:"pii,omitempty" json:"pii,omitempty"`
+	Id                   string                            `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
+	Description          string                            `yaml:"description,omitempty" mapstructure:"description,omitempty" json:"description,omitempty"`
+	Version              string                            `yaml:"version,omitempty" mapstructure:"version,omitempty" json:"version,omitempty"`
+	SHA                  string                            `yaml:"sha,omitempty" mapstructure:"sha,omitempty" json:"sha,omitempty"`
+	StartActivity        string                            `json:"-" yaml:"-"`
+	Paths                []Path                            `yaml:"paths,omitempty" mapstructure:"paths,omitempty" json:"paths,omitempty"`
+	Activities           []Configurable                    `json:"-" yaml:"activities"`
+	Boundaries           []ExecBoundary                    `yaml:"boundaries,omitempty" mapstructure:"boundaries,omitempty" json:"boundaries,omitempty"`
+	RawActivities        []json.RawMessage                 `json:"activities" yaml:"-"`
+	References           DataReferences                    `yaml:"-" mapstructure:"-" json:"-"`
+	Dictionaries         Dictionaries                      `yaml:"-" mapstructure:"-" json:"-"`
+	PII                  PersonallyIdentifiableInformation `yaml:"pii,omitempty" mapstructure:"pii,omitempty" json:"pii,omitempty"`
+	NestedOrchestrations []Orchestration                   `yaml:"nested-orchestrations,omitempty" mapstructure:"nested-orchestrations,omitempty" json:"nested-orchestrations,omitempty"`
 }
 
 func NewOrchestrationDefinitionFromFolder(orchestration1Folder string) (Orchestration, error) {
@@ -174,6 +175,15 @@ func NewOrchestrationDefinitionFromBundle(bundle *repo.OrchestrationBundle) (Orc
 		if err != nil {
 			return Orchestration{}, err
 		}
+	}
+
+	for _, nestedOrcBundle := range bundle.NestedBundles {
+		nestedOrc, err := NewOrchestrationDefinitionFromBundle(&nestedOrcBundle)
+		if err != nil {
+			return Orchestration{}, err
+		}
+
+		o.NestedOrchestrations = append(o.NestedOrchestrations, nestedOrc)
 	}
 
 	return o, nil

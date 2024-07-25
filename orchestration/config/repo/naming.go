@@ -16,11 +16,14 @@ const (
 )
 
 const (
-	AssetTypeOrchestration = "asset-orchestration"
-	AssetTypeExternalValue = "asset-external-value"
-	AssetTypeDictionary    = "asset-dictionary"
-	AssetTypeVersion       = "asset-version"
-	AssetTypeSHA           = "asset-sha"
+	AssetTypeOrchestration    = "asset-orchestration"
+	AssetTypeValue            = "asset-value"
+	AssetTypeExternalValue    = "asset-external-value"
+	AssetTypeDictionary       = "asset-dictionary"
+	AssetTypeVersion          = "asset-version"
+	AssetTypeSHA              = "asset-sha"
+	AssetTypeExternalTemplate = "asset-external-template"
+	AssetTypeInlineTemplate   = "asset-inline-template"
 )
 
 var OrchestrationFileNameRegexp = regexp.MustCompile(OrchestrationFileNamePattern)

@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 )
@@ -9,11 +10,13 @@ import (
 type Type string
 
 const (
-	RequestActivityType  Type = "request-activity"
-	EchoActivityType     Type = "echo-activity"
-	EndpointActivityType Type = "rest-activity"
-	ResponseActivityType Type = "response-activity"
-	KafkaActivityType    Type = "kafka-activity"
+	RequestActivityType             Type = "request-activity"
+	EchoActivityType                Type = "echo-activity"
+	EndpointActivityType            Type = "rest-activity"
+	ResponseActivityType            Type = "response-activity"
+	KafkaActivityType               Type = "kafka-activity"
+	NestedOrchestrationActivityType Type = "nested-orchestration-activity"
+	MongoActivityType               Type = "mongo-activity"
 )
 
 type ActivityTypeRegistryEntry struct {
@@ -23,11 +26,13 @@ type ActivityTypeRegistryEntry struct {
 }
 
 var activityTypeRegistry = map[Type]ActivityTypeRegistryEntry{
-	RequestActivityType:  {Tp: RequestActivityType, UnmarshallFromJSON: NewRequestActivityFromJSON, UnmarshalFromYAML: NewRequestActivityFromYAML},
-	ResponseActivityType: {Tp: ResponseActivityType, UnmarshallFromJSON: NewResponseActivityFromJSON, UnmarshalFromYAML: NewResponseActivityFromYAML},
-	EchoActivityType:     {Tp: EchoActivityType, UnmarshallFromJSON: NewEchoActivityFromJSON, UnmarshalFromYAML: NewEchoActivityFromYAML},
-	EndpointActivityType: {Tp: EndpointActivityType, UnmarshallFromJSON: NewEndpointActivityFromJSON, UnmarshalFromYAML: NewEndpointActivityFromYAML},
-	KafkaActivityType:    {Tp: KafkaActivityType, UnmarshallFromJSON: NewKafkaActivityFromJSON, UnmarshalFromYAML: NewKafkaActivityFromYAML},
+	RequestActivityType:             {Tp: RequestActivityType, UnmarshallFromJSON: NewRequestActivityFromJSON, UnmarshalFromYAML: NewRequestActivityFromYAML},
+	ResponseActivityType:            {Tp: ResponseActivityType, UnmarshallFromJSON: NewResponseActivityFromJSON, UnmarshalFromYAML: NewResponseActivityFromYAML},
+	EchoActivityType:                {Tp: EchoActivityType, UnmarshallFromJSON: NewEchoActivityFromJSON, UnmarshalFromYAML: NewEchoActivityFromYAML},
+	EndpointActivityType:            {Tp: EndpointActivityType, UnmarshallFromJSON: NewEndpointActivityFromJSON, UnmarshalFromYAML: NewEndpointActivityFromYAML},
+	KafkaActivityType:               {Tp: KafkaActivityType, UnmarshallFromJSON: NewKafkaActivityFromJSON, UnmarshalFromYAML: NewKafkaActivityFromYAML},
+	NestedOrchestrationActivityType: {Tp: NestedOrchestrationActivityType, UnmarshallFromJSON: NewNestedOrchestrationActivityFromJSON, UnmarshalFromYAML: NewNestedOrchestrationActivityFromYAML},
+	MongoActivityType:               {Tp: MongoActivityType, UnmarshallFromJSON: NewMongoActivityFromJSON, UnmarshalFromYAML: NewMongoActivityFromYAML},
 }
 
 type Configurable interface {
@@ -38,6 +43,7 @@ type Configurable interface {
 	IsBoundary() bool
 	Description() string
 	MetricsConfig() promutil.MetricsConfigReference
+	ExpressionScope() string
 }
 
 func NewActivityFromJSON(t Type, message json.RawMessage) (Configurable, error) {
@@ -74,6 +80,25 @@ var DefaultMetricsCfg = promutil.MetricsConfigReference{
 	HistogramId: DefaultHistogramId,
 }
 
+type ActivityProperty struct {
+	Name     string `yaml:"name,omitempty" json:"name,omitempty" mapstructure:"name,omitempty"`
+	Typ      string `yaml:"type,omitempty" json:"type,omitempty" mapstructure:"type,omitempty"`
+	Value    string `yaml:"value,omitempty" json:"value,omitempty" mapstructure:"value,omitempty"`
+	ExtValue string `yaml:"external-value,omitempty" json:"external,omitempty" mapstructure:"external,omitempty"`
+}
+
+func (ap ActivityProperty) IsValid() error {
+
+	var err error
+	if ap.Value != "" && ap.ExtValue != "" {
+		err = errors.New("only one of value or external-value can be specified")
+	} else if ap.Value == "" && ap.ExtValue == "" {
+		err = errors.New("one of value and external-value should be specified")
+	}
+
+	return err
+}
+
 type Activity struct {
 	Nm          string                          `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
 	Tp          Type                            `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
@@ -83,6 +108,8 @@ type Activity struct {
 	ProcessVars []ProcessVar                    `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
 	En          string                          `yaml:"enabled,omitempty" mapstructure:"enabled,omitempty" json:"enabled,omitempty"`
 	MetricsCfg  promutil.MetricsConfigReference `yaml:"ref-metrics,omitempty" mapstructure:"ref-metrics,omitempty" json:"ref-metrics,omitempty"`
+	Definition  string                          `yaml:"ref-definition,omitempty" mapstructure:"ref-definition,omitempty" json:"ref-definition,omitempty"`
+	ExprScope   string                          `yaml:"expression-scope,omitempty" mapstructure:"expression-scope,omitempty" json:"expression-scope,omitempty"`
 }
 
 func (c *Activity) WithName(n string) *Activity {
@@ -127,6 +154,18 @@ func (c *Activity) MetricsConfig() promutil.MetricsConfigReference {
 	return r
 }
 
+const (
+	InitialRequestResolverExpressionScope = "request"
+)
+
+func (c *Activity) ExpressionScope() string {
+	if c.ExprScope == "" {
+		return InitialRequestResolverExpressionScope
+	}
+
+	return c.ExprScope
+}
+
 /*
 func (c *Activity) MetricsConfig() promutil.MetricsConfigReference {
 
@@ -146,3 +185,32 @@ func (c *Activity) MetricsConfig() promutil.MetricsConfigReference {
 	return gid
 }
 */
+
+type ErrorInfo struct {
+	StatusCode  int    `yaml:"status-code,omitempty" mapstructure:"status-code,omitempty" json:"status-code,omitempty"`
+	Ambit       string `yaml:"ambit,omitempty" mapstructure:"ambit,omitempty" json:"ambit,omitempty"`
+	Message     string `yaml:"message,omitempty" mapstructure:"message,omitempty" json:"message,omitempty"`
+	Code        string `yaml:"code,omitempty" mapstructure:"code,omitempty" json:"code,omitempty"`
+	Step        string `yaml:"step,omitempty" mapstructure:"step,omitempty" json:"step,omitempty"`
+	Description string `yaml:"description,omitempty" mapstructure:"description,omitempty" json:"description,omitempty"`
+	Guard       string `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
+}
+
+func (ei ErrorInfo) IsZero() bool {
+	return ei.StatusCode == 0 && ei.Ambit == "" && ei.Message == ""
+}
+
+type TransformReference struct {
+	Id            string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
+	DefinitionRef string `yaml:"definition-ref,omitempty" mapstructure:"definition-ref,omitempty" json:"definition-ref,omitempty"`
+	Guard         string `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
+}
+
+// OnResponseAction TODO Verificare dove vengono utilizzate le transforms.
+type OnResponseAction struct {
+	StatusCode                              int                  `yaml:"status-code,omitempty" mapstructure:"status-code,omitempty" json:"status-code,omitempty"`
+	IgnoreNonApplicationJsonResponseContent bool                 `yaml:"ignore-non-json-response-body,omitempty" json:"ignore-non-json-response-body,omitempty" mapstructure:"ignore-non-json-response-body,omitempty"`
+	ProcessVars                             []ProcessVar         `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
+	Errors                                  []ErrorInfo          `yaml:"error,omitempty" mapstructure:"error,omitempty" json:"error,omitempty"`
+	Transforms                              []TransformReference `yaml:"transforms,omitempty" mapstructure:"transforms,omitempty" json:"transforms,omitempty"`
+}

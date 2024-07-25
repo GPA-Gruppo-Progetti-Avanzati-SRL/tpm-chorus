@@ -1,4 +1,4 @@
-package echoactivity
+package nestedorchestrationactivity
 
 import (
 	"fmt"
@@ -10,21 +10,20 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type EchoActivity struct {
+type NestedOrchestrationActivity struct {
 	executable.Activity
 }
 
-func NewEchoActivity(item config.Configurable, refs config.DataReferences) (*EchoActivity, error) {
+func NewNestedOrchestrationActivity(item config.Configurable, refs config.DataReferences) (*NestedOrchestrationActivity, error) {
 
-	ea := &EchoActivity{}
+	ea := &NestedOrchestrationActivity{}
 	ea.Cfg = item
 	ea.Refs = refs
 	return ea, nil
 }
 
-func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
-	const semLogContext = string(config.EchoActivityType) + "::execute"
-
+func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
+	const semLogContext = string(config.NestedOrchestrationActivityType) + "::execute"
 	if !a.IsEnabled(wfc) {
 		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", "echo").Msg("activity not enabled")
 		return nil
@@ -37,14 +36,13 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.EntryId).Msg(semLogContext + " start")
 
-	tcfg, ok := a.Cfg.(*config.EchoActivity)
+	tcfg, ok := a.Cfg.(*config.NestedOrchestrationActivity)
 	if !ok {
-		err = fmt.Errorf("this is weird %T is not %s config type", a.Cfg, config.EchoActivityType)
+		err = fmt.Errorf("this is weird %T is not %s config type", a.Cfg, config.NestedOrchestrationActivityType)
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		log.Error().Err(err).Msg(semLogContext)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
-
 	if len(tcfg.ProcessVars) > 0 {
 		err := wfc.SetVars(wfcase.InitialRequestResolverScope, tcfg.ProcessVars, "", false)
 		if err != nil {

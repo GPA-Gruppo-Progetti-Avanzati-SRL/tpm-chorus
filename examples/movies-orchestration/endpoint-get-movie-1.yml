@@ -1,0 +1,28 @@
+method: GET
+scheme: http
+hostname: localhost
+port: "3007"
+Path: /movies/{$.year,sprf=.0f}/{$.title}
+headers:
+    - name: requestId
+      value: '{h:requestId}'
+    - name: correlationId
+      value: '{h:trackId}'
+on-response:
+    - status-code: 200
+      process-vars:
+        - name: dvd_code
+          value: '{$.tomatoes.dvd}'
+        - name: movieContextName
+          value: endpoint-get-movie
+    - status-code: 503
+      error:
+        - status-code: 500
+          ambit: service-unavailable
+          message: internal server error {v:title}
+    - status-code: -1
+      error:
+        - ambit: endpoint-get-movie
+          message: '{v:dict,sample,500}'
+http-client-opts:
+    timeout: 10s

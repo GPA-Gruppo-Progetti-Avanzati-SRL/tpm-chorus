@@ -9,6 +9,7 @@ import (
 )
 
 func NewOrchestrationBundleFromFolder(dir string) (OrchestrationBundle, error) {
+	const semLogContext = "new-orchestration-bundle-from-folder"
 
 	bundle := OrchestrationBundle{
 		Path: dir,
@@ -26,6 +27,7 @@ func NewOrchestrationBundleFromFolder(dir string) (OrchestrationBundle, error) {
 		fileType, fileQualifier := GetFileTypeByName(na)
 		switch fileType {
 		case AssetTypeOrchestration:
+			bundle.AssetGroup.MountPoint = dir
 			bundle.AssetGroup.Asset = Asset{Name: na, Path: pa, Type: AssetTypeOrchestration}
 		case AssetTypeDictionary:
 			bundle.AssetGroup.Refs = append(bundle.AssetGroup.Refs, Asset{Type: AssetTypeDictionary, Name: fileQualifier, Path: pa})
@@ -65,20 +67,44 @@ func NewOrchestrationBundleFromFolder(dir string) (OrchestrationBundle, error) {
 			}
 		}
 	}
+
+	nestedOrchestrations, err := FindNestedOrchestrations(dir)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return bundle, err
+	}
+
+	var nestedBundles []OrchestrationBundle
+	for _, nested := range nestedOrchestrations {
+		nestedBundle, err := NewOrchestrationBundleFromFolder(nested)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return bundle, err
+		}
+
+		log.Info().Str("nested-bundle-path", nestedBundle.Path).Msg(semLogContext)
+		nestedBundles = append(nestedBundles, nestedBundle)
+	}
+	bundle.NestedBundles = nestedBundles
+
 	return bundle, nil
 }
 
 func (r *OrchestrationBundle) LoadOrchestrationData() ([]byte, []Asset, error) {
 
-	orchestrationFile := filepath.Join(r.Path, r.AssetGroup.Asset.Path)
+	const semLogContext = "orchestration-bundle::load-orchestration-data"
+
+	orchestrationFile := filepath.Join(r.AssetGroup.MountPoint, r.AssetGroup.Asset.Path)
 	orchestrationData, err := util.ReadFileAndResolveEnvVars(orchestrationFile) // ioutil.ReadFile(orchestrationFile)
 	if err != nil {
 		return nil, nil, err
 	}
 
+	r.AssetGroup.Asset.Data = orchestrationData
+
 	var assets []Asset
 	for i, ref := range r.AssetGroup.Refs {
-		resolvedPath := filepath.Join(r.Path, ref.Path)
+		resolvedPath := filepath.Join(r.AssetGroup.MountPoint, ref.Path)
 		b, err := util.ReadFileAndResolveEnvVars(resolvedPath) // ioutil.ReadFile(resolvedPath)
 		if err != nil {
 			return nil, nil, err
@@ -88,6 +114,13 @@ func (r *OrchestrationBundle) LoadOrchestrationData() ([]byte, []Asset, error) {
 		assets = append(assets, r.AssetGroup.Refs[i])
 	}
 
+	for i := range r.NestedBundles {
+		_, _, err = r.NestedBundles[i].LoadOrchestrationData()
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return nil, nil, err
+		}
+	}
 	return orchestrationData, assets, err
 }
 
@@ -106,7 +139,7 @@ func (r *OrchestrationBundle) GetRefAssetData(fn string) ([]byte, error) {
 		return r.AssetGroup.Refs[ndx].Data, nil
 	}
 
-	resolvedPath := filepath.Join(r.Path, r.AssetGroup.Refs[ndx].Path)
+	resolvedPath := filepath.Join(r.AssetGroup.MountPoint, r.AssetGroup.Refs[ndx].Path)
 	b, err := os.ReadFile(resolvedPath)
 	if err != nil {
 		return nil, err
@@ -124,6 +157,25 @@ func findAssetIndexByPath(assets []Asset, p string) int {
 	}
 
 	return -1
+}
+
+func FindNestedOrchestrations(dir string) ([]string, error) {
+	const semLogContext = "find-nested-orchestrations"
+
+	folders, err := util.FindFiles(dir, util.WithFindFileType(util.FileTypeDir), util.WithFindOptionFoldersIgnoreList([]string{"dicts"}))
+	if err != nil {
+		return nil, err
+	}
+
+	var resp []string
+	for _, f := range folders {
+		n := filepath.Join(f, "tpm-orchestration.yml")
+		if util.FileExists(n) {
+			resp = append(resp, f)
+		}
+	}
+
+	return resp, nil
 }
 
 /*

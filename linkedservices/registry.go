@@ -5,12 +5,12 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices/redislks"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client/restclient"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common/kafkalks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/mongolks"
 	"github.com/rs/zerolog/log"
 )
 
 type ServiceRegistry struct {
 	RestClient *restclient.LinkedService
-	kafka      *kafkalks.LinkedService
 	redis      *redislks.LinkedService
 }
 
@@ -33,6 +33,11 @@ func InitRegistry(cfg *Config) error {
 	}
 
 	err = initializeRedisCache(cfg.Redis)
+	if err != nil {
+		return err
+	}
+
+	_, err = mongolks.Initialize(cfg.MongoDb)
 	if err != nil {
 		return err
 	}

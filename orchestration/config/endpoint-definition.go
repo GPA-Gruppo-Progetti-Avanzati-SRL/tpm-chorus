@@ -11,34 +11,6 @@ type NameValuePair struct {
 	Value string `yaml:"value,omitempty" mapstructure:"value,omitempty" json:"value,omitempty"`
 }
 
-type ErrorInfo struct {
-	StatusCode  int    `yaml:"status-code,omitempty" mapstructure:"status-code,omitempty" json:"status-code,omitempty"`
-	Ambit       string `yaml:"ambit,omitempty" mapstructure:"ambit,omitempty" json:"ambit,omitempty"`
-	Message     string `yaml:"message,omitempty" mapstructure:"message,omitempty" json:"message,omitempty"`
-	Code        string `yaml:"code,omitempty" mapstructure:"code,omitempty" json:"code,omitempty"`
-	Step        string `yaml:"step,omitempty" mapstructure:"step,omitempty" json:"step,omitempty"`
-	Description string `yaml:"description,omitempty" mapstructure:"description,omitempty" json:"description,omitempty"`
-	Guard       string `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
-}
-
-func (ei ErrorInfo) IsZero() bool {
-	return ei.StatusCode == 0 && ei.Ambit == "" && ei.Message == ""
-}
-
-type TransformReference struct {
-	Id            string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
-	DefinitionRef string `yaml:"definition-ref,omitempty" mapstructure:"definition-ref,omitempty" json:"definition-ref,omitempty"`
-	Guard         string `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
-}
-
-type OnResponseAction struct {
-	StatusCode                              int                  `yaml:"status-code,omitempty" mapstructure:"status-code,omitempty" json:"status-code,omitempty"`
-	IgnoreNonApplicationJsonResponseContent bool                 `yaml:"ignore-non-json-response-body,omitempty" json:"ignore-non-json-response-body,omitempty" mapstructure:"ignore-non-json-response-body,omitempty"`
-	ProcessVars                             []ProcessVar         `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
-	Errors                                  []ErrorInfo          `yaml:"error,omitempty" mapstructure:"error,omitempty" json:"error,omitempty"`
-	Transforms                              []TransformReference `yaml:"transforms,omitempty" mapstructure:"transforms,omitempty" json:"transforms,omitempty"`
-}
-
 type PostData struct {
 	Name          string `yaml:"name,omitempty" json:"name,omitempty" mapstructure:"name,omitempty"`
 	Type          string `yaml:"type,omitempty" json:"type,omitempty" mapstructure:"type,omitempty"`

@@ -45,6 +45,11 @@ func (c *ResponseActivity) WithDescription(n string) *ResponseActivity {
 	return c
 }
 
+func (c *ResponseActivity) WithExpressionContext(n string) *ResponseActivity {
+	c.ExprScope = n
+	return c
+}
+
 func NewResponseActivity() *ResponseActivity {
 	a := ResponseActivity{}
 	a.Tp = ResponseActivityType

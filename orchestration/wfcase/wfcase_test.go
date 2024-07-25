@@ -50,6 +50,10 @@ func TestNewProcessVarResolver(t *testing.T) {
 	resolver, err := wfcase.NewProcessVarResolver(wfcase.WithBody(constants.ContentTypeApplicationJson, j, ""))
 	require.NoError(t, err)
 
+	r, err := pvs.Eval("donotexist")
+	require.NoError(t, err)
+	t.Log(r)
+
 	err = pvs.Set("beneficiario_natura", "{$.beneficiario.natura}", resolver)
 	require.NoError(t, err)
 	err = pvs.Set("can_ale", "{$[\"can-ale\"]}", resolver)
@@ -69,7 +73,7 @@ func TestNewProcessVarResolver(t *testing.T) {
 
 	t.Log(pvs)
 
-	ndx, err := pvs.Eval([]string{`beneficiario_natura == "DT"`, `beneficiario_numero == "8188602"`}, wfcase.ExactlyOne)
+	ndx, err := pvs.IndexOfTrueExpression([]string{`beneficiario_natura == "DT"`, `beneficiario_numero == "8188602"`})
 	require.NoError(t, err)
 	require.Equal(t, ndx, 1)
 
@@ -77,7 +81,7 @@ func TestNewProcessVarResolver(t *testing.T) {
 		return strings.Join(s, " ")
 	}
 
-	ndx, err = pvs.Eval([]string{`map("hello", "world!") == "hello world!"`}, wfcase.ExactlyOne)
+	ndx, err = pvs.IndexOfTrueExpression([]string{`map("hello", "world!") == "hello world!"`})
 	require.NoError(t, err)
 	require.Equal(t, ndx, 0)
 }

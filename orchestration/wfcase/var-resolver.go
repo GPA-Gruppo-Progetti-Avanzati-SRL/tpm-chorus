@@ -162,7 +162,7 @@ func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 
 	case "v:":
 		vComp := strings.Split(s[2:], ",")
-		varValue, ok = pvr.vars.Get(variable.Name)
+		varValue, ok = pvr.vars.Lookup(variable.Name, "")
 		if ok {
 			if reflect.ValueOf(varValue).Kind() == reflect.Func {
 				varValue = pvr.resolveFunctionVar(varValue, variable.Name, vComp[1:]...)
