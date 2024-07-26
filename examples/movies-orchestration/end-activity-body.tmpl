@@ -1,1 +1,9 @@
 {$.}
+
+,"doesntExists": {$.notexist,onf=false,ont=true}
+,"awards-nominations": {$.awards.nominations,onf=false,ont=true}
+
+{{if {$.notexist,onf=false,ont=true} }} Should not Come Out {{- end }}
+{{if {$.awards.nominations,onf=false,ont=true} }} ,"note": "awards-nomination is there" {{- end }}
+
+

@@ -32,6 +32,12 @@ github.com/Azure/go-autorest/tracing v0.6.0 h1:TYi4+3m5t6K48TGI9AUdb+IzbnSxvnvUM
 github.com/Azure/go-autorest/tracing v0.6.0/go.mod h1:+vhtPC754Xsa23ID7GlGsrdKBpUA79WCAKPPZVC2DeU=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.44 h1:FNBo6WhJ2/wak1jqxp+pds4QMp3JL3U6ABI+Q4/D7oU=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.44/go.mod h1:vnI1W77dpctWxMspokeoSVbGAOaU66mKfnCOyyoEYWQ=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.45 h1:Ld+pD+QR5M0EPW3BBovsTOgKJ5qNbbNPGIQzqjjydiI=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.45/go.mod h1:vnI1W77dpctWxMspokeoSVbGAOaU66mKfnCOyyoEYWQ=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.46 h1:90NKn5gCGvPCQNGG3UEpA0iBcFEmHSAxiW7/Ao8F7Qg=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.46/go.mod h1:vnI1W77dpctWxMspokeoSVbGAOaU66mKfnCOyyoEYWQ=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.47 h1:2OEedRtEPEGmAs0NxwtlydVEPQaAclpMvBg48tgvEH0=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.47/go.mod h1:vnI1W77dpctWxMspokeoSVbGAOaU66mKfnCOyyoEYWQ=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.35 h1:zIXlsZpYF+1mE/eJvn/pV6rFIR/IJ0ONW17VvQ7s2ew=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.35/go.mod h1:awR0N2e47QsTY4Jl9lVtgIbARbmjaeRqsguiGQKAnXM=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.0.35 h1:960UbFeBdaJkL+zQBvH18WVw62DOlC0uviSQqFSIsSI=
