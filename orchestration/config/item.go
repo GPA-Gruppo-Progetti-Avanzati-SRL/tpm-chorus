@@ -43,7 +43,7 @@ type Configurable interface {
 	IsBoundary() bool
 	Description() string
 	MetricsConfig() promutil.MetricsConfigReference
-	ExpressionScope() string
+	ExpressionContextNameStringReference() string
 }
 
 func NewActivityFromJSON(t Type, message json.RawMessage) (Configurable, error) {
@@ -100,16 +100,16 @@ func (ap ActivityProperty) IsValid() error {
 }
 
 type Activity struct {
-	Nm          string                          `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
-	Tp          Type                            `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
-	Cm          string                          `yaml:"description,omitempty" mapstructure:"description,omitempty" json:"description,omitempty"`
-	BndryName   string                          `yaml:"boundary-name,omitempty" mapstructure:"boundary-name,omitempty" json:"boundary-name,omitempty"`
-	BndryFlag   bool                            `yaml:"is-boundary,omitempty" mapstructure:"is-boundary,omitempty" json:"is-boundary,omitempty"`
-	ProcessVars []ProcessVar                    `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
-	En          string                          `yaml:"enabled,omitempty" mapstructure:"enabled,omitempty" json:"enabled,omitempty"`
-	MetricsCfg  promutil.MetricsConfigReference `yaml:"ref-metrics,omitempty" mapstructure:"ref-metrics,omitempty" json:"ref-metrics,omitempty"`
-	Definition  string                          `yaml:"ref-definition,omitempty" mapstructure:"ref-definition,omitempty" json:"ref-definition,omitempty"`
-	ExprScope   string                          `yaml:"expression-scope,omitempty" mapstructure:"expression-scope,omitempty" json:"expression-scope,omitempty"`
+	Nm              string                          `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
+	Tp              Type                            `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
+	Cm              string                          `yaml:"description,omitempty" mapstructure:"description,omitempty" json:"description,omitempty"`
+	BndryName       string                          `yaml:"boundary-name,omitempty" mapstructure:"boundary-name,omitempty" json:"boundary-name,omitempty"`
+	BndryFlag       bool                            `yaml:"is-boundary,omitempty" mapstructure:"is-boundary,omitempty" json:"is-boundary,omitempty"`
+	ProcessVars     []ProcessVar                    `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
+	En              string                          `yaml:"enabled,omitempty" mapstructure:"enabled,omitempty" json:"enabled,omitempty"`
+	MetricsCfg      promutil.MetricsConfigReference `yaml:"ref-metrics,omitempty" mapstructure:"ref-metrics,omitempty" json:"ref-metrics,omitempty"`
+	Definition      string                          `yaml:"ref-definition,omitempty" mapstructure:"ref-definition,omitempty" json:"ref-definition,omitempty"`
+	ExprContextName string                          `yaml:"expression-scope,omitempty" mapstructure:"expression-scope,omitempty" json:"expression-scope,omitempty"`
 }
 
 func (c *Activity) WithName(n string) *Activity {
@@ -155,15 +155,15 @@ func (c *Activity) MetricsConfig() promutil.MetricsConfigReference {
 }
 
 const (
-	InitialRequestResolverExpressionScope = "request"
+	InitialRequestContextNameStringReference = "request"
 )
 
-func (c *Activity) ExpressionScope() string {
-	if c.ExprScope == "" {
-		return InitialRequestResolverExpressionScope
+func (c *Activity) ExpressionContextNameStringReference() string {
+	if c.ExprContextName == "" {
+		return InitialRequestContextNameStringReference
 	}
 
-	return c.ExprScope
+	return c.ExprContextName
 }
 
 /*

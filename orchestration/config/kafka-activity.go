@@ -39,7 +39,7 @@ func (c *KafkaActivity) WithDescription(n string) *KafkaActivity {
 }
 
 func (c *KafkaActivity) WithExpressionContext(n string) *KafkaActivity {
-	c.ExprScope = n
+	c.ExprContextName = n
 	return c
 }
 

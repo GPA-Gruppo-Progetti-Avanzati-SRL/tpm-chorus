@@ -60,12 +60,12 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 		return nil
 	}
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionScope())
+	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		return err
 	}
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.EntryId).Msg(semLogContext + " start")
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
 
 	tcfg, ok := a.Cfg.(*config.MongoActivity)
 	if !ok {
@@ -76,7 +76,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	if len(tcfg.ProcessVars) > 0 {
-		err := wfc.SetVars(wfcase.InitialRequestResolverScope, tcfg.ProcessVars, "", false)
+		err := wfc.SetVars(expressionCtx, tcfg.ProcessVars, "", false)
 		if err != nil {
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
@@ -142,7 +142,13 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 }
 
 func (a *MongoActivity) resolveStatementParts(wfc *wfcase.WfCase, m map[jsonops.MongoJsonOperationStatementPart][]byte) (map[jsonops.MongoJsonOperationStatementPart][]byte, error) {
-	resolver, err := wfc.GetResolverByContext(wfcase.InitialRequestResolverScope, true, "", false)
+
+	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	if err != nil {
+		return nil, err
+	}
+
+	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
 	if err != nil {
 		return nil, err
 	}
@@ -258,8 +264,10 @@ func (a *MongoActivity) processResponseAction(wfc *wfcase.WfCase, activityName s
 		return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(a.Name()), smperror.WithCode("500"), smperror.WithErrorMessage("error selecting transformation"), smperror.WithDescription(err.Error()))
 	}
 
+	contextReference := wfcase.ResolverContextReference{Name: a.Name(), UseResponse: true}
+
 	if len(act.ProcessVars) > 0 {
-		err := wfc.SetVars(wfcase.ResolverScope{EntryId: a.Name()}, act.ProcessVars, transformId, false)
+		err := wfc.SetVars(contextReference, act.ProcessVars, transformId, false)
 		if err != nil {
 			log.Error().Err(err).Str("ctx", a.Name()).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in setting variables")
 			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(a.Name()), smperror.WithCode("500"), smperror.WithErrorMessage("error processing response body"), smperror.WithDescription(err.Error()))
@@ -287,7 +295,7 @@ func (a *MongoActivity) processResponseAction(wfc *wfcase.WfCase, activityName s
 			statusCode = e.StatusCode
 		}
 
-		m, err := wfc.ResolveStrings(wfcase.ResolverScope{EntryId: a.Name()}, []string{e.Code, e.Message, e.Description, step}, "", false)
+		m, err := wfc.ResolveStrings(contextReference, []string{e.Code, e.Message, e.Description, step}, "", false)
 		if err != nil {
 			log.Error().Err(err).Msgf("error resolving values %s, %s and %s", e.Code, e.Message, e.Description)
 			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambit), smperror.WithStep(step), smperror.WithCode(e.Code), smperror.WithErrorMessage(e.Message), smperror.WithDescription(err.Error()))

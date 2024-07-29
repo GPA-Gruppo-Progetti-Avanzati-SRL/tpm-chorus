@@ -33,7 +33,7 @@ func (c *MongoActivity) WithOpType(n jsonops.MongoJsonOperationType) *MongoActiv
 }
 
 func (c *MongoActivity) WithExpressionContext(n string) *MongoActivity {
-	c.ExprScope = n
+	c.ExprContextName = n
 	return c
 }
 

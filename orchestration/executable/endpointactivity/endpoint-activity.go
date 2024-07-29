@@ -39,6 +39,10 @@ type Endpoint struct {
 	PII         config.PersonallyIdentifiableInformation
 }
 
+func (ep Endpoint) FullId(activityName string) string {
+	return fmt.Sprintf("%s@%s", activityName, ep.Id)
+}
+
 type EndpointActivity struct {
 	executable.Activity
 	Endpoints []Endpoint
@@ -127,12 +131,12 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 		return nil
 	}
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionScope())
+	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		return err
 	}
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.EntryId).Msg(semLogContext + " start")
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
 
 	cfg, ok := a.Cfg.(*config.EndpointActivity)
 	if !ok {
@@ -144,7 +148,12 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 
 	// if len(cfg.ProcessVars) > 0 {
 	// note the ignoreNonApplicationJsonResponseContent has been set to false since it doesn't apply to the request processing
-	err = wfc.SetVars(wfcase.InitialRequestResolverScope, cfg.ProcessVars, "", false)
+	contextName, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+	}
+	err = wfc.SetVars(contextName, cfg.ProcessVars, "", false)
 	if err != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
@@ -164,14 +173,14 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(ep.Name), smperror.WithStep(ep.Id), smperror.WithCode("HTTP"), smperror.WithErrorMessage(err.Error()))
 		}
 
-		_ = wfc.AddEndpointRequestData(ep.Id, req, ep.PII)
+		_ = wfc.AddEndpointRequestData(ep.FullId(a.Name()), req, ep.PII)
 
 		entry, err := a.Invoke(wfc, ep, req)
 		var resp *har.Response
 		if entry != nil {
 			resp = entry.Response
 		}
-		_ = wfc.AddEndpointResponseData(ep.Id, resp, ep.PII)
+		_ = wfc.AddEndpointResponseData(ep.FullId(a.Name()), resp, ep.PII)
 
 		metricsLabels[MetricIdHttpStatusCode] = fmt.Sprint(resp.Status)
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(resp.Status)
@@ -210,8 +219,10 @@ func processResponseAction(wfc *wfcase.WfCase, activityName string, ep Endpoint,
 		return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(ep.Name), smperror.WithCode("500"), smperror.WithErrorMessage("error selecting transformation"), smperror.WithDescription(err.Error()))
 	}
 
+	resolverContextReference := wfcase.ResolverContextReference{Name: ep.FullId(activityName), UseResponse: true}
+
 	if len(act.ProcessVars) > 0 {
-		err := wfc.SetVars(wfcase.ResolverScope{EntryId: ep.Id}, act.ProcessVars, transformId, ignoreNonJSONResponseContent)
+		err := wfc.SetVars(resolverContextReference, act.ProcessVars, transformId, ignoreNonJSONResponseContent)
 		if err != nil {
 			log.Error().Err(err).Str("ctx", ep.Id).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in setting variables")
 			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(ep.Name), smperror.WithCode("500"), smperror.WithErrorMessage("error processing response body"), smperror.WithDescription(err.Error()))
@@ -239,7 +250,7 @@ func processResponseAction(wfc *wfcase.WfCase, activityName string, ep Endpoint,
 			statusCode = e.StatusCode
 		}
 
-		m, err := wfc.ResolveStrings(wfcase.ResolverScope{EntryId: ep.Id}, []string{e.Code, e.Message, e.Description, step}, "", ignoreNonJSONResponseContent)
+		m, err := wfc.ResolveStrings(resolverContextReference, []string{e.Code, e.Message, e.Description, step}, "", ignoreNonJSONResponseContent)
 		if err != nil {
 			log.Error().Err(err).Msgf("error resolving values %s, %s and %s", e.Code, e.Message, e.Description)
 			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambit), smperror.WithStep(step), smperror.WithCode(e.Code), smperror.WithErrorMessage(e.Message), smperror.WithDescription(err.Error()))
@@ -351,8 +362,13 @@ func (a *EndpointActivity) Invoke(wfc *wfcase.WfCase, ep Endpoint, req *har.Requ
 
 func (a *EndpointActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Endpoint) (*har.Request, error) {
 
+	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	if err != nil {
+		return nil, err
+	}
+
 	// note the ignoreNonApplicationJsonResponseContent has been set to false since it doesn't apply to the request processing
-	resolver, err := wfc.GetResolverByContext(wfcase.InitialRequestResolverScope, true, "", false)
+	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
 	if err != nil {
 		return nil, err
 	}

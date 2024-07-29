@@ -47,12 +47,12 @@ func (a *RequestActivity) Execute(wfc *wfcase.WfCase) error {
 		a.SetMetrics(start, metricsLabels)
 	}(beginOf)
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionScope())
+	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		return err
 	}
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.EntryId).Msg(semLogContext + " start")
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 
 	cfg, ok := a.Cfg.(*config.RequestActivity)
@@ -64,7 +64,7 @@ func (a *RequestActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	// if len(cfg.ProcessVars) > 0 {
-	err = wfc.SetVars(wfcase.InitialRequestResolverScope, cfg.ProcessVars, "", false)
+	err = wfc.SetVars(expressionCtx, cfg.ProcessVars, "", false)
 	if err != nil {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}

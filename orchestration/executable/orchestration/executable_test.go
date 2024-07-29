@@ -101,7 +101,7 @@ func TestNewOrchestration(t *testing.T) {
 	require.NoError(t, err)
 
 	req, _ := har.NewRequest(http.MethodGet, "/my/path", nil, hs, nil)
-	err = wfc.AddEndpointRequestData(config.InitialRequestResolverExpressionScope, req, config.PersonallyIdentifiableInformation{Domain: "common", AppliesTo: "req,resp"})
+	err = wfc.AddEndpointRequestData(config.InitialRequestContextNameStringReference, req, config.PersonallyIdentifiableInformation{Domain: "common", AppliesTo: "req,resp"})
 	require.NoError(t, err)
 
 	a, err := orc.Execute(wfc)

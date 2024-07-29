@@ -21,7 +21,7 @@ func (c *NestedOrchestrationActivity) WithDescription(n string) *NestedOrchestra
 }
 
 func (c *NestedOrchestrationActivity) WithExpressionContext(n string) *NestedOrchestrationActivity {
-	c.ExprScope = n
+	c.ExprContextName = n
 	return c
 }
 

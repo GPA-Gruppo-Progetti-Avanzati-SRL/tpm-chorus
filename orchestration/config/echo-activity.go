@@ -21,7 +21,7 @@ func (c *EchoActivity) WithDescription(n string) *EchoActivity {
 }
 
 func (c *EchoActivity) WithExpressionContext(n string) *EchoActivity {
-	c.ExprScope = n
+	c.ExprContextName = n
 	return c
 }
 

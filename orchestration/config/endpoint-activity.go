@@ -51,7 +51,7 @@ func (c *EndpointActivity) WithDescription(n string) *EndpointActivity {
 }
 
 func (c *EndpointActivity) WithExpressionContext(n string) *EndpointActivity {
-	c.ExprScope = n
+	c.ExprContextName = n
 	return c
 }
 

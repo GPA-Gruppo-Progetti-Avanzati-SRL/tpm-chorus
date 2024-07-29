@@ -14,7 +14,7 @@ on-response:
         - name: dvd_code
           value: '{$.tomatoes.dvd}'
         - name: movieContextName
-          value: endpoint-get-movie
+          value: endpoint-get-movie@endpoint-get-movie-1
     - status-code: 503
       error:
         - status-code: 500

@@ -38,7 +38,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 			return ""
 		}
 
-		resolver, err := wfc.GetResolverByContext(InitialRequestResolverScope, true, "", false)
+		resolver, err := wfc.GetResolverByContext(InitialRequestContextReference, true, "", false)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return err.Error()

@@ -92,7 +92,7 @@ func (kr *KafkaReporter) doWorkLoop() {
 			_ = kr.SetMetrics(metricLabels)
 		} else {
 			//Recupero requestId dal wfc per utilizzarlo come Key del message kafka
-			requestId := wfc.GetHeaderFromContext(config.InitialRequestResolverExpressionScope, "requestId")
+			requestId := wfc.GetHeaderFromContext(config.InitialRequestContextNameStringReference, "requestId")
 			/*			reqEntry, ok := wfc.Entries["request"]
 						if ok {
 							requestId = reqEntry.Request.Headers.GetFirst("requestId").Value

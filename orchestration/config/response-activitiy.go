@@ -46,7 +46,7 @@ func (c *ResponseActivity) WithDescription(n string) *ResponseActivity {
 }
 
 func (c *ResponseActivity) WithExpressionContext(n string) *ResponseActivity {
-	c.ExprScope = n
+	c.ExprContextName = n
 	return c
 }
 

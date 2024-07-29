@@ -36,10 +36,10 @@ type EndpointData struct {
 	Params  gin.Params
 }
 
-var InitialRequestResolverScope = ResolverScope{EntryId: config.InitialRequestResolverExpressionScope}
+var InitialRequestContextReference = ResolverContextReference{Name: config.InitialRequestContextNameStringReference}
 
-type ResolverScope struct {
-	EntryId     string
+type ResolverContextReference struct {
+	Name        string
 	UseResponse bool
 }
 
@@ -133,7 +133,7 @@ func (wfc *WfCase) AddEndpointRequestData(id string, req *har.Request, pii confi
 }
 
 func (wfc *WfCase) GetRequestId() string {
-	e, ok := wfc.Entries[config.InitialRequestResolverExpressionScope]
+	e, ok := wfc.Entries[config.InitialRequestContextNameStringReference]
 	if !ok || e.Request == nil || len(e.Request.Headers) == 0 {
 		return ""
 	}
@@ -269,7 +269,7 @@ func (wfc *WfCase) GetHeaderFromContext(ctxName string, hn string) string {
 	if endpointData, ok := wfc.Entries[ctxName]; ok {
 		if ok {
 			v := ""
-			if ctxName == config.InitialRequestResolverExpressionScope {
+			if ctxName == config.InitialRequestContextNameStringReference {
 				v = endpointData.Request.Headers.GetFirst(hn).Value
 			} else {
 				v = endpointData.Response.Headers.GetFirst(hn).Value
@@ -282,10 +282,10 @@ func (wfc *WfCase) GetHeaderFromContext(ctxName string, hn string) string {
 	return ""
 }
 
-func (wfc *WfCase) ResolveExpressionContextName(n string) (ResolverScope, error) {
+func (wfc *WfCase) ResolveExpressionContextName(n string) (ResolverContextReference, error) {
 	const semLogContext = "wf-case::resolve-expression-context"
 	if n == "" {
-		return InitialRequestResolverScope, nil
+		return InitialRequestContextReference, nil
 	}
 
 	var ok bool
@@ -294,26 +294,26 @@ func (wfc *WfCase) ResolveExpressionContextName(n string) (ResolverScope, error)
 		v, err := wfc.Vars.EvalToString(n)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
-			return ResolverScope{EntryId: n, UseResponse: n != config.InitialRequestResolverExpressionScope}, err
+			return ResolverContextReference{Name: n, UseResponse: n != config.InitialRequestContextNameStringReference}, err
 		}
 
-		return ResolverScope{EntryId: v, UseResponse: v != config.InitialRequestResolverExpressionScope}, nil
+		return ResolverContextReference{Name: v, UseResponse: v != config.InitialRequestContextNameStringReference}, nil
 	}
 
-	return ResolverScope{EntryId: n, UseResponse: n != config.InitialRequestResolverExpressionScope}, nil
+	return ResolverContextReference{Name: n, UseResponse: n != config.InitialRequestContextNameStringReference}, nil
 }
 
-func (wfc *WfCase) GetResolverByContext(resolverContext ResolverScope, withVars bool, withTransformationId string, ignoreNonApplicationJsonResponseContent bool) (*ProcessVarResolver, error) {
+func (wfc *WfCase) GetResolverByContext(resolverContext ResolverContextReference, withVars bool, withTransformationId string, ignoreNonApplicationJsonResponseContent bool) (*ProcessVarResolver, error) {
 	var resolver *ProcessVarResolver
 	var err error
-	if entry, ok := wfc.Entries[resolverContext.EntryId]; ok {
+	if entry, ok := wfc.Entries[resolverContext.Name]; ok {
 		if resolverContext.UseResponse {
 			resolver, err = wfc.getResolverForResponseEntry(entry, withVars, withTransformationId, ignoreNonApplicationJsonResponseContent)
 		} else {
 			resolver, err = wfc.getResolverForRequestEntry(entry, withVars, withTransformationId)
 		}
 	} else {
-		return nil, fmt.Errorf("cannot find ctxName %s in case", resolverContext.EntryId)
+		return nil, fmt.Errorf("cannot find ctxName %s in case", resolverContext.Name)
 	}
 
 	return resolver, err
@@ -372,7 +372,7 @@ func (wfc *WfCase) getResolverForResponseEntry(endpointData *har.Entry, withVars
 	return resolver, nil
 }
 
-func (wfc *WfCase) SetVars(resolverContext ResolverScope, vars []config.ProcessVar, transformationId string, ignoreNonApplicationJsonResponseContent bool) error {
+func (wfc *WfCase) SetVars(resolverContext ResolverContextReference, vars []config.ProcessVar, transformationId string, ignoreNonApplicationJsonResponseContent bool) error {
 
 	if len(vars) == 0 {
 		return nil
@@ -403,7 +403,7 @@ func (wfc *WfCase) SetVars(resolverContext ResolverScope, vars []config.ProcessV
 	return nil
 }
 
-func (wfc *WfCase) ResolveStrings(resolverContext ResolverScope, expr []string, transformationId string, ignoreNonApplicationJsonResponseContent bool) ([]string, error) {
+func (wfc *WfCase) ResolveStrings(resolverContext ResolverContextReference, expr []string, transformationId string, ignoreNonApplicationJsonResponseContent bool) ([]string, error) {
 
 	resolver, err := wfc.GetResolverByContext(resolverContext, true, transformationId, ignoreNonApplicationJsonResponseContent)
 	if err != nil {
@@ -539,7 +539,7 @@ func (wfc *WfCase) GetHarData(detail ReportLogDetail, jm *jsonmask.JsonMask) *ha
 	for n, e := range wfc.Entries {
 
 		incl := true
-		if detail == ReportLogHARRequest && e.Comment != config.InitialRequestResolverExpressionScope {
+		if detail == ReportLogHARRequest && e.Comment != config.InitialRequestContextNameStringReference {
 			incl = false
 		}
 
