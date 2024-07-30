@@ -13,12 +13,12 @@ func SetUpOrchestration() *config.Orchestration {
 	procVars := []config.ProcessVar{
 		{
 			Name:  "year",
-			Value: "{$.year,sprf=.0f}",
+			Value: "{$.key.year,sprf=.0f}",
 			Type:  "number",
 		},
 		{
 			Name:  "title",
-			Value: "{$.title}",
+			Value: "{$.key.title}",
 			Type:  "string",
 		},
 	}
@@ -45,7 +45,15 @@ func SetUpOrchestration() *config.Orchestration {
 		WithName(MongoActivityReplaceOneName).
 		WithDescription(MongoActivityReplaceOneDescription).
 		WithRefDefinition(MongoActivityReplaceOneRefDefinition).
-		WithOpType(jsonops.ReplaceOneOperationType)
+		WithOpType(jsonops.ReplaceOneOperationType).
+		WithExpressionContext(Endpoint01ActivityName + "@" + Endpoint01EndpointId)
+
+	mongoUpdateOneActivity := config.NewMongoActivity().
+		WithName(MongoActivityUpdateOneName).
+		WithDescription(MongoActivityUpdateOneDescription).
+		WithRefDefinition(MongoActivityUpdateOneRefDefinition).
+		WithOpType(jsonops.UpdateOneOperationType).
+		WithExpressionContext(Endpoint01ActivityName + "@" + Endpoint01EndpointId)
 
 	mongoAggregateOneActivity := config.NewMongoActivity().
 		WithName(MongoActivityAggregateOneName).
@@ -105,6 +113,7 @@ func SetUpOrchestration() *config.Orchestration {
 			mongoFindOneActivity,
 			getMovieEndpoint,
 			mongoReplaceOneActivity,
+			mongoUpdateOneActivity,
 			mongoAggregateOneActivity,
 			nestedOrchestrationActivity,
 			endActivity,
@@ -122,12 +131,16 @@ func SetUpOrchestration() *config.Orchestration {
 	err = orc.AddPath(mongoFindOneActivity.Name(), getMovieEndpoint.Name(), "!movieFound")
 	requireNoError(err)
 
-	// replace mongo data
+	// the data retrieved by the end point is saved in mongo with a replace one operation
 	err = orc.AddPath(getMovieEndpoint.Name(), mongoReplaceOneActivity.Name(), "")
 	requireNoError(err)
 
-	// back to default path
-	err = orc.AddPath(mongoReplaceOneActivity.Name(), mongoAggregateOneActivity.Name(), "")
+	// some data retrieved by the end point is saved in mongo with a update one operation (different document same collection)
+	err = orc.AddPath(mongoReplaceOneActivity.Name(), mongoUpdateOneActivity.Name(), "")
+	requireNoError(err)
+
+	// After the update jump to aggregate
+	err = orc.AddPath(mongoUpdateOneActivity.Name(), mongoAggregateOneActivity.Name(), "")
 	requireNoError(err)
 
 	// default path if already on db

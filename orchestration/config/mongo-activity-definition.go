@@ -24,6 +24,7 @@ var opTypes = map[jsonops.MongoJsonOperationType]struct{}{
 	jsonops.FindOneOperationType:      struct{}{},
 	jsonops.ReplaceOneOperationType:   struct{}{},
 	jsonops.AggregateOneOperationType: struct{}{},
+	jsonops.UpdateOneOperationType:    struct{}{},
 }
 
 type MongoActivityDefinition struct {
@@ -77,7 +78,7 @@ func (def *MongoActivityDefinition) LoadStatementConfig(refs DataReferences) (ma
 				return nil, err
 			}
 		}
-		statementData[jsonops.MongoJsonOperationStatementPart(n)] = sdata
+		statementData[n] = sdata
 	}
 
 	return statementData, err

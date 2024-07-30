@@ -9,6 +9,8 @@ paths:
     - source: endpoint-get-movie
       target: mongo-activity-replace-one
     - source: mongo-activity-replace-one
+      target: mongo-activity-update-one
+    - source: mongo-activity-update-one
       target: mongo-activity-aggregate-one
     - source: mongo-activity-find-one
       target: mongo-activity-aggregate-one
@@ -24,10 +26,10 @@ activities:
         description: start-activity description
         process-vars:
             - name: year
-              value: '{$.year,sprf=.0f}'
+              value: '{$.key.year,sprf=.0f}'
               type: number
             - name: title
-              value: '{$.title}'
+              value: '{$.key.title}'
               type: string
     - activity:
         name: mongo-activity-find-one
@@ -50,7 +52,15 @@ activities:
         type: mongo-activity
         description: mongo-activity-replace-one description
         ref-definition: mongo-activity-replace-one.yml
+        expression-scope: endpoint-get-movie@endpoint-get-movie-1
       op-type: replace-one
+    - activity:
+        name: mongo-activity-update-one
+        type: mongo-activity
+        description: mongo-activity-update-one description
+        ref-definition: mongo-activity-update-one.yml
+        expression-scope: endpoint-get-movie@endpoint-get-movie-1
+      op-type: update-one
     - activity:
         name: mongo-activity-aggregate-one
         type: mongo-activity

@@ -1,0 +1,23 @@
+method: POST
+path: /test/test01/api/v1/ep01/test
+body: ./movies-orchestration-request-body.json
+headers:
+  Accept:
+    - '*/*'
+  Content-Length:
+    - "114"
+  Content-Type:
+    - application/json
+  Host:
+    - localhost:8080
+  User-Agent:
+    - insomnium/0.2.3
+  canale:
+    - APBP
+  requestId:
+    - bf53415b-54ce-4b5a-a470-b01943a68f89
+  trackId:
+    - cbd5c903-b1ee-4c6e-ba39-bb040c0116f8
+params:
+  - name: pathId
+    value: test

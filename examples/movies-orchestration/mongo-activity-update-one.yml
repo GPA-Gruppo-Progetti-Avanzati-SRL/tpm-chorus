@@ -1,0 +1,12 @@
+lks-name: default
+collection-id: movies
+statement:
+    $filter: '{ "hello": "world" }'
+    $opts: '{ "upsert": true }'
+    $update: update-one-update-document.tmpl
+on-response:
+    - status-code: 200
+    - status-code: -1
+      error:
+        - ambit: mongo-activity-update-one
+          message: '{v:dict,sample,500}'

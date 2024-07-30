@@ -2,7 +2,7 @@ method: GET
 scheme: http
 hostname: localhost
 port: "3007"
-Path: /movies/{$.year,sprf=.0f}/{$.title}
+Path: /movies/{$.key.year,sprf=.0f}/{$.key.title}
 headers:
     - name: requestId
       value: '{h:requestId}'

@@ -30,12 +30,6 @@ github.com/Azure/go-autorest/logger v0.2.1 h1:IG7i4p/mDa2Ce4TRyAO8IHnVhAVF3RFU+Z
 github.com/Azure/go-autorest/logger v0.2.1/go.mod h1:T9E3cAhj2VqvPOtCYAvby9aBXkZmbF5NWuPV8+WeEW8=
 github.com/Azure/go-autorest/tracing v0.6.0 h1:TYi4+3m5t6K48TGI9AUdb+IzbnSxvnvUMfuitfgcfuo=
 github.com/Azure/go-autorest/tracing v0.6.0/go.mod h1:+vhtPC754Xsa23ID7GlGsrdKBpUA79WCAKPPZVC2DeU=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.44 h1:FNBo6WhJ2/wak1jqxp+pds4QMp3JL3U6ABI+Q4/D7oU=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.44/go.mod h1:vnI1W77dpctWxMspokeoSVbGAOaU66mKfnCOyyoEYWQ=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.45 h1:Ld+pD+QR5M0EPW3BBovsTOgKJ5qNbbNPGIQzqjjydiI=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.45/go.mod h1:vnI1W77dpctWxMspokeoSVbGAOaU66mKfnCOyyoEYWQ=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.46 h1:90NKn5gCGvPCQNGG3UEpA0iBcFEmHSAxiW7/Ao8F7Qg=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.46/go.mod h1:vnI1W77dpctWxMspokeoSVbGAOaU66mKfnCOyyoEYWQ=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.47 h1:2OEedRtEPEGmAs0NxwtlydVEPQaAclpMvBg48tgvEH0=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.47/go.mod h1:vnI1W77dpctWxMspokeoSVbGAOaU66mKfnCOyyoEYWQ=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.35 h1:zIXlsZpYF+1mE/eJvn/pV6rFIR/IJ0ONW17VvQ7s2ew=
@@ -44,12 +38,8 @@ github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.0.35 h1:960UbFeBd
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.0.35/go.mod h1:4RxT5FMf9fheAtN1VoHGsz2jjSS2CJFkF4n/3bLNqxY=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.3 h1:sAQbCv2WtFkB1crhIXhr+8VYuNIiYJzH7klheC3RTjQ=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.3/go.mod h1:nMprSyKIVDy+avPTnW2qTPBIXiGxiYG9JrKyNY+s3+I=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8-RC10 h1:PBx73dHatUwVCQi17jrQqnW7i3WwZHqmmM3fE+dFjj0=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8-RC10/go.mod h1:maPRwfE/WXISg/6PqjFzWvMzYU0Z7in4+CZ3H7P5b/0=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8-RC11 h1:BD/2apSULF83jjUiC1eyIJ2j9mimfVtV58zUUJHcB6k=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8-RC11/go.mod h1:maPRwfE/WXISg/6PqjFzWvMzYU0Z7in4+CZ3H7P5b/0=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8-RC13 h1:fAaM7U/xmbiSPRgv6y9uNifhHd/3ZAgPgXTbSDovpqc=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8-RC13/go.mod h1:maPRwfE/WXISg/6PqjFzWvMzYU0Z7in4+CZ3H7P5b/0=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8-RC14 h1:2A8hwhNcfW10vm0vnW4HqirJybqX8bWt77drWkG6vS8=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8-RC14/go.mod h1:maPRwfE/WXISg/6PqjFzWvMzYU0Z7in4+CZ3H7P5b/0=
 github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0rYXWg0=
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Microsoft/go-winio v0.6.1 h1:9/kr64B9VUZrLm5YYwbGtUJnMgqWVOdUAXu6Migciow=
@@ -131,6 +121,7 @@ github.com/containerd/typeurl/v2 v2.1.1/go.mod h1:IDp2JFvbwZ31H8dQbEIY7sDl2L3o3H
 github.com/coreos/go-systemd/v22 v22.5.0/go.mod h1:Y58oyj3AT4RCenI/lSvhwexgC+NSVTIJ3seZv2GcEnc=
 github.com/cpuguy83/dockercfg v0.3.1 h1:/FpZ+JaygUR/lZP2NlFI2DVfrOEMAIKP5wWEJdoYe9E=
 github.com/cpuguy83/dockercfg v0.3.1/go.mod h1:sugsbF4//dDlL/i+S+rtpIWp+5h0BHJHfjj5/jFyUJc=
+github.com/cpuguy83/go-md2man/v2 v2.0.3/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46tRHOmNcaadrF8o=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
@@ -397,6 +388,7 @@ github.com/rogpeppe/go-internal v1.12.0/go.mod h1:E+RYuTGaKKdloAfM02xzb0FW3Paa99
 github.com/rs/xid v1.5.0/go.mod h1:trrq9SKmegXys3aeAKXMUTdJsYXVwGY3RLcfgqegfbg=
 github.com/rs/zerolog v1.33.0 h1:1cU2KZkvPxNyfgEmhHAz/1A9Bz+llsdYzklWFzgp0r8=
 github.com/rs/zerolog v1.33.0/go.mod h1:/7mN4D5sKwJLZQ2b/znpjC3/GQWY/xaDXUM0kKWRHss=
+github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/secure-systems-lab/go-securesystemslib v0.4.0 h1:b23VGrQhTA8cN2CbBw7/FulN9fTtqYUdS5+Oxzt+DUE=
 github.com/secure-systems-lab/go-securesystemslib v0.4.0/go.mod h1:FGBZgq2tXWICsxWQW1msNf49F0Pf2Op5Htayx335Qbs=
 github.com/serialx/hashring v0.0.0-20190422032157-8b2912629002 h1:ka9QPuQg2u4LGipiZGsgkg3rJCo4iIUCy75FddM0GRQ=

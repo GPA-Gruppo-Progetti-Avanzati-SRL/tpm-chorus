@@ -22,7 +22,7 @@ func SetUpEndpoint01Definition() config.EndpointDefinition {
 		HostName: "localhost",
 		Port:     "3007",
 		Scheme:   "http",
-		Path:     "/movies/{$.year,sprf=.0f}/{$.title}",
+		Path:     "/movies/{$.key.year,sprf=.0f}/{$.key.title}",
 		HttpClientOptions: &config.HttpClientOptions{
 			RestTimeout: 10 * time.Second,
 		},
@@ -40,7 +40,7 @@ func SetUpEndpoint01Definition() config.EndpointDefinition {
 					},
 					{
 						Name:  "movieContextName",
-						Value: Endpoint01ActivityName,
+						Value: Endpoint01ActivityName + "@" + Endpoint01EndpointId,
 					},
 				},
 			},

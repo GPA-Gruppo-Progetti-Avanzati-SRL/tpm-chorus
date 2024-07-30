@@ -59,6 +59,12 @@ func main() {
 	requireNoError(err)
 	err = writeActivityDefinitionToFile(MongoActivityAggregateOneName, MongoActivityAggregateOneRefDefinitionFileName, b)
 	requireNoError(err)
+
+	mongoDef = SetUpMongoActivityUpdateOneMovie()
+	b, err = yaml.Marshal(mongoDef)
+	requireNoError(err)
+	err = writeActivityDefinitionToFile(MongoActivityUpdateOneName, MongoActivityUpdateOneRefDefinitionFileName, b)
+	requireNoError(err)
 }
 
 func writeOrchestrationToFile(fn string, orc *config.Orchestration) error {
