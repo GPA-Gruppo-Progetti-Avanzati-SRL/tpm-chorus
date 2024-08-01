@@ -47,13 +47,13 @@ sequenceDiagram
     participant sub_a as Nested Activity
     participant ea as End Activity
 
-	chorus ->> sa: Start
-    chorus ->> ma_fo: Esegue ricerca su MongoDB
+	chorus ->> sa: start
+    chorus ->> ma_fo: 
     ma_fo ->> mongodb: Find One
     rect rgb(224,224,224)
         note right of chorus: if not found
-    chorus ->> ep_a: GetOneByYearTitle() 
-    ep_a ->> restsvc: Get One
+    chorus ->> ep_a: 
+    ep_a ->> restsvc: GetOneByYearTitle()
     chorus ->> ma_ro: 
     ma_ro ->> mongodb: MongoDb op replace one
     chorus ->> ma_uo: 
