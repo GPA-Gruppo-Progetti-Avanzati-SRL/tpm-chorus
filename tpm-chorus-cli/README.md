@@ -14,12 +14,12 @@
 | --cfg          | configurazione delle metriche e dei linked services.                                                        |
 
 
-## Struttura orchestrazione di esempio
+## Struttura orchestrazione di esempio movies
 
 ### Body della chiamata
-
-Cio' che viene usato e' l'elemento chiave. Il corpo non viene usato. Riportato come non rilevante per completezza.
+Cio' che viene usato e' l'elemento `key`. Il corpo non viene usato. Riportato come non rilevante per completezza.
 (nota: nel caso di tpm-rhapsody i messaggi in ingresso vengono riportati ad un singolo body strutturato con le proprietà `key` e `body`)
+
 ```json
 {
   "key": {
@@ -65,3 +65,4 @@ sequenceDiagram
     chorus ->> sub_a: execute (no-op nested activity (tbd))
     chorus ->> ea: End    
 ```
+
