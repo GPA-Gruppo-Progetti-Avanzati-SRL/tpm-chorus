@@ -197,7 +197,7 @@ func (a *MongoActivity) Invoke(wfc *wfcase.WfCase, op jsonops.Operation) (*har.R
 		BodySize:    int64(len(resp)),
 		Cookies:     []har.Cookie{},
 		Content: &har.Content{
-			MimeType: "application/json",
+			MimeType: constants.ContentTypeApplicationJson,
 			Size:     int64(len(resp)),
 			Data:     resp,
 		},

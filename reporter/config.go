@@ -3,7 +3,6 @@ package reporter
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
-	"gitlab.alm.poste.it/go/configuration"
 )
 
 const (
@@ -41,13 +40,4 @@ type Config struct {
 	Kafka            *KafkaConfig                     `mapstructure:"kafka" yaml:"kafka" json:"kafka"`
 	RefMetricsConfig *promutil.MetricsConfigReference `mapstructure:"ref-metrics,omitempty" yaml:"ref-metrics,omitempty" json:"ref-metrics,omitempty"`
 	MetricsConfig    promutil.MetricGroupConfig       `mapstructure:"metrics" yaml:"metrics" json:"metrics"`
-}
-
-func GetConfigDefaults(ctx string) []configuration.VarDefinition {
-	return []configuration.VarDefinition{
-		{ctx + ".reporter.type", "dummy", "reporter type"},
-		{ctx + ".reporter.work-queue", 5, "work queue"},
-		{ctx + ".reporter.level", wfcase.ReportLogHAR, "detail level"},
-		{ctx + ".reporter.dummy.file-name", "dummy-reporter.json", "file-name"},
-	}
 }

@@ -9,7 +9,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/templateutil"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
-	"github.com/gin-gonic/gin"
 	"github.com/opentracing/opentracing-go"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -29,11 +28,16 @@ type BreadcrumbStep struct {
 
 type Breadcrumb []BreadcrumbStep
 
+type HttpParam struct {
+	Key   string
+	Value string
+}
+
 type EndpointData struct {
 	Id      string
 	Body    []byte
 	Headers http.Header
-	Params  gin.Params
+	Params  []HttpParam
 }
 
 var InitialRequestContextReference = ResolverContextReference{Name: config.InitialRequestContextNameStringReference}

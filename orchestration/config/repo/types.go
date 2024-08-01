@@ -2,6 +2,7 @@ package repo
 
 import (
 	"errors"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 	"path/filepath"
@@ -23,7 +24,7 @@ const (
 	SemLogActivityNumOutputs   = "len-outputs"
 	SemLogActivityNumInputs    = "len-inputs"
 	SemLogCacheKey             = "cache-key"
-	ContentTypeApplicationJson = "application/json"
+	ContentTypeApplicationJson = constants.ContentTypeApplicationJson
 
 	VERSION string = "0.0.1-SNAPSHOT"
 )

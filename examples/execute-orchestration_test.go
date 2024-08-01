@@ -60,7 +60,7 @@ func TestExecuteMoviesOrchestration(t *testing.T) {
 		movieSample,
 		http.Header{
 			"Host":           []string{"localhost:8080"},
-			"Content-Type":   []string{"application/json"},
+			"Content-Type":   []string{constants.ContentTypeApplicationJson},
 			"User-Agent":     []string{"insomnium/0.2.3"},
 			"canale":         []string{"APBP"},
 			"requestId":      []string{"bf53415b-54ce-4b5a-a470-b01943a68f89"},
