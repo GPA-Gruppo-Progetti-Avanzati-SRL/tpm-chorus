@@ -5,13 +5,13 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+	"os"
 
 	"io/fs"
-	"io/ioutil"
 )
 
 const (
-	OrchestrationWorkPath                  = "~/examples/movies-orchestration/"
+	OrchestrationWorkPath                  = "~/tpm-chorus-cli/orchestration-examples/movies/"
 	OrchestrationYAMLFileName              = OrchestrationWorkPath + "tpm-orchestration.yml"
 	NestedOrchestrationYAMLFileName        = OrchestrationWorkPath + "nested-orchestration/tpm-orchestration.yml"
 	descriptionSuffix                      = " description"
@@ -86,7 +86,7 @@ func writeToFile(fn string, b []byte) error {
 
 	outFileName, _ := util.ResolvePath(fn)
 	log.Info().Str("file-name", outFileName).Msg("producing file")
-	err := ioutil.WriteFile(outFileName, b, fs.ModePerm)
+	err := os.WriteFile(outFileName, b, fs.ModePerm)
 	return err
 }
 

@@ -20,7 +20,7 @@ import (
 	"testing"
 )
 
-//go:embed movies-orchestration/sample.json
+//go:embed movies-sample.json
 var movieSample []byte
 
 const orchestration1Folder = "./movies-orchestration"
