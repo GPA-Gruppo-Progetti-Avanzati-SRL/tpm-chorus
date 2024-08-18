@@ -25,7 +25,7 @@ func NewNestedOrchestrationActivity(item config.Configurable, refs config.DataRe
 func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 	const semLogContext = string(config.NestedOrchestrationActivityType) + "::execute"
 	if !a.IsEnabled(wfc) {
-		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", "echo").Msg("activity not enabled")
+		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.NestedOrchestrationActivityType)).Msg("activity not enabled")
 		return nil
 	}
 

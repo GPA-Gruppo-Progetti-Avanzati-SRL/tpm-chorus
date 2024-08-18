@@ -127,7 +127,7 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	if !a.IsEnabled(wfc) {
-		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", "echo").Msg(semLogContext + " activity not enabled")
+		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.EndpointActivityType)).Msg(semLogContext + " activity not enabled")
 		return nil
 	}
 

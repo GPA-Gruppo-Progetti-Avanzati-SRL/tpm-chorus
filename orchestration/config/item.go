@@ -17,6 +17,7 @@ const (
 	KafkaActivityType               Type = "kafka-activity"
 	NestedOrchestrationActivityType Type = "nested-orchestration-activity"
 	MongoActivityType               Type = "mongo-activity"
+	TransformActivityType           Type = "transform-activity"
 )
 
 type ActivityTypeRegistryEntry struct {
@@ -33,6 +34,7 @@ var activityTypeRegistry = map[Type]ActivityTypeRegistryEntry{
 	KafkaActivityType:               {Tp: KafkaActivityType, UnmarshallFromJSON: NewKafkaActivityFromJSON, UnmarshalFromYAML: NewKafkaActivityFromYAML},
 	NestedOrchestrationActivityType: {Tp: NestedOrchestrationActivityType, UnmarshallFromJSON: NewNestedOrchestrationActivityFromJSON, UnmarshalFromYAML: NewNestedOrchestrationActivityFromYAML},
 	MongoActivityType:               {Tp: MongoActivityType, UnmarshallFromJSON: NewMongoActivityFromJSON, UnmarshalFromYAML: NewMongoActivityFromYAML},
+	TransformActivityType:           {Tp: TransformActivityType, UnmarshallFromJSON: NewTransformActivityFromJSON, UnmarshalFromYAML: NewTransformActivityFromYAML},
 }
 
 type Configurable interface {
@@ -200,10 +202,18 @@ func (ei ErrorInfo) IsZero() bool {
 	return ei.StatusCode == 0 && ei.Ambit == "" && ei.Message == ""
 }
 
+const (
+	XFormMerge    = "merge"
+	XFormTemplate = "template"
+	XFormKazaam   = "kazaam"
+)
+
 type TransformReference struct {
+	Typ           string `yaml:"type,omitempty" json:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
 	Id            string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
 	DefinitionRef string `yaml:"definition-ref,omitempty" mapstructure:"definition-ref,omitempty" json:"definition-ref,omitempty"`
 	Guard         string `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
+	Data          []byte `yaml:"-" mapstructure:"-" json:"-"`
 }
 
 // OnResponseAction TODO Verificare dove vengono utilizzate le transforms.

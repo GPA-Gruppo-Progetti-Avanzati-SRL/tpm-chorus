@@ -18,11 +18,28 @@ func handleErrorTestMain(err error) {
 	}
 }
 
+var t1 = []byte(`
+id: "transform_activity_get_movie_kazaam_rule"
+rules:
+  - operation: shift
+    spec:
+      properties:
+        cast: cast
+        awards: awards
+        fullplot: fullplot
+        title: title
+        year: year
+`)
+
 func TestMain(m *testing.M) {
 	err := transform.InitializeKazaamRegistry()
 	handleErrorTestMain(err)
 
 	registry := transform.GetRegistry()
+
+	trsf0 := transform.Config{}
+	err = yaml.Unmarshal(t1, &trsf0)
+	handleErrorTestMain(err)
 
 	trsf1 := transform.Config{}
 	err = yaml.Unmarshal(case001RuleYml, &trsf1)

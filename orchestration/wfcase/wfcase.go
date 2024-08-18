@@ -1,6 +1,7 @@
 package wfcase
 
 import (
+	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
@@ -305,6 +306,42 @@ func (wfc *WfCase) ResolveExpressionContextName(n string) (ResolverContextRefere
 	}
 
 	return ResolverContextReference{Name: n, UseResponse: n != config.InitialRequestContextNameStringReference}, nil
+}
+
+func (wfc *WfCase) GetBodyByContext(resolverContext ResolverContextReference, ignoreNonApplicationJsonResponseContent bool) ([]byte, error) {
+	var b []byte
+	var err error
+	if entry, ok := wfc.Entries[resolverContext.Name]; ok {
+		if resolverContext.UseResponse {
+			if entry.Response.Content != nil {
+				if strings.HasPrefix(entry.Response.Content.MimeType, constants.ContentTypeApplicationJson) {
+					b = entry.Response.Content.Data
+				} else {
+					if ignoreNonApplicationJsonResponseContent {
+						return nil, nil
+					}
+
+					return nil, errors.New("content type is not application/json")
+				}
+			}
+		} else {
+			if entry.Request.PostData != nil {
+				if strings.HasPrefix(entry.Request.PostData.MimeType, constants.ContentTypeApplicationJson) {
+					b = entry.Request.PostData.Data
+				} else {
+					if ignoreNonApplicationJsonResponseContent {
+						return nil, nil
+					}
+
+					return nil, errors.New("content type is not application/json")
+				}
+			}
+		}
+	} else {
+		return nil, fmt.Errorf("cannot find ctxName %s in case", resolverContext.Name)
+	}
+
+	return b, err
 }
 
 func (wfc *WfCase) GetResolverByContext(resolverContext ResolverContextReference, withVars bool, withTransformationId string, ignoreNonApplicationJsonResponseContent bool) (*ProcessVarResolver, error) {

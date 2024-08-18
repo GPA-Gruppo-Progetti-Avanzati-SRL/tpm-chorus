@@ -25,6 +25,59 @@ type ProcessVarResolver struct {
 	params  har.Params
 }
 
+func (pvr *ProcessVarResolver) BodyAsByteArray() ([]byte, error) {
+	const semLogContext = "variable-resolver::get-body-as-byte-array"
+
+	var err error
+	if pvr.body == nil {
+		return nil, nil
+	}
+
+	switch bd := pvr.body.(type) {
+	case []byte:
+		return bd, nil
+	case map[string]interface{}:
+		var b []byte
+		b, err = json.Marshal(bd)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+		}
+		return b, err
+	default:
+		err = fmt.Errorf("unexpected type for body %T", pvr.body)
+		log.Error().Msg(semLogContext)
+		return nil, err
+	}
+}
+
+func (pvr *ProcessVarResolver) WithBody(ct string, aBody []byte, transformationId string) error {
+	const semLogContext = "variable-resolver::with-body"
+	var err error
+	if aBody != nil {
+		if strings.HasPrefix(ct, constants.ContentTypeApplicationJson) {
+			actualBody := aBody
+			if transformationId != "" {
+				actualBody, err = transform.GetRegistry().Transform(transformationId, aBody)
+				if err != nil {
+					log.Error().Err(err).Msg(semLogContext + " body transformation failed")
+					return err
+				}
+			}
+			v := interface{}(nil)
+			err := json.Unmarshal(actualBody, &v)
+			if err == nil {
+				pvr.body = v
+			} else {
+				return err
+			}
+		} else {
+			return fmt.Errorf("body content-type is not %s", constants.ContentTypeApplicationJson)
+		}
+	}
+
+	return nil
+}
+
 func WithProcessVars(prcVars ProcessVars) VarResolverOption {
 	return func(r *ProcessVarResolver) error {
 		r.vars = prcVars
@@ -35,30 +88,33 @@ func WithProcessVars(prcVars ProcessVars) VarResolverOption {
 func WithBody(ct string, aBody []byte, transformationId string) VarResolverOption {
 	const semLogContext = "variable-resolver::with-body"
 	return func(r *ProcessVarResolver) error {
-		var err error
-		if aBody != nil {
-			if strings.HasPrefix(ct, constants.ContentTypeApplicationJson) {
-				actualBody := aBody
-				if transformationId != "" {
-					actualBody, err = transform.GetRegistry().Transform(transformationId, aBody)
-					if err != nil {
-						log.Error().Err(err).Msg(semLogContext + " body transformation failed")
+		return r.WithBody(ct, aBody, transformationId)
+		/*
+			var err error
+			if aBody != nil {
+				if strings.HasPrefix(ct, constants.ContentTypeApplicationJson) {
+					actualBody := aBody
+					if transformationId != "" {
+						actualBody, err = transform.GetRegistry().Transform(transformationId, aBody)
+						if err != nil {
+							log.Error().Err(err).Msg(semLogContext + " body transformation failed")
+							return err
+						}
+					}
+					v := interface{}(nil)
+					err := json.Unmarshal(actualBody, &v)
+					if err == nil {
+						r.body = v
+					} else {
 						return err
 					}
-				}
-				v := interface{}(nil)
-				err := json.Unmarshal(actualBody, &v)
-				if err == nil {
-					r.body = v
 				} else {
-					return err
+					return fmt.Errorf("body content-type is not %s", constants.ContentTypeApplicationJson)
 				}
-			} else {
-				return fmt.Errorf("body content-type is not %s", constants.ContentTypeApplicationJson)
 			}
-		}
 
-		return nil
+			return nil
+		*/
 	}
 }
 

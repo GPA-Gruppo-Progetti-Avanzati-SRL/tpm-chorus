@@ -1,53 +1,50 @@
-package mongoactivity
+package transformactivity
 
 import (
-	"context"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/jsonops"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/mongolks"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"net/http"
-	"strconv"
 	"time"
 )
 
-type MongoActivity struct {
+type TransformActivity struct {
 	executable.Activity
-	definition config.MongoActivityDefinition
+	definition config.TransformActivityDefinition
 }
 
-func NewMongoActivity(item config.Configurable, refs config.DataReferences) (*MongoActivity, error) {
-	const semLogContext = "mongo-activity::new"
+func NewTransformActivity(item config.Configurable, refs config.DataReferences) (*TransformActivity, error) {
+	const semLogContext = "transform-activity::new"
 	var err error
 
-	ma := &MongoActivity{}
+	ma := &TransformActivity{}
 	ma.Cfg = item
 	ma.Refs = refs
 
-	maCfg := item.(*config.MongoActivity)
-	ma.definition, err = config.UnmarshalMongoActivityDefinition(maCfg.OpType, maCfg.Definition, refs)
+	maCfg := item.(*config.TransformActivity)
+	ma.definition, err = config.UnmarshalTransformActivityDefinition(maCfg.Definition, refs)
 	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
 		return nil, err
 	}
 
 	return ma, nil
 }
 
-func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
+func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 
-	const semLogContext = string(config.MongoActivityType) + "::execute"
+	const semLogContext = string(config.TransformActivityType) + "::execute"
 	var err error
 
-	maCfg := a.Cfg.(*config.MongoActivity)
+	maCfg := a.Cfg.(*config.TransformActivity)
 
 	_, _, err = a.MetricsGroup()
 	if err != nil {
@@ -56,7 +53,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	if !a.IsEnabled(wfc) {
-		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.MongoActivityType)).Msg(semLogContext + " activity not enabled")
+		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.TransformActivityType)).Msg(semLogContext + " activity not enabled")
 		return nil
 	}
 
@@ -67,9 +64,9 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
 
-	tcfg, ok := a.Cfg.(*config.MongoActivity)
+	tcfg, ok := a.Cfg.(*config.TransformActivity)
 	if !ok {
-		err = fmt.Errorf("this is weird %T is not %s config type", a.Cfg, config.MongoActivityType)
+		err = fmt.Errorf("this is weird %T is not %s config type", a.Cfg, config.TransformActivityType)
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		log.Error().Err(err).Msg(semLogContext)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
@@ -86,25 +83,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	beginOf := time.Now()
 	metricsLabels := a.MetricsLabels()
 
-	statementConfig, err := a.definition.LoadStatementConfig(a.Refs)
-	if err != nil {
-		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
-	}
-
-	statementConfig, err = a.resolveStatementParts(wfc, statementConfig)
-	if err != nil {
-		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
-	}
-
-	op, err := jsonops.NewOperation(maCfg.OpType, statementConfig)
-	if err != nil {
-		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
-	}
-
-	req, err := a.newRequestDefinition(wfc, op) // TODO calcolare lo statement
+	req, err := a.newRequestDefinition(wfc, expressionCtx) // TODO calcolare lo statement
 	if err != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		metricsLabels[MetricIdStatusCode] = "500"
@@ -114,7 +93,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 
 	_ = wfc.AddEndpointRequestData(a.Name(), req, maCfg.PII)
 
-	harResponse, err := a.Invoke(wfc, op)
+	harResponse, err := a.Invoke(wfc, expressionCtx)
 	if harResponse != nil {
 		_ = wfc.AddEndpointResponseData(a.Name(), harResponse, maCfg.PII)
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
@@ -141,85 +120,116 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	return err
 }
 
-func (a *MongoActivity) resolveStatementParts(wfc *wfcase.WfCase, m map[jsonops.MongoJsonOperationStatementPart][]byte) (map[jsonops.MongoJsonOperationStatementPart][]byte, error) {
-
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
-	if err != nil {
-		return nil, err
-	}
-
-	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
-	if err != nil {
-		return nil, err
-	}
-
-	newMap := map[jsonops.MongoJsonOperationStatementPart][]byte{}
-	for n, b := range m {
-		s, _, err := varResolver.ResolveVariables(string(b), varResolver.SimpleVariableReference, resolver.ResolveVar, true)
-		if err != nil {
-			return nil, err
-		}
-
-		b1, err := wfc.ProcessTemplate(s)
-		if err != nil {
-			return nil, err
-		}
-
-		newMap[n] = b1
-	}
-
-	return newMap, nil
+func (a *TransformActivity) executeKazaamTransformation(kazaamId string, data []byte) ([]byte, error) {
+	return transform.GetRegistry().Transform(kazaamId, data)
 }
 
-func (a *MongoActivity) Invoke(wfc *wfcase.WfCase, op jsonops.Operation) (*har.Response, error) {
+func (a *TransformActivity) executeMergeTransformation(wfc *wfcase.WfCase, mergeXForm []byte, currentData []byte) ([]byte, error) {
+	const semLogContext = "transform-activity::execute-merge-transformation"
 
-	const semLogContext = "mongo-activity::invoke"
-	lks, err := mongolks.GetLinkedService(context.Background(), a.definition.LksName)
+	xform, err := NewTransformActivityMergeXForm(mergeXForm)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	return xform.Execute(wfc, currentData)
+}
+
+func (a *TransformActivity) executeTemplateTransformation(wfc *wfcase.WfCase, bodyTemplate []byte, resolver *wfcase.ProcessVarResolver) ([]byte, error) {
+
+	s, _, err := varResolver.ResolveVariables(string(bodyTemplate), varResolver.SimpleVariableReference, resolver.ResolveVar, true)
 	if err != nil {
 		return nil, err
 	}
 
-	sc, resp, err := op.Execute(lks, a.definition.CollectionId)
+	b, err := wfc.ProcessTemplate(s)
+	if err != nil {
+		return nil, err
+	}
 
-	var r *har.Response
+	return b, nil
+}
+
+func (a *TransformActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.ResolverContextReference) (*har.Response, error) {
+
+	const semLogContext = "transform-activity::invoke"
+	var err error
+	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", true)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
-		err = util.NewError(strconv.Itoa(sc), err)
-		r = har.NewResponse(sc, http.StatusText(sc), "text/plain", []byte(err.Error()), nil)
+		r := har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
 		return r, err
 	}
 
+	var b []byte
+	for _, xform := range a.definition.Transforms {
+		switch xform.Typ {
+		case config.XFormTemplate:
+			b, err = a.executeTemplateTransformation(wfc, xform.Data, resolver)
+		case config.XFormKazaam:
+			b, err = resolver.BodyAsByteArray()
+			b, err = a.executeKazaamTransformation(xform.Id, b)
+		case config.XFormMerge:
+			b, err = resolver.BodyAsByteArray()
+			b, err = a.executeMergeTransformation(wfc, xform.Data, b)
+		default:
+			log.Warn().Str("type", xform.Typ).Msg(semLogContext + " unsupported transformation")
+		}
+
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			r := har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
+			return r, err
+		}
+
+		err = resolver.WithBody(constants.ContentTypeApplicationJson, b, "")
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			r := har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
+			return r, err
+		}
+	}
+
+	var r *har.Response
 	r = &har.Response{
-		Status:      sc,
+		Status:      http.StatusOK,
 		HTTPVersion: "1.1",
-		StatusText:  http.StatusText(sc),
+		StatusText:  http.StatusText(http.StatusOK),
 		HeadersSize: -1,
-		BodySize:    int64(len(resp)),
+		BodySize:    int64(len(b)),
 		Cookies:     []har.Cookie{},
 		Content: &har.Content{
 			MimeType: constants.ContentTypeApplicationJson,
-			Size:     int64(len(resp)),
-			Data:     resp,
+			Size:     int64(len(b)),
+			Data:     b,
 		},
 	}
 
 	return r, nil
 }
 
-func (a *MongoActivity) newRequestDefinition(wfc *wfcase.WfCase, op jsonops.Operation) (*har.Request, error) {
+func (a *TransformActivity) newRequestDefinition(wfc *wfcase.WfCase, expressionCtx wfcase.ResolverContextReference) (*har.Request, error) {
+
+	const semLogContext = "transform-activity::new-request-definition"
 
 	var opts []har.RequestOption
 
 	ub := har.UrlBuilder{}
-	ub.WithPort(27017)
-	ub.WithScheme("mongodb")
+	ub.WithPort(0000)
+	ub.WithScheme("xform")
 
 	ub.WithHostname("localhost")
-	ub.WithPath("/" + string(a.definition.OpType))
+	ub.WithPath("/" + string(a.Name()))
 
 	opts = append(opts, har.WithMethod("POST"))
 	opts = append(opts, har.WithUrl(ub.Url()))
-	opts = append(opts, har.WithBody([]byte(op.ToString())))
+
+	b, err := wfc.GetBodyByContext(expressionCtx, true)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+	}
+	opts = append(opts, har.WithBody(b))
 
 	req := har.Request{
 		HTTPVersion: "1.1",
@@ -242,20 +252,18 @@ const (
 	MetricIdStatusCode   = "status-code"
 )
 
-func (a *MongoActivity) MetricsLabels() prometheus.Labels {
+func (a *TransformActivity) MetricsLabels() prometheus.Labels {
 
-	cfg := a.Cfg.(*config.MongoActivity)
 	metricsLabels := prometheus.Labels{
 		MetricIdActivityType: string(a.Cfg.Type()),
 		MetricIdActivityName: a.Name(),
-		MetricIdOpType:       string(cfg.OpType),
 		MetricIdStatusCode:   "-1",
 	}
 
 	return metricsLabels
 }
 
-func (a *MongoActivity) processResponseAction(wfc *wfcase.WfCase, activityName string, actionIndex int, resp *har.Response) (int, error) /* *smperror.SymphonyError */ {
+func (a *TransformActivity) processResponseAction(wfc *wfcase.WfCase, activityName string, actionIndex int, resp *har.Response) (int, error) /* *smperror.SymphonyError */ {
 	act := a.definition.OnResponseActions[actionIndex]
 
 	transformId, err := chooseTransformation(wfc, act.Transforms)
@@ -336,7 +344,7 @@ func chooseError(wfc *wfcase.WfCase, errors []config.ErrorInfo) int {
 	return -1
 }
 
-func (a *MongoActivity) findResponseAction(statusCode int) int {
+func (a *TransformActivity) findResponseAction(statusCode int) int {
 
 	matchedAction := -1
 	defaultAction := -1

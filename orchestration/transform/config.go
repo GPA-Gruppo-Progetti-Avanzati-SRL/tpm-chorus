@@ -88,6 +88,10 @@ func cleanUpValue(v interface{}) interface{} {
 	switch v := v.(type) {
 	case []interface{}:
 		return cleanUpInterfaceArray(v)
+	case Specs:
+		return cleanUpStringMap(v)
+	case map[string]interface{}:
+		return cleanUpStringMap(v)
 	case map[interface{}]interface{}:
 		return cleanUpInterfaceMap(v)
 	case string:
@@ -103,6 +107,14 @@ func cleanUpInterfaceArray(in []interface{}) []interface{} {
 	result := make([]interface{}, len(in))
 	for i, v := range in {
 		result[i] = cleanUpValue(v)
+	}
+	return result
+}
+
+func cleanUpStringMap(in map[string]interface{}) map[string]interface{} {
+	result := make(map[string]interface{})
+	for k, v := range in {
+		result[k] = cleanUpValue(v)
 	}
 	return result
 }

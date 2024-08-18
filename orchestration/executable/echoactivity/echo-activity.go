@@ -26,7 +26,7 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 	const semLogContext = string(config.EchoActivityType) + "::execute"
 
 	if !a.IsEnabled(wfc) {
-		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", "echo").Msg("activity not enabled")
+		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.EchoActivityType)).Msg("activity not enabled")
 		return nil
 	}
 

@@ -12,6 +12,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/nestedorchestrationactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/requestactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/responseactivity"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/transformactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/rs/zerolog/log"
 )
@@ -60,6 +61,8 @@ func NewOrchestration(cfg *config.Orchestration) (Orchestration, error) {
 			ex, err = nestedorchestrationactivity.NewNestedOrchestrationActivity(cfgItem, cfg.References)
 		case config.MongoActivityType:
 			ex, err = mongoactivity.NewMongoActivity(cfgItem, cfg.References)
+		case config.TransformActivityType:
+			ex, err = transformactivity.NewTransformActivity(cfgItem, cfg.References)
 		default:
 			panic(fmt.Errorf("this should not happen %s, unrecognized sctivity type", cfgItem.Type()))
 		}
