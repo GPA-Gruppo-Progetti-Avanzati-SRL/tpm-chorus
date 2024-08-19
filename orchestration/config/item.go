@@ -111,7 +111,7 @@ type Activity struct {
 	En              string                          `yaml:"enabled,omitempty" mapstructure:"enabled,omitempty" json:"enabled,omitempty"`
 	MetricsCfg      promutil.MetricsConfigReference `yaml:"ref-metrics,omitempty" mapstructure:"ref-metrics,omitempty" json:"ref-metrics,omitempty"`
 	Definition      string                          `yaml:"ref-definition,omitempty" mapstructure:"ref-definition,omitempty" json:"ref-definition,omitempty"`
-	ExprContextName string                          `yaml:"expression-scope,omitempty" mapstructure:"expression-scope,omitempty" json:"expression-scope,omitempty"`
+	ExprContextName string                          `yaml:"input-source,omitempty" mapstructure:"input-source,omitempty" json:"input-source,omitempty"`
 }
 
 func (c *Activity) WithName(n string) *Activity {
