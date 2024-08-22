@@ -9,7 +9,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"io/fs"
-	"io/ioutil"
+	"os"
 	"sync"
 )
 
@@ -91,7 +91,7 @@ func (drep *DummyReporter) write2File(b []byte) {
 	const semLogContext = "dummy-reporter::write-2-file"
 	if drep.cfg.Dummy != nil && drep.cfg.Dummy.Filename != "" {
 		log.Trace().Str("filename", drep.cfg.Dummy.Filename).Interface("mode", drep.cfg.DetailLevel).Msg(semLogContext + " writing log")
-		err := ioutil.WriteFile(drep.cfg.Dummy.Filename, b, fs.ModePerm)
+		err := os.WriteFile(drep.cfg.Dummy.Filename, b, fs.ModePerm)
 		if err != nil {
 			log.Error().Err(err).Str("filename", drep.cfg.Dummy.Filename).Msg(semLogContext + " error writing to har log")
 		}

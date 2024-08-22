@@ -3,11 +3,11 @@ module github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus
 go 1.22.4
 
 require (
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.47
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.50
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.0.35
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.0.35
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.3
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8-RC14
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8-RC15
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/confluentinc/confluent-kafka-go/v2 v2.4.0
