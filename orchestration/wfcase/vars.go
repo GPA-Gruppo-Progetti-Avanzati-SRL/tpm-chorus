@@ -12,11 +12,6 @@ import (
  * ProcessVariables
  */
 
-const (
-	SymphonyOrchestrationIdProcessVar          = "smp_orchestration_id"
-	SymphonyOrchestrationDescriptionProcessVar = "smp_orchestration_descr"
-)
-
 var IsIdentifierRegexp = regexp.MustCompile("^[a-zA-Z_0-9]+(\\.[a-zA-Z_0-9]+)*$")
 
 type ProcessVar struct {

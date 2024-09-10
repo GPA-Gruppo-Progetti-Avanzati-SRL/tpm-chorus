@@ -42,7 +42,7 @@ func TestExecuteMoviesOrchestration(t *testing.T) {
 	reqSpan := opentracing.SpanFromContext(context.Background())
 	log.Info().Interface("span", reqSpan).Msg(semLogContext)
 
-	wfCase, err := wfcase.NewWorkflowCase(exec.Cfg.Id, exec.Cfg.Version, exec.Cfg.SHA, exec.Cfg.Description, exec.Cfg.Dictionaries, exec.Cfg.References, reqSpan)
+	wfCase, err := wfcase.NewWorkflowCase(exec.Cfg.Id, exec.Cfg.Version, exec.Cfg.SHA, exec.Cfg.Description, exec.Cfg.Dictionaries, exec.Cfg.References, nil, reqSpan)
 	require.NoError(t, err)
 
 	//  POST /test/test01/api/v1/ep01/test HTTP/1.1

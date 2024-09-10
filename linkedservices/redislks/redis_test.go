@@ -12,10 +12,11 @@ import (
 func TestNewInstanceWithConfig(t *testing.T) {
 
 	cfg := redislks.Config{
+		Name: redislks.RedisDefaultBrokerName,
 		Addr: "localhost:6379",
 	}
 
-	lks, err := redislks.NewInstanceWithConfig(&cfg)
+	lks, err := redislks.NewInstanceWithConfig(cfg)
 	require.NoError(t, err)
 
 	var wg sync.WaitGroup
@@ -40,7 +41,7 @@ func TestNewInstanceWithConfig(t *testing.T) {
 
 func putMessage(t *testing.T, lks *redislks.LinkedService, k, v string, wg *sync.WaitGroup) {
 	defer wg.Done()
-	err := lks.Set(context.Background(), k, v)
+	err := lks.Set(context.Background(), redislks.RedisDefaultDbIndex, k, v)
 	if err != nil {
 		t.Error(err)
 	}
@@ -50,7 +51,7 @@ func putMessage(t *testing.T, lks *redislks.LinkedService, k, v string, wg *sync
 
 func getMessage(t *testing.T, lks *redislks.LinkedService, k string, wg *sync.WaitGroup) {
 	defer wg.Done()
-	v, err := lks.Get(context.Background(), k)
+	v, err := lks.Get(context.Background(), redislks.RedisDefaultDbIndex, k)
 	if err != nil {
 		t.Error(err)
 	}

@@ -43,6 +43,7 @@ type EndpointDefinition struct {
 	OnResponseActions                       []OnResponseAction `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
 	IgnoreNonApplicationJsonResponseContent bool               `yaml:"ignore-non-json-response-body,omitempty" json:"ignore-non-json-response-body,omitempty" mapstructure:"ignore-non-json-response-body,omitempty"`
 	HttpClientOptions                       *HttpClientOptions `yaml:"http-client-opts,omitempty" json:"http-client-opts,omitempty" mapstructure:"http-client-opts,omitempty"`
+	CacheConfig                             *CacheConfig       `yaml:"with-cache,omitempty" json:"with-cache,omitempty" mapstructure:"with-cache,omitempty"`
 }
 
 func (epd *EndpointDefinition) PortAsInt() int {

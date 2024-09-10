@@ -10,7 +10,7 @@ import (
 type Config struct {
 	RestClient *restclient.Config `json:"rest-client" yaml:"rest-client" mapstructure:"rest-client"`
 	Kafka      []kafkalks.Config  `json:"kafka" yaml:"kafka" mapstructure:"kafka"`
-	Redis      *redislks.Config   `json:"redis-cache" yaml:"redis-cache" mapstructure:"redis-cache"`
+	Redis      []redislks.Config  `json:"redis-cache" yaml:"redis-cache" mapstructure:"redis-cache"`
 	MongoDb    []mongolks.Config  `mapstructure:"mongo-db,omitempty"  json:"mongo-db,omitempty" yaml:"mongo-db,omitempty"`
 }
 
@@ -36,15 +36,13 @@ func (c *Config) PostProcess() error {
 		}
 	}
 
-	if err != nil {
-		return err
-	}
-
-	if c.Redis != nil {
-		err = c.Redis.PostProcess()
-	}
-	if err != nil {
-		return err
+	if len(c.Redis) > 0 {
+		for i := range c.Redis {
+			err = c.Redis[i].PostProcess()
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

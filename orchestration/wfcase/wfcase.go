@@ -21,6 +21,16 @@ import (
 	"time"
 )
 
+const (
+	ContentTypeHeaderName                      = "content-type"
+	RhapsodyPipelineIdProcessVar               = "rhp_pipeline_id"
+	RhapsodyPipelineIdHeaderName               = "X-Rhp-Pipeline-Id"
+	RhapsodyRequestIdHeaderName                = "X-Rhp-Request-Id"
+	RhapsodyPipelineDescrProcessVar            = "rhp_pipeline_descr"
+	SymphonyOrchestrationIdProcessVar          = "smp_orchestration_id"
+	SymphonyOrchestrationDescriptionProcessVar = "smp_orchestration_descr"
+)
+
 type BreadcrumbStep struct {
 	Name        string
 	Description string
@@ -49,7 +59,7 @@ type ResolverContextReference struct {
 }
 
 type WfCase struct {
-	SymphonyId  string
+	Id          string
 	Browser     *har.Creator
 	Description string
 	StartAt     time.Time
@@ -61,7 +71,7 @@ type WfCase struct {
 	Span        opentracing.Span
 }
 
-func NewWorkflowCase(symphonyId string, version, sha string, descr string, dicts config.Dictionaries, refs config.DataReferences, span opentracing.Span) (*WfCase, error) {
+func NewWorkflowCase(id string, version, sha string, descr string, dicts config.Dictionaries, refs config.DataReferences, systemVars map[string]interface{}, span opentracing.Span) (*WfCase, error) {
 
 	const semLogContext = "wf-case::new"
 	podName := os.Getenv("HOSTNAME")
@@ -71,14 +81,14 @@ func NewWorkflowCase(symphonyId string, version, sha string, descr string, dicts
 	}
 
 	browser := &har.Creator{
-		Name:    fmt.Sprintf("%s@%s", symphonyId, podName),
+		Name:    fmt.Sprintf("%s@%s", id, podName),
 		Version: fmt.Sprintf("%s - %s", version, sha),
 	}
 
 	// epInfo := make(map[string]EndpointData)
 	c := &WfCase{
-		SymphonyId: symphonyId,
-		Browser:    browser,
+		Id:      id,
+		Browser: browser,
 
 		Description: descr,
 		StartAt:     time.Now(),
@@ -92,8 +102,10 @@ func NewWorkflowCase(symphonyId string, version, sha string, descr string, dicts
 		v[fn] = fb
 	}
 
-	v[SymphonyOrchestrationIdProcessVar] = symphonyId
-	v[SymphonyOrchestrationDescriptionProcessVar] = descr
+	for n, val := range systemVars {
+		v[n] = val
+		log.Warn().Str("name", n).Interface("value", val).Msg(semLogContext + " - setting system variable")
+	}
 
 	/*
 		v["dict"] = func(n string, elems ...string) string {
@@ -573,7 +585,7 @@ func (wfc *WfCase) GetHarData(detail ReportLogDetail, jm *jsonmask.JsonMask) *ha
 				Version: utils2.GetVersion(),
 			},
 			Browser: wfc.Browser,
-			Comment: wfc.SymphonyId,
+			Comment: wfc.Id,
 		},
 	}
 

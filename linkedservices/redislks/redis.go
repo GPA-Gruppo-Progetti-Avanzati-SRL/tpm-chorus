@@ -13,22 +13,35 @@ import (
 )
 
 type LinkedService struct {
-	cfg *Config
-	rdb *redis.Client
+	cfg  Config
+	rdbs map[int]*redis.Client
 }
 
-func NewInstanceWithConfig(cfg *Config) (*LinkedService, error) {
+func NewInstanceWithConfig(cfg Config) (*LinkedService, error) {
 	lks := &LinkedService{cfg: cfg}
 	return lks, nil
 }
 
-func (lks *LinkedService) GetClient() (*redis.Client, error) {
+func (lks *LinkedService) Name() string {
+	return lks.cfg.Name
+}
 
-	if lks.rdb == nil {
-		lks.rdb = redis.NewClient(&redis.Options{
+func (lks *LinkedService) GetClient(aDb int) (*redis.Client, error) {
+
+	if aDb == RedisUseLinkedServiceConfiguredIndex {
+		aDb = lks.cfg.Db
+	}
+
+	if lks.rdbs == nil {
+		lks.rdbs = make(map[int]*redis.Client)
+	}
+
+	rdb, ok := lks.rdbs[aDb]
+	if !ok {
+		lks.rdbs[aDb] = redis.NewClient(&redis.Options{
 			Addr:         lks.cfg.Addr,
 			Password:     lks.cfg.Passwd,
-			DB:           lks.cfg.Db,
+			DB:           aDb,
 			PoolSize:     lks.cfg.PoolSize,
 			MaxRetries:   lks.cfg.MaxRetries,
 			DialTimeout:  time.Duration(lks.cfg.DialTimeout) * time.Millisecond,
@@ -38,10 +51,10 @@ func (lks *LinkedService) GetClient() (*redis.Client, error) {
 		})
 	}
 
-	return lks.rdb, nil
+	return rdb, nil
 }
 
-func (lks *LinkedService) Set(ctx context.Context, key string, value interface{}) error {
+func (lks *LinkedService) Set(ctx context.Context, db int, key string, value interface{}) error {
 	const semLogContext = "redis-lks::set"
 	beginOf := time.Now()
 	lbls := lks.MetricsLabels(http.MethodPost)
@@ -49,7 +62,7 @@ func (lks *LinkedService) Set(ctx context.Context, key string, value interface{}
 		_ = lks.setMetrics(start, lbls)
 	}(beginOf)
 
-	rdb, err := lks.GetClient()
+	rdb, err := lks.GetClient(db)
 	if err != nil {
 		return err
 	}
@@ -69,7 +82,7 @@ func (lks *LinkedService) Set(ctx context.Context, key string, value interface{}
 	return err
 }
 
-func (lks *LinkedService) Get(ctx context.Context, key string) (interface{}, error) {
+func (lks *LinkedService) Get(ctx context.Context, db int, key string) (interface{}, error) {
 
 	const semLogContext = "redis-lks::get"
 	beginOf := time.Now()
@@ -78,7 +91,7 @@ func (lks *LinkedService) Get(ctx context.Context, key string) (interface{}, err
 		_ = lks.setMetrics(start, lbls)
 	}(beginOf)
 
-	rdb, err := lks.GetClient()
+	rdb, err := lks.GetClient(db)
 	if err != nil {
 		return nil, err
 	}

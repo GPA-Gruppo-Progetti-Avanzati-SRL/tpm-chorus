@@ -11,6 +11,7 @@ const (
 )
 
 type CacheInfo struct {
+	BrokerName  string      `yaml:"broker-name,omitempty" mapstructure:"broker-name,omitempty" json:"broker-name,omitempty"`
 	Key         string      `yaml:"key,omitempty" mapstructure:"key,omitempty" json:"key,omitempty"`
 	Mode        string      `yaml:"mode,omitempty" mapstructure:"mode,omitempty" json:"mode,omitempty"`
 	OnCacheMiss OnCacheMiss `yaml:"on-cache-miss,omitempty" mapstructure:"on-cache-miss,omitempty" json:"on-cache-miss,omitempty"`

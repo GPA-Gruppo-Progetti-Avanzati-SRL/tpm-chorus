@@ -97,7 +97,7 @@ func TestNewOrchestration(t *testing.T) {
 	t.Log(orc)
 
 	hs := http.Header{}
-	wfc, err := wfcase.NewWorkflowCase(orc.Cfg.Id, "1.0", "sha-number", orc.Cfg.Description, nil, nil, nil)
+	wfc, err := wfcase.NewWorkflowCase(orc.Cfg.Id, "1.0", "sha-number", orc.Cfg.Description, nil, nil, nil, nil)
 	require.NoError(t, err)
 
 	req, _ := har.NewRequest(http.MethodGet, "/my/path", nil, hs, nil)

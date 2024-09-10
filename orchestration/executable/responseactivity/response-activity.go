@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices/redislks"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
@@ -177,7 +178,7 @@ func (a *ResponseActivity) ResponseJSON(wfc *wfcase.WfCase) (*har.Response, erro
 
 	var body []byte
 
-	body, respType, err := a.handleResponseCache(&r, resolver, r.Cache.Key)
+	body, respType, err := a.handleResponseCache(&r, resolver, r.Cache)
 	if err != nil {
 		return nil, err
 	}
@@ -191,7 +192,7 @@ func (a *ResponseActivity) ResponseJSON(wfc *wfcase.WfCase) (*har.Response, erro
 		}
 
 		if r.Cache.Mode == config.CacheModeSet && r.Cache.Key != "" {
-			err = a.setCachedResponse(resolver, r.Cache.Key, body)
+			err = a.setCachedResponse(resolver, r.Cache.BrokerName, r.Cache.Key, body)
 			if err != nil {
 				log.Error().Err(err).Str(constants.SemLogCacheKey, r.Cache.Key).Msg(semLogContext + " set cache key error")
 			}
@@ -263,12 +264,12 @@ const (
 	ResponseCacheMiss = 3
 )
 
-func (a *ResponseActivity) handleResponseCache(r *config.Response, resolver *wfcase.ProcessVarResolver, cacheKey string) ([]byte, int, error) {
+func (a *ResponseActivity) handleResponseCache(r *config.Response, resolver *wfcase.ProcessVarResolver, cacheInfo config.CacheInfo) ([]byte, int, error) {
 
 	const semLogContext = string(config.ResponseActivityType) + "::handle-cache"
 
 	if r.Cache.Mode != config.CacheModeGet || r.Cache.Key == "" {
-		log.Trace().Str(constants.SemLogCacheKey, cacheKey).Msg(semLogContext + " not cached response")
+		log.Trace().Str(constants.SemLogCacheKey, cacheInfo.Key).Msg(semLogContext + " not cached response")
 		return nil, ResponseNotCached, nil
 	}
 
@@ -276,17 +277,17 @@ func (a *ResponseActivity) handleResponseCache(r *config.Response, resolver *wfc
 	var err error
 
 	respType := ResponseCached
-	body, err = a.getCachedResponse(resolver, cacheKey)
+	body, err = a.getCachedResponse(resolver, cacheInfo.BrokerName, cacheInfo.Key)
 	if err != nil {
-		log.Trace().Str(constants.SemLogCacheKey, cacheKey).Msg(semLogContext + " cashed response")
+		log.Trace().Str(constants.SemLogCacheKey, cacheInfo.Key).Msg(semLogContext + " cashed response")
 		return nil, respType, err
 	}
 
 	if body != nil {
-		log.Trace().Str(constants.SemLogCacheKey, cacheKey).Msg(semLogContext + " cache hit response")
+		log.Trace().Str(constants.SemLogCacheKey, cacheInfo.Key).Msg(semLogContext + " cache hit response")
 		respType = ResponseCacheHit
 	} else {
-		log.Trace().Str(constants.SemLogCacheKey, cacheKey).Msg(semLogContext + " cache miss response")
+		log.Trace().Str(constants.SemLogCacheKey, cacheInfo.Key).Msg(semLogContext + " cache miss response")
 		respType = ResponseCacheMiss
 	}
 
@@ -346,7 +347,7 @@ func (a *ResponseActivity) computeHeaders(headers []config.NameValuePair, resolv
 
 }
 
-func (a *ResponseActivity) getCachedResponse(resolver *wfcase.ProcessVarResolver, cacheKey string) ([]byte, error) {
+func (a *ResponseActivity) getCachedResponse(resolver *wfcase.ProcessVarResolver, redisBrokerName, cacheKey string) ([]byte, error) {
 
 	const semLogContext = string(config.ResponseActivityType) + "::get-cached-response"
 
@@ -356,12 +357,12 @@ func (a *ResponseActivity) getCachedResponse(resolver *wfcase.ProcessVarResolver
 		return nil, err
 	}
 
-	lks, err := linkedservices.GetRedisCacheLinkedService()
+	lks, err := linkedservices.GetRedisCacheLinkedService(redisBrokerName)
 	if err != nil {
 		return nil, err
 	}
 
-	v, err := lks.Get(context.Background(), cacheKey)
+	v, err := lks.Get(context.Background(), redislks.RedisUseLinkedServiceConfiguredIndex, cacheKey)
 	if err != nil {
 		log.Error().Err(err).Str("key", cacheKey).Msg(semLogContext + " redis get key error")
 		// 2022-05-17. Error is not propagated
@@ -382,7 +383,7 @@ func (a *ResponseActivity) getCachedResponse(resolver *wfcase.ProcessVarResolver
 	return nil, nil
 }
 
-func (a *ResponseActivity) setCachedResponse(resolver *wfcase.ProcessVarResolver, cacheKey string, v interface{}) error {
+func (a *ResponseActivity) setCachedResponse(resolver *wfcase.ProcessVarResolver, redisBrokerName, cacheKey string, v interface{}) error {
 
 	const semLogContext = string(config.ResponseActivityType) + "::set-cached-response"
 
@@ -392,12 +393,12 @@ func (a *ResponseActivity) setCachedResponse(resolver *wfcase.ProcessVarResolver
 		return err
 	}
 
-	lks, err := linkedservices.GetRedisCacheLinkedService()
+	lks, err := linkedservices.GetRedisCacheLinkedService(redisBrokerName)
 	if err != nil {
 		return err
 	}
 
-	err = lks.Set(context.Background(), cacheKey, v)
+	err = lks.Set(context.Background(), redislks.RedisUseLinkedServiceConfiguredIndex, cacheKey, v)
 	if err != nil {
 		return err
 	}

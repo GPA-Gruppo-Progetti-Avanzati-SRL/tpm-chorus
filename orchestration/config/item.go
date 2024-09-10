@@ -224,3 +224,14 @@ type OnResponseAction struct {
 	Errors                                  []ErrorInfo          `yaml:"error,omitempty" mapstructure:"error,omitempty" json:"error,omitempty"`
 	Transforms                              []TransformReference `yaml:"transforms,omitempty" mapstructure:"transforms,omitempty" json:"transforms,omitempty"`
 }
+
+type CacheConfig struct {
+	CacheType string `json:"type,omitempty" yaml:"type,omitempty" mapstructure:"type,omitempty"`
+	Namespace string `json:"namespace,omitempty" yaml:"namespace,omitempty" mapstructure:"namespace,omitempty"`
+	Db        int    `json:"db,omitempty" yaml:"db,omitempty" mapstructure:"db,omitempty"`
+	Key       string `yaml:"key,omitempty" mapstructure:"key,omitempty" json:"key,omitempty"`
+}
+
+func (edcc *CacheConfig) IsZero() bool {
+	return edcc.Key == ""
+}
