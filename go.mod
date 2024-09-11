@@ -6,7 +6,7 @@ require (
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.52
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.6
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.6
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.12
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.14
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/PaesslerAG/jsonpath v0.1.1
