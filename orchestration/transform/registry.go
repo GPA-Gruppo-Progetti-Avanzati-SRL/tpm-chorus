@@ -6,6 +6,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform/operators"
 	"github.com/qntfy/kazaam"
 	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v3"
 )
 
 var kc kazaam.Config
@@ -70,15 +71,35 @@ func GetRegistry() Registry {
 	return registry
 }
 
-func (r Registry) Add(tcfg Config) error {
+func (r Registry) AddTransformation(ref TransformReference) error {
+	trsf := Config{}
+	err := yaml.Unmarshal(ref.Data, &trsf)
+	if err != nil {
+		return err
+	}
+
+	// Force the id to the provided one.
+	trsf.Id = ref.Id
+	err = r.Add3(trsf)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r Registry) Add3(tcfg Config) error {
+
+	const semLogContext = "transform-registry::add"
 	if tcfg.Id == "" {
 		err := errors.New("transformation require an id")
 		return err
 	}
 
 	if _, ok := r[tcfg.Id]; ok {
-		err := fmt.Errorf("transformation is must be unique (conflicting id: %s)", tcfg.Id)
-		return err
+		err := fmt.Errorf("transformation id must be unique (conflicting id: %s)", tcfg.Id)
+		log.Warn().Err(err).Msg(semLogContext)
+		return nil
 	}
 
 	rule, err := tcfg.ToJSONRule()

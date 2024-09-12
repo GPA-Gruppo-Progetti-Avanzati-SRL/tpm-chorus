@@ -86,7 +86,7 @@ func NewEndpointActivity(item config.Configurable, refs config.DataReferences) (
 	return ea, nil
 }
 
-func registerTransformations(ts []config.TransformReference, refs config.DataReferences) error {
+func registerTransformations(ts []transform.TransformReference, refs config.DataReferences) error {
 	tReg := transform.GetRegistry()
 	if tReg == nil {
 		err := errors.New("transformation registry not initialized")
@@ -99,13 +99,8 @@ func registerTransformations(ts []config.TransformReference, refs config.DataRef
 			return fmt.Errorf("cannot find transformation %s definition from %s", tref.Id, tref.DefinitionRef)
 		}
 
-		trsf := transform.Config{}
-		err := yaml.Unmarshal(trasDef, &trsf)
-		if err != nil {
-			return err
-		}
-
-		err = tReg.Add(trsf)
+		tref.Data = trasDef
+		err := tReg.AddTransformation(tref)
 		if err != nil {
 			return err
 		}
@@ -261,7 +256,7 @@ func processResponseAction(wfc *wfcase.WfCase, activityName string, ep Endpoint,
 	return 0, nil
 }
 
-func chooseTransformation(wfc *wfcase.WfCase, trs []config.TransformReference) (string, error) {
+func chooseTransformation(wfc *wfcase.WfCase, trs []transform.TransformReference) (string, error) {
 	for _, t := range trs {
 
 		b := true

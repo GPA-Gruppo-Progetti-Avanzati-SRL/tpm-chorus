@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 )
 
@@ -208,21 +209,13 @@ const (
 	XFormKazaam   = "kazaam"
 )
 
-type TransformReference struct {
-	Typ           string `yaml:"type,omitempty" json:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
-	Id            string `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
-	DefinitionRef string `yaml:"definition-ref,omitempty" mapstructure:"definition-ref,omitempty" json:"definition-ref,omitempty"`
-	Guard         string `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
-	Data          []byte `yaml:"-" mapstructure:"-" json:"-"`
-}
-
 // OnResponseAction TODO Verificare dove vengono utilizzate le transforms.
 type OnResponseAction struct {
-	StatusCode                              int                  `yaml:"status-code,omitempty" mapstructure:"status-code,omitempty" json:"status-code,omitempty"`
-	IgnoreNonApplicationJsonResponseContent bool                 `yaml:"ignore-non-json-response-body,omitempty" json:"ignore-non-json-response-body,omitempty" mapstructure:"ignore-non-json-response-body,omitempty"`
-	ProcessVars                             []ProcessVar         `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
-	Errors                                  []ErrorInfo          `yaml:"error,omitempty" mapstructure:"error,omitempty" json:"error,omitempty"`
-	Transforms                              []TransformReference `yaml:"transforms,omitempty" mapstructure:"transforms,omitempty" json:"transforms,omitempty"`
+	StatusCode                              int                            `yaml:"status-code,omitempty" mapstructure:"status-code,omitempty" json:"status-code,omitempty"`
+	IgnoreNonApplicationJsonResponseContent bool                           `yaml:"ignore-non-json-response-body,omitempty" json:"ignore-non-json-response-body,omitempty" mapstructure:"ignore-non-json-response-body,omitempty"`
+	ProcessVars                             []ProcessVar                   `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
+	Errors                                  []ErrorInfo                    `yaml:"error,omitempty" mapstructure:"error,omitempty" json:"error,omitempty"`
+	Transforms                              []transform.TransformReference `yaml:"transforms,omitempty" mapstructure:"transforms,omitempty" json:"transforms,omitempty"`
 }
 
 type CacheConfig struct {

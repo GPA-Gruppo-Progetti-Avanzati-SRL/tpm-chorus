@@ -1,4 +1,4 @@
-{"smp-xform":{"idsRappCollegati":[1234,1009247329]},"data":{
+{"data":{
     "anagrafica": {
       "datiAnag": {
 
@@ -47,4 +47,4 @@
         }
       ]
     }
-  }}
+  },"smp-xform":{"idsRappCollegati":[1234,1009247329]}}

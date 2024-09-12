@@ -44,31 +44,31 @@ func TestMain(m *testing.M) {
 	trsf1 := transform.Config{}
 	err = yaml.Unmarshal(case001RuleYml, &trsf1)
 	handleErrorTestMain(err)
-	err = registry.Add(trsf1)
+	err = registry.Add3(trsf1)
 	handleErrorTestMain(err)
 
 	trsf2 := transform.Config{}
 	err = yaml.Unmarshal(case002RuleYml, &trsf2)
 	handleErrorTestMain(err)
-	err = registry.Add(trsf2)
+	err = registry.Add3(trsf2)
 	handleErrorTestMain(err)
 
 	trsf3 := transform.Config{}
 	err = yaml.Unmarshal(case003RuleYml, &trsf3)
 	handleErrorTestMain(err)
-	err = registry.Add(trsf3)
+	err = registry.Add3(trsf3)
 	handleErrorTestMain(err)
 
 	trsf3b := transform.Config{}
 	err = yaml.Unmarshal(case003bRuleYml, &trsf3b)
 	handleErrorTestMain(err)
-	err = registry.Add(trsf3b)
+	err = registry.Add3(trsf3b)
 	handleErrorTestMain(err)
 
 	trsf4 := transform.Config{}
 	err = yaml.Unmarshal(case004RuleYml, &trsf4)
 	handleErrorTestMain(err)
-	err = registry.Add(trsf4)
+	err = registry.Add3(trsf4)
 	handleErrorTestMain(err)
 
 	exitVal := m.Run()

@@ -6,6 +6,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
@@ -306,7 +307,7 @@ func (a *MongoActivity) processResponseAction(wfc *wfcase.WfCase, activityName s
 	return 0, nil
 }
 
-func chooseTransformation(wfc *wfcase.WfCase, trs []config.TransformReference) (string, error) {
+func chooseTransformation(wfc *wfcase.WfCase, trs []transform.TransformReference) (string, error) {
 	for _, t := range trs {
 
 		b := true

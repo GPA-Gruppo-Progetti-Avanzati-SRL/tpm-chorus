@@ -314,7 +314,7 @@ func (a *TransformActivity) processResponseAction(wfc *wfcase.WfCase, activityNa
 	return 0, nil
 }
 
-func chooseTransformation(wfc *wfcase.WfCase, trs []config.TransformReference) (string, error) {
+func chooseTransformation(wfc *wfcase.WfCase, trs []transform.TransformReference) (string, error) {
 	for _, t := range trs {
 
 		b := true

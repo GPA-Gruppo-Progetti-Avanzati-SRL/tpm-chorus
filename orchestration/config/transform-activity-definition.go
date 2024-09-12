@@ -9,8 +9,8 @@ import (
 )
 
 type TransformActivityDefinition struct {
-	Transforms        []TransformReference `yaml:"transforms,omitempty"  json:"transforms,omitempty" mapstructure:"transforms,omitempty"`
-	OnResponseActions []OnResponseAction   `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
+	Transforms        []transform.TransformReference `yaml:"transforms,omitempty"  json:"transforms,omitempty" mapstructure:"transforms,omitempty"`
+	OnResponseActions []OnResponseAction             `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
 }
 
 func UnmarshalTransformActivityDefinition(def string, refs DataReferences) (TransformActivityDefinition, error) {
@@ -87,7 +87,7 @@ func loadTemplateXForm(refs DataReferences, templateRef string) ([]byte, error) 
 	return trasDef, nil
 }
 
-func registerKazaamXForm(refs DataReferences, xform TransformReference) error {
+func registerKazaamXForm(refs DataReferences, xform transform.TransformReference) error {
 	const semLogContext = "transform-activity-definition::register-kazaam-xform"
 
 	if xform.Typ != XFormKazaam {
@@ -108,18 +108,27 @@ func registerKazaamXForm(refs DataReferences, xform TransformReference) error {
 		return err
 	}
 
-	trsf := transform.Config{}
-	err := yaml.Unmarshal(trasDef, &trsf)
+	xform.Data = trasDef
+	err := tReg.AddTransformation(xform)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return err
 	}
 
-	err = tReg.Add(trsf)
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return err
-	}
+	/*
+		trsf := transform.Config{}
+		err := yaml.Unmarshal(trasDef, &trsf)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return err
+		}
+
+		err = tReg.Add(trsf)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return err
+		}
+	*/
 
 	return nil
 }
