@@ -1,7 +1,7 @@
 package linkedservices
 
 import (
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices/redislks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/redislks"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client/restclient"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common/kafkalks"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/mongolks"
