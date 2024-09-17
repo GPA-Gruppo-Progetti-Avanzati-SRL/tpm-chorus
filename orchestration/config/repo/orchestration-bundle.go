@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
-	"os"
 	"path/filepath"
 )
 
@@ -140,7 +139,7 @@ func (r *OrchestrationBundle) GetRefAssetData(fn string) ([]byte, error) {
 	}
 
 	resolvedPath := filepath.Join(r.AssetGroup.MountPoint, r.AssetGroup.Refs[ndx].Path)
-	b, err := os.ReadFile(resolvedPath)
+	b, err := util.ReadFileAndResolveEnvVars(resolvedPath)
 	if err != nil {
 		return nil, err
 	}
