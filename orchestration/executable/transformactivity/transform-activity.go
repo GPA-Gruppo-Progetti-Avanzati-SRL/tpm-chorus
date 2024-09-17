@@ -198,6 +198,7 @@ func (a *TransformActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.Reso
 		StatusText:  http.StatusText(http.StatusOK),
 		HeadersSize: -1,
 		BodySize:    int64(len(b)),
+		Headers:     []har.NameValuePair{},
 		Cookies:     []har.Cookie{},
 		Content: &har.Content{
 			MimeType: constants.ContentTypeApplicationJson,
@@ -236,6 +237,7 @@ func (a *TransformActivity) newRequestDefinition(wfc *wfcase.WfCase, expressionC
 		Cookies:     []har.Cookie{},
 		QueryString: []har.NameValuePair{},
 		HeadersSize: -1,
+		Headers:     []har.NameValuePair{},
 		BodySize:    -1,
 	}
 	for _, o := range opts {

@@ -347,6 +347,10 @@ func (a *EndpointActivity) Invoke(wfc *wfcase.WfCase, ep Endpoint, req *har.Requ
 
 	/* the handling of the IgnoreNonApplicationJsonResponseContent has been moved down the chain in the processing of the response action */
 	ct := resp.Response.Content.MimeType
+	// Da rimuovere on quanto potrebbe gia' essere valorizzato dal restclient in versione successiva.
+	if resp.Response.Headers == nil {
+		resp.Response.Headers = []har.NameValuePair{}
+	}
 	if err == nil && !strings.HasPrefix(ct, constants.ContentTypeApplicationJson) && resp.Response.Status != 200 && resp.Response.BodySize > 0 {
 		// err = fmt.Errorf("%s", string(resp.Content.Data))
 		log.Debug().Str("content-type", ct).Msg(semLogContext + " content is not the usual " + constants.ContentTypeApplicationJson)
@@ -410,6 +414,7 @@ func (a *EndpointActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Endpoint)
 		Cookies:     []har.Cookie{},
 		QueryString: []har.NameValuePair{},
 		HeadersSize: -1,
+		Headers:     []har.NameValuePair{},
 		BodySize:    -1,
 	}
 	for _, o := range opts {

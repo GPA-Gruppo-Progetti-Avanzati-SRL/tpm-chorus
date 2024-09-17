@@ -436,6 +436,7 @@ func (a *KafkaActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Producer) (*
 		Cookies:     []har.Cookie{},
 		QueryString: []har.NameValuePair{},
 		HeadersSize: -1,
+		Headers:     []har.NameValuePair{},
 		BodySize:    -1,
 	}
 	for _, o := range opts {

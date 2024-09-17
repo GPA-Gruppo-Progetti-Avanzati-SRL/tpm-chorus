@@ -197,6 +197,7 @@ func (a *MongoActivity) Invoke(wfc *wfcase.WfCase, op jsonops.Operation) (*har.R
 		HeadersSize: -1,
 		BodySize:    int64(len(resp)),
 		Cookies:     []har.Cookie{},
+		Headers:     []har.NameValuePair{},
 		Content: &har.Content{
 			MimeType: constants.ContentTypeApplicationJson,
 			Size:     int64(len(resp)),
@@ -227,6 +228,7 @@ func (a *MongoActivity) newRequestDefinition(wfc *wfcase.WfCase, op jsonops.Oper
 		Cookies:     []har.Cookie{},
 		QueryString: []har.NameValuePair{},
 		HeadersSize: -1,
+		Headers:     []har.NameValuePair{},
 		BodySize:    -1,
 	}
 	for _, o := range opts {
