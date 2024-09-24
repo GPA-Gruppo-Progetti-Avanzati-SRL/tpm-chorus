@@ -3,12 +3,12 @@ module github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus
 go 1.23.0
 
 require (
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.3
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.11
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.52
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.7
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.7
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.16
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.8
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.9
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/confluentinc/confluent-kafka-go/v2 v2.4.0
@@ -32,7 +32,6 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
-	github.com/feliixx/mongoextjson v1.2.0 // indirect
 	github.com/go-openapi/jsonpointer v0.20.2 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.8 // indirect

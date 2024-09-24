@@ -33,6 +33,7 @@ type MongoActivityDefinition struct {
 	CollectionId      string                                             `yaml:"collection-id,omitempty" json:"collection-id,omitempty" mapstructure:"collection-id,omitempty"`
 	StatementData     map[jsonops.MongoJsonOperationStatementPart]string `yaml:"statement,omitempty" json:"statement,omitempty" mapstructure:"statement,omitempty"`
 	OnResponseActions []OnResponseAction                                 `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
+	CacheConfig       CacheConfig                                        `yaml:"with-cache,omitempty" json:"with-cache,omitempty" mapstructure:"with-cache,omitempty"`
 	Statement         interface{}                                        `yaml:"-" json:"-" mapstructure:"-"`
 }
 
@@ -57,6 +58,11 @@ func UnmarshalMongoActivityDefinition(opType jsonops.MongoJsonOperationType, def
 		err = errors.New("unsupported op-type")
 		log.Error().Err(err).Str("op-type", string(opType)).Msg(semLogContext)
 		return maDef, err
+	}
+
+	// Clear the cache config if not a retrieve type of operation
+	if opType != jsonops.AggregateOneOperationType && opType != jsonops.FindOneOperationType {
+		maDef.CacheConfig = CacheConfig{}
 	}
 
 	return maDef, nil

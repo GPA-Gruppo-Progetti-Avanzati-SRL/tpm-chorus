@@ -2,7 +2,9 @@ package constants
 
 const (
 	ContentTypeApplicationJson = "application/json"
-	ContentTypeHeader          = "Content-Type"
+	ContentTypeTextPlain       = "text/plain"
+
+	ContentTypeHeader = "Content-Type"
 
 	DebugMode = true
 

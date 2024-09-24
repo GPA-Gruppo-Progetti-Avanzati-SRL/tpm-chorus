@@ -2,8 +2,7 @@ package linkedservices
 
 import (
 	"errors"
-	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/redislks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelksregistry"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client/restclient"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common/kafkalks"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/mongolks"
@@ -12,7 +11,6 @@ import (
 
 type ServiceRegistry struct {
 	RestClient *restclient.LinkedService
-	redis      []*redislks.LinkedService
 }
 
 var registry ServiceRegistry
@@ -33,7 +31,7 @@ func InitRegistry(cfg *Config) error {
 		return err
 	}
 
-	err = initializeRedisCache(cfg.Redis)
+	_, err = cachelksregistry.Initialize(*cfg.Redis)
 	if err != nil {
 		return err
 	}
@@ -74,37 +72,4 @@ func GetRestClientProvider(opts ...restclient.Option) (*restclient.Client, error
 	}
 
 	return nil, errors.New(semLogContext + " http client linked service not available")
-}
-
-/*
- * Redis cache Initialization
- */
-
-func initializeRedisCache(cfg []redislks.Config) error {
-	const semLogContext = "service-registry::initialize-redis-cache-provider"
-	log.Info().Msg(semLogContext)
-	for _, c := range cfg {
-		lks, err := redislks.NewInstanceWithConfig(c)
-		if err != nil {
-			return err
-		}
-
-		registry.redis = append(registry.redis, lks)
-	}
-
-	return nil
-}
-
-func GetRedisCacheLinkedService(name string) (*redislks.LinkedService, error) {
-
-	if (name == redislks.RedisDefaultBrokerName || name == "") && len(registry.redis) == 1 {
-		return registry.redis[0], nil
-	}
-
-	for _, r := range registry.redis {
-		if r.Name() == name {
-			return r, nil
-		}
-	}
-	return nil, fmt.Errorf("cannot find redis cache by name [%s]", name)
 }

@@ -3,6 +3,8 @@ package endpointactivity
 import (
 	"errors"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cacheoperation"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
@@ -16,6 +18,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -126,13 +129,6 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 		return nil
 	}
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
-	if err != nil {
-		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
-		return err
-	}
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
-
 	cfg, ok := a.Cfg.(*config.EndpointActivity)
 	if !ok {
 		err = fmt.Errorf("this is weird %T is not %s config type", a.Cfg, config.EndpointActivityType)
@@ -141,47 +137,97 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
-	// if len(cfg.ProcessVars) > 0 {
-	// note the ignoreNonApplicationJsonResponseContent has been set to false since it doesn't apply to the request processing
-	contextName, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+	/*
+		expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+		if err != nil {
+			log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+			return err
+		}
+		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
+	*/
+
+	if len(cfg.ProcessVars) > 0 {
+		// note the ignoreNonApplicationJsonResponseContent has been set to false since it doesn't apply to the request processing
+		expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+		}
+		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
+
+		err = wfc.SetVars(expressionCtx, cfg.ProcessVars, "", false)
+		if err != nil {
+			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+		}
 	}
-	err = wfc.SetVars(contextName, cfg.ProcessVars, "", false)
-	if err != nil {
-		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
-	}
-	//}
 
 	for _, ep := range a.Endpoints {
 
 		beginOf := time.Now()
 		metricsLabels := a.MetricsLabels(ep)
 
-		req, err := a.newRequestDefinition(wfc, ep)
+		resolver, err := a.getResolver(wfc)
 		if err != nil {
-			wfc.AddBreadcrumb(ep.Id, ep.Description, err)
-			metricsLabels[MetricIdStatusCode] = "500"
-			a.SetMetrics(beginOf, metricsLabels)
-			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(ep.Name), smperror.WithStep(ep.Id), smperror.WithCode("HTTP"), smperror.WithErrorMessage(err.Error()))
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}
 
-		_ = wfc.AddEndpointRequestData(ep.FullId(a.Name()), req, ep.PII)
-
-		entry, err := a.Invoke(wfc, ep, req)
-		var resp *har.Response
-		if entry != nil {
-			resp = entry.Response
+		var harResponse *har.Response
+		var cacheCfg config.CacheConfig
+		var cacheEnabled bool
+		cacheEnabled, err = ep.Definition.CacheConfig.Enabled()
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
 		}
-		_ = wfc.AddEndpointResponseData(ep.FullId(a.Name()), resp, ep.PII)
 
-		metricsLabels[MetricIdHttpStatusCode] = fmt.Sprint(resp.Status)
-		metricsLabels[MetricIdStatusCode] = fmt.Sprint(resp.Status)
-		actNdx := findResponseAction(ep, resp.Status)
+		if cacheEnabled {
+			cacheCfg, err = a.resolveCacheConfig(wfc, resolver, ep.Definition.CacheConfig, a.Refs)
+			if err != nil {
+				// The get of the cache triggers an error only.
+				log.Error().Err(err).Msg(semLogContext)
+			} else {
+				harResponse, err = a.resolveResponseFromCache(wfc, ep.FullId(a.Name()), cacheCfg)
+				if err != nil {
+					log.Error().Err(err).Msg(semLogContext)
+					if harResponse == nil {
+						return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+					}
+				}
+			}
+		}
+
+		if harResponse == nil || harResponse.Status != http.StatusOK {
+			req, err := a.newRequestDefinition(wfc, ep)
+			if err != nil {
+				wfc.AddBreadcrumb(ep.FullId(a.Name()), ep.Description, err)
+				metricsLabels[MetricIdStatusCode] = "500"
+				a.SetMetrics(beginOf, metricsLabels)
+				return smperror.NewExecutableServerError(smperror.WithErrorAmbit(ep.Name), smperror.WithStep(ep.Id), smperror.WithCode("HTTP"), smperror.WithErrorMessage(err.Error()))
+			}
+
+			_ = wfc.AddEndpointRequestData(ep.FullId(a.Name()), req, ep.PII)
+
+			entry, err := a.Invoke(wfc, ep, req)
+			if entry != nil {
+				harResponse = entry.Response
+			}
+			_ = wfc.AddEndpointResponseData(ep.FullId(a.Name()), harResponse, ep.PII)
+			metricsLabels[MetricIdHttpStatusCode] = fmt.Sprint(harResponse.Status)
+			metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
+
+			if cacheEnabled && harResponse.Status == http.StatusOK {
+				err = a.saveResponseToCache(cacheCfg, harResponse.Content.Data)
+				// err = cacheoperation.Set(cacheCfg.LinkedServiceRef, cacheCfg.Key, harResponse.Content.Data, cachelks.WithNamespace(cacheCfg.Namespace))
+				if err != nil {
+					// The set of the cache triggers an error only.
+					log.Error().Err(err).Msg(semLogContext)
+				}
+			}
+		}
+
+		actNdx := findResponseAction(ep, harResponse.Status)
 		if actNdx >= 0 {
-			remappedStatusCode, err := processResponseAction(wfc, a.Name(), ep, actNdx, resp)
+			remappedStatusCode, err := processResponseAction(wfc, a.Name(), ep, actNdx, harResponse)
 			if remappedStatusCode != 0 {
 				metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 			}
@@ -198,6 +244,20 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 
 	log.Trace().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
 	return nil
+}
+
+func (a *EndpointActivity) getResolver(wfc *wfcase.WfCase) (*wfcase.ProcessVarResolver, error) {
+	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	if err != nil {
+		return nil, err
+	}
+
+	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
+	if err != nil {
+		return nil, err
+	}
+
+	return resolver, nil
 }
 
 func processResponseAction(wfc *wfcase.WfCase, activityName string, ep Endpoint, actionIndex int, resp *har.Response) (int, error) /* *smperror.SymphonyError */ {
@@ -456,4 +516,52 @@ func (a *EndpointActivity) MetricsLabels(ep Endpoint) prometheus.Labels {
 	}
 
 	return metricsLabels
+}
+
+func (a *EndpointActivity) resolveCacheConfig(wfc *wfcase.WfCase, resolver *wfcase.ProcessVarResolver, cacheConfig config.CacheConfig, refs config.DataReferences) (config.CacheConfig, error) {
+	cfg := cacheConfig
+	if refs.IsPresent(cacheConfig.Key) {
+		if key, ok := refs.Find(cacheConfig.Key); ok {
+			cfg.Key = string(key)
+		}
+	}
+
+	s, _, err := varResolver.ResolveVariables(cfg.Key, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	if err != nil {
+		return cfg, err
+	}
+
+	b1, err := wfc.ProcessTemplate(s)
+	if err != nil {
+		return cfg, err
+	}
+
+	cfg.Key = string(b1)
+	return cfg, err
+}
+
+func (a *EndpointActivity) resolveResponseFromCache(wfc *wfcase.WfCase, endpointId string, cacheConfig config.CacheConfig) (*har.Response, error) {
+	cacheHarEntry, err := cacheoperation.Get(cacheConfig.LinkedServiceRef, a.Name()+";cache=true", cacheConfig.Key, constants.ContentTypeApplicationJson, cachelks.WithNamespace(cacheConfig.Namespace))
+	if err != nil {
+		return nil, err
+	}
+
+	// the id takes the activity name in case ok because no other entry will be present. In case of cache miss ad additional entry will be there
+	// together with the un-cached invokation
+	entryId := endpointId
+	if cacheHarEntry.Response.Status != http.StatusOK {
+		entryId = a.Name() + ";cache=true"
+	}
+
+	_ = wfc.AddEndpointHarEntry(entryId, cacheHarEntry)
+	return cacheHarEntry.Response, nil
+}
+
+func (a *EndpointActivity) saveResponseToCache(cacheConfig config.CacheConfig, data []byte) error {
+	err := cacheoperation.Set(cacheConfig.LinkedServiceRef, cacheConfig.Key, data, cachelks.WithNamespace(cacheConfig.Namespace), cachelks.WithTTTL(cacheConfig.Ttl))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

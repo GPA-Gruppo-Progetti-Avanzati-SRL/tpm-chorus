@@ -130,13 +130,18 @@ func (wfc *WfCase) AddEndpointData(id string, body []byte, headers http.Header, 
 }
 */
 
+func (wfc *WfCase) AddEndpointHarEntry(id string, entry *har.Entry) error {
+	wfc.Entries[id] = entry
+	return nil
+}
+
 func (wfc *WfCase) AddEndpointRequestData(id string, req *har.Request, pii config.PersonallyIdentifiableInformation) error {
 	e, ok := wfc.Entries[id]
 	if !ok {
 		now := time.Now()
 		e = &har.Entry{
 			Comment:         id,
-			StartedDateTime: time.Now().Format("2006-01-02T15:04:05.999999999Z07:00"),
+			StartedDateTime: now.Format("2006-01-02T15:04:05.999999999Z07:00"),
 			StartDateTimeTm: now,
 		}
 	}
@@ -216,7 +221,7 @@ func (wfc *WfCase) AddEndpointResponseData(id string, resp *har.Response, pii co
 		now := time.Now()
 		e = &har.Entry{
 			StartDateTimeTm: now,
-			StartedDateTime: time.Now().Format("2006-01-02T15:04:05.999999999Z07:00"),
+			StartedDateTime: now.Format("2006-01-02T15:04:05.999999999Z07:00"),
 		}
 	} else {
 		if e.StartedDateTime != "" {

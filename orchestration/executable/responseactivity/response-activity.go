@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/redislks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks/redislks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelksregistry"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
@@ -357,12 +358,12 @@ func (a *ResponseActivity) getCachedResponse(resolver *wfcase.ProcessVarResolver
 		return nil, err
 	}
 
-	lks, err := linkedservices.GetRedisCacheLinkedService(redisBrokerName)
+	lks, err := cachelksregistry.GetLinkedServiceOfType(redislks.RedisLinkedServiceType, redisBrokerName)
 	if err != nil {
 		return nil, err
 	}
 
-	v, err := lks.Get(context.Background(), redislks.RedisUseLinkedServiceConfiguredIndex, cacheKey)
+	v, err := lks.Get(context.Background(), cacheKey, cachelks.CacheOptions{})
 	if err != nil {
 		log.Error().Err(err).Str("key", cacheKey).Msg(semLogContext + " redis get key error")
 		// 2022-05-17. Error is not propagated
@@ -393,12 +394,12 @@ func (a *ResponseActivity) setCachedResponse(resolver *wfcase.ProcessVarResolver
 		return err
 	}
 
-	lks, err := linkedservices.GetRedisCacheLinkedService(redisBrokerName)
+	lks, err := cachelksregistry.GetLinkedServiceOfType(redislks.RedisLinkedServiceType, redisBrokerName)
 	if err != nil {
 		return err
 	}
 
-	err = lks.Set(context.Background(), redislks.RedisUseLinkedServiceConfiguredIndex, cacheKey, v)
+	err = lks.Set(context.Background(), cacheKey, v, cachelks.CacheOptions{})
 	if err != nil {
 		return err
 	}

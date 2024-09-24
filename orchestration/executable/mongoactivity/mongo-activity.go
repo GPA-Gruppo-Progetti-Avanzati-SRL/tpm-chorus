@@ -3,9 +3,12 @@ package mongoactivity
 import (
 	"context"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cacheoperation"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
@@ -61,13 +64,6 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 		return nil
 	}
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
-	if err != nil {
-		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
-		return err
-	}
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
-
 	tcfg, ok := a.Cfg.(*config.MongoActivity)
 	if !ok {
 		err = fmt.Errorf("this is weird %T is not %s config type", a.Cfg, config.MongoActivityType)
@@ -77,7 +73,14 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	if len(tcfg.ProcessVars) > 0 {
-		err := wfc.SetVars(expressionCtx, tcfg.ProcessVars, "", false)
+		expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+		if err != nil {
+			log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+			return err
+		}
+		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
+
+		err = wfc.SetVars(expressionCtx, tcfg.ProcessVars, "", false)
 		if err != nil {
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
@@ -87,38 +90,77 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	beginOf := time.Now()
 	metricsLabels := a.MetricsLabels()
 
-	statementConfig, err := a.definition.LoadStatementConfig(a.Refs)
+	resolver, err := a.getResolver(wfc)
 	if err != nil {
-		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
-	statementConfig, err = a.resolveStatementParts(wfc, statementConfig)
+	var harResponse *har.Response
+	var cacheCfg config.CacheConfig
+	var cacheEnabled bool
+	cacheEnabled, err = a.definition.CacheConfig.Enabled()
 	if err != nil {
-		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+		log.Error().Err(err).Msg(semLogContext)
+	}
+	if cacheEnabled {
+		cacheCfg, err = a.resolveCacheConfig(wfc, resolver, a.definition.CacheConfig, a.Refs)
+		if err != nil {
+			// The get of the cache triggers an error only.
+			log.Error().Err(err).Msg(semLogContext)
+		} else {
+			harResponse, err = a.resolveResponseFromCache(wfc, cacheCfg)
+			if err != nil {
+				log.Error().Err(err).Msg(semLogContext)
+				if harResponse == nil {
+					return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+				}
+			}
+		}
 	}
 
-	op, err := jsonops.NewOperation(maCfg.OpType, statementConfig)
-	if err != nil {
-		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
-	}
+	if harResponse == nil || harResponse.Status != http.StatusOK {
+		statementConfig, err := a.definition.LoadStatementConfig(a.Refs)
+		if err != nil {
+			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+		}
 
-	req, err := a.newRequestDefinition(wfc, op) // TODO calcolare lo statement
-	if err != nil {
-		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		metricsLabels[MetricIdStatusCode] = "500"
-		a.SetMetrics(beginOf, metricsLabels)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
-	}
+		statementConfig, err = a.resolveStatementParts(wfc, statementConfig)
+		if err != nil {
+			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+		}
 
-	_ = wfc.AddEndpointRequestData(a.Name(), req, maCfg.PII)
+		op, err := jsonops.NewOperation(maCfg.OpType, statementConfig)
+		if err != nil {
+			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+		}
 
-	harResponse, err := a.Invoke(wfc, op)
-	if harResponse != nil {
-		_ = wfc.AddEndpointResponseData(a.Name(), harResponse, maCfg.PII)
-		metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
+		req, err := a.newRequestDefinition(wfc, op) // TODO calcolare lo statement
+		if err != nil {
+			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+			metricsLabels[MetricIdStatusCode] = "500"
+			a.SetMetrics(beginOf, metricsLabels)
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+		}
+
+		_ = wfc.AddEndpointRequestData(a.Name(), req, maCfg.PII)
+
+		harResponse, err = a.Invoke(wfc, op)
+		if harResponse != nil {
+			_ = wfc.AddEndpointResponseData(a.Name(), harResponse, maCfg.PII)
+			metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
+
+			if cacheEnabled && harResponse.Status == http.StatusOK {
+				err = a.saveResponseToCache(cacheCfg, harResponse.Content.Data)
+				// err = cacheoperation.Set(cacheCfg.LinkedServiceRef, cacheCfg.Key, harResponse.Content.Data, cachelks.WithNamespace(cacheCfg.Namespace))
+				if err != nil {
+					// The set of the cache triggers an error only.
+					log.Error().Err(err).Msg(semLogContext)
+				}
+			}
+		}
 	}
 
 	actNdx := a.findResponseAction(harResponse.Status)
@@ -138,18 +180,34 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 
 	log.Trace().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
-
 	return err
 }
 
-func (a *MongoActivity) resolveStatementParts(wfc *wfcase.WfCase, m map[jsonops.MongoJsonOperationStatementPart][]byte) (map[jsonops.MongoJsonOperationStatementPart][]byte, error) {
-
+func (a *MongoActivity) getResolver(wfc *wfcase.WfCase) (*wfcase.ProcessVarResolver, error) {
 	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		return nil, err
 	}
 
 	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
+	if err != nil {
+		return nil, err
+	}
+
+	return resolver, nil
+}
+
+func (a *MongoActivity) resolveStatementParts(wfc *wfcase.WfCase, m map[jsonops.MongoJsonOperationStatementPart][]byte) (map[jsonops.MongoJsonOperationStatementPart][]byte, error) {
+
+	/*
+		expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+		if err != nil {
+			return nil, err
+		}
+
+		resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
+	*/
+	resolver, err := a.getResolver(wfc)
 	if err != nil {
 		return nil, err
 	}
@@ -259,11 +317,13 @@ func (a *MongoActivity) MetricsLabels() prometheus.Labels {
 }
 
 func (a *MongoActivity) processResponseAction(wfc *wfcase.WfCase, activityName string, actionIndex int, resp *har.Response) (int, error) /* *smperror.SymphonyError */ {
+	const semLogContext = "mongo-activity::processResponseAction"
+
 	act := a.definition.OnResponseActions[actionIndex]
 
 	transformId, err := chooseTransformation(wfc, act.Transforms)
 	if err != nil {
-		log.Error().Err(err).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in selecting transformation")
+		log.Error().Err(err).Str("request-id", wfc.GetRequestId()).Msg(semLogContext + " - error in selecting transformation")
 		return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(a.Name()), smperror.WithCode("500"), smperror.WithErrorMessage("error selecting transformation"), smperror.WithDescription(err.Error()))
 	}
 
@@ -272,7 +332,7 @@ func (a *MongoActivity) processResponseAction(wfc *wfcase.WfCase, activityName s
 	if len(act.ProcessVars) > 0 {
 		err := wfc.SetVars(contextReference, act.ProcessVars, transformId, false)
 		if err != nil {
-			log.Error().Err(err).Str("ctx", a.Name()).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in setting variables")
+			log.Error().Err(err).Str("ctx", a.Name()).Str("request-id", wfc.GetRequestId()).Msg(semLogContext + " -  error in setting variables")
 			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(a.Name()), smperror.WithCode("500"), smperror.WithErrorMessage("error processing response body"), smperror.WithDescription(err.Error()))
 		}
 	}
@@ -359,4 +419,52 @@ func (a *MongoActivity) findResponseAction(statusCode int) int {
 	}
 
 	return matchedAction
+}
+
+func (a *MongoActivity) resolveCacheConfig(wfc *wfcase.WfCase, resolver *wfcase.ProcessVarResolver, cacheConfig config.CacheConfig, refs config.DataReferences) (config.CacheConfig, error) {
+	cfg := cacheConfig
+	if refs.IsPresent(cacheConfig.Key) {
+		if key, ok := refs.Find(cacheConfig.Key); ok {
+			cfg.Key = string(key)
+		}
+	}
+
+	s, _, err := varResolver.ResolveVariables(cfg.Key, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	if err != nil {
+		return cfg, err
+	}
+
+	b1, err := wfc.ProcessTemplate(s)
+	if err != nil {
+		return cfg, err
+	}
+
+	cfg.Key = string(b1)
+	return cfg, err
+}
+
+func (a *MongoActivity) resolveResponseFromCache(wfc *wfcase.WfCase, cacheConfig config.CacheConfig) (*har.Response, error) {
+	cacheHarEntry, err := cacheoperation.Get(cacheConfig.LinkedServiceRef, a.Name()+";cache=true", cacheConfig.Key, constants.ContentTypeApplicationJson, cachelks.WithNamespace(cacheConfig.Namespace))
+	if err != nil {
+		return nil, err
+	}
+
+	// the id takes the activity name in case ok because no other entry will be present. In case of cache miss ad additional entry will be there
+	// together with the un-cached invokation
+	entryId := a.Name()
+	if cacheHarEntry.Response.Status != http.StatusOK {
+		entryId = a.Name() + ";cache=true"
+	}
+
+	_ = wfc.AddEndpointHarEntry(entryId, cacheHarEntry)
+	return cacheHarEntry.Response, nil
+}
+
+func (a *MongoActivity) saveResponseToCache(cacheConfig config.CacheConfig, data []byte) error {
+	err := cacheoperation.Set(cacheConfig.LinkedServiceRef, cacheConfig.Key, data, cachelks.WithNamespace(cacheConfig.Namespace), cachelks.WithTTTL(cacheConfig.Ttl))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

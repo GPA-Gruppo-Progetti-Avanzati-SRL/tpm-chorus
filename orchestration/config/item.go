@@ -4,8 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
+	"strings"
+	"time"
 )
 
 type Type string
@@ -219,12 +222,42 @@ type OnResponseAction struct {
 }
 
 type CacheConfig struct {
-	CacheType string `json:"type,omitempty" yaml:"type,omitempty" mapstructure:"type,omitempty"`
-	Namespace string `json:"namespace,omitempty" yaml:"namespace,omitempty" mapstructure:"namespace,omitempty"`
-	Db        int    `json:"db,omitempty" yaml:"db,omitempty" mapstructure:"db,omitempty"`
-	Key       string `yaml:"key,omitempty" mapstructure:"key,omitempty" json:"key,omitempty"`
+	Key string `yaml:"key,omitempty" mapstructure:"key,omitempty" json:"key,omitempty"`
+	// Mode             string                         `yaml:"mode,omitempty" mapstructure:"mode,omitempty" json:"mode,omitempty"`
+	Namespace        string                         `json:"namespace,omitempty" yaml:"namespace,omitempty" mapstructure:"namespace,omitempty"`
+	Ttl              time.Duration                  `yaml:"ttl,omitempty" mapstructure:"ttl,omitempty" json:"ttl,omitempty"`
+	LinkedServiceRef cachelks.CacheLinkedServiceRef `yaml:"broker,omitempty" mapstructure:"broker,omitempty" json:"broker,omitempty"`
 }
 
 func (edcc *CacheConfig) IsZero() bool {
-	return edcc.Key == ""
+	return edcc.Key == "" && edcc.Namespace == "" && edcc.LinkedServiceRef.IsZero() && edcc.Ttl == 0
+}
+
+func (edcc *CacheConfig) Enabled() (bool, error) {
+
+	if edcc.IsZero() {
+		return false, nil
+	}
+
+	var sb strings.Builder
+
+	numErrors := 0
+	if edcc.Key == "" {
+		sb.WriteString("missing cache key")
+		numErrors++
+	}
+
+	if edcc.LinkedServiceRef.Typ == "" || edcc.LinkedServiceRef.Name == "" {
+		if numErrors > 0 {
+			sb.WriteString(", ")
+		}
+		sb.WriteString("missing linked service reference info")
+		numErrors++
+	}
+
+	if numErrors > 0 {
+		return false, errors.New(sb.String())
+	}
+
+	return true, nil
 }
