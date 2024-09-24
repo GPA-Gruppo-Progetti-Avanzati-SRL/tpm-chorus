@@ -90,6 +90,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins["b64"] = purefuncs.Base64
 	builtins["uuid"] = purefuncs.Uuid
 	builtins["regexMatch"] = purefuncs.RegexMatch
+	builtins["regexExtractFirst"] = purefuncs.RegexExtractFirst
 
 	return builtins
 }
@@ -109,6 +110,9 @@ var expressionSmell = []string{
 	"isDef",
 	"b64",
 	"tmpl",
+	"uuid",
+	"regexMatch",
+	"regexExtractFirst",
 	">",
 	"<",
 	"(",
