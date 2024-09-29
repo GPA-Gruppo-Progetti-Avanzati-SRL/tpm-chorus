@@ -8,6 +8,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
+	"github.com/google/uuid"
 	"os"
 	"reflect"
 	"strings"
@@ -23,6 +24,8 @@ type ProcessVarResolver struct {
 	body    interface{}
 	headers har.NameValuePairs
 	params  har.Params
+
+	TempVars map[string]interface{}
 }
 
 func (pvr *ProcessVarResolver) BodyAsByteArray() ([]byte, error) {
@@ -244,6 +247,14 @@ func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 		}
 	}
 
+	if variable.IsTagPresent(varResolver.FormatOptWithTempVar) {
+		newName := fmt.Sprintf("%s_%s", "TMP_", uuid.New().String())
+		if pvr.TempVars == nil {
+			pvr.TempVars = make(map[string]interface{})
+		}
+		pvr.TempVars[newName] = varValue
+		varValue = newName
+	}
 	s, err = variable.ToString(varValue, doEscape, skipVariableOpts)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
