@@ -163,7 +163,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 	}
 
-	actNdx := a.findResponseAction(harResponse.Status)
+	actNdx := a.definition.OnResponseActions.FindByStatusCode(harResponse.Status)
 	if actNdx >= 0 {
 		remappedStatusCode, err := a.processResponseAction(wfc, a.Name(), actNdx, harResponse)
 		if remappedStatusCode != 0 {
@@ -243,15 +243,39 @@ func (a *MongoActivity) Invoke(wfc *wfcase.WfCase, op jsonops.Operation) (*har.R
 	var r *har.Response
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
-		err = util.NewError(strconv.Itoa(sc), err)
-		r = har.NewResponse(sc, http.StatusText(sc), "text/plain", []byte(err.Error()), nil)
+		err = util.NewError(strconv.Itoa(sc.StatusCode), err)
+		r = har.NewResponse(sc.StatusCode, http.StatusText(sc.StatusCode), "text/plain", []byte(err.Error()), nil)
 		return r, err
 	}
 
+	on200ActionNdx := a.definition.OnResponseActions.FindByStatusCode(http.StatusOK)
+	if on200ActionNdx >= 0 && len(a.definition.OnResponseActions[on200ActionNdx].Properties) > 0 {
+		onResponseProperties := a.definition.OnResponseActions[on200ActionNdx].Properties
+		if varName, ok := onResponseProperties[config.MongoOperationResultMatchedCountPropertyVarName]; ok {
+			wfc.Vars[varName] = sc.MatchedCount
+		}
+
+		if varName, ok := onResponseProperties[config.MongoOperationResultUpsertedCountPropertyVarNName]; ok {
+			wfc.Vars[varName] = sc.UpsertedCount
+		}
+
+		if varName, ok := onResponseProperties[config.MongoOperationResultModifiedCountPropertyVarName]; ok {
+			wfc.Vars[varName] = sc.ModifiedCount
+		}
+
+		if varName, ok := onResponseProperties[config.MongoOperationResultDeletedCountPropertyVarName]; ok {
+			wfc.Vars[varName] = sc.DeletedCount
+		}
+
+		if varName, ok := onResponseProperties[config.MongoOperationResultObjectIDPropertyVarName]; ok {
+			wfc.Vars[varName] = sc.ObjectID
+		}
+	}
+
 	r = &har.Response{
-		Status:      sc,
+		Status:      sc.StatusCode,
 		HTTPVersion: "1.1",
-		StatusText:  http.StatusText(sc),
+		StatusText:  http.StatusText(sc.StatusCode),
 		HeadersSize: -1,
 		BodySize:    int64(len(resp)),
 		Cookies:     []har.Cookie{},
@@ -399,6 +423,7 @@ func chooseError(wfc *wfcase.WfCase, errors []config.ErrorInfo) int {
 	return -1
 }
 
+/*
 func (a *MongoActivity) findResponseAction(statusCode int) int {
 
 	matchedAction := -1
@@ -419,7 +444,7 @@ func (a *MongoActivity) findResponseAction(statusCode int) int {
 	}
 
 	return matchedAction
-}
+} */
 
 func (a *MongoActivity) resolveCacheConfig(wfc *wfcase.WfCase, resolver *wfcase.ProcessVarResolver, cacheConfig config.CacheConfig, refs config.DataReferences) (config.CacheConfig, error) {
 	cfg := cacheConfig

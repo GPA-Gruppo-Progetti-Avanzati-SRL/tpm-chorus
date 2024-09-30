@@ -219,6 +219,31 @@ type OnResponseAction struct {
 	ProcessVars                             []ProcessVar                   `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
 	Errors                                  []ErrorInfo                    `yaml:"error,omitempty" mapstructure:"error,omitempty" json:"error,omitempty"`
 	Transforms                              []transform.TransformReference `yaml:"transforms,omitempty" mapstructure:"transforms,omitempty" json:"transforms,omitempty"`
+	Properties                              map[string]string              `yaml:"properties,omitempty" mapstructure:"properties,omitempty" json:"properties,omitempty"` // activity dependent properties
+}
+
+type OnResponseActions []OnResponseAction
+
+func (acts OnResponseActions) FindByStatusCode(statusCode int) int {
+
+	matchedAction := -1
+	defaultAction := -1
+	for ndx, act := range acts {
+		if act.StatusCode == statusCode {
+			matchedAction = ndx
+			break
+		}
+
+		if act.StatusCode == -1 {
+			defaultAction = ndx
+		}
+	}
+
+	if matchedAction < 0 && defaultAction >= 0 {
+		matchedAction = defaultAction
+	}
+
+	return matchedAction
 }
 
 type CacheConfig struct {

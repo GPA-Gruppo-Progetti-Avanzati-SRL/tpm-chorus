@@ -1,41 +1,55 @@
 package echoactivity
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/rs/zerolog/log"
+	"net/http"
+	"reflect"
 )
 
 type EchoActivity struct {
 	executable.Activity
+	definition config.EchoActivityDefinition
 }
 
 func NewEchoActivity(item config.Configurable, refs config.DataReferences) (*EchoActivity, error) {
+	var err error
 
 	ea := &EchoActivity{}
 	ea.Cfg = item
 	ea.Refs = refs
+
+	eaCfg, ok := item.(*config.EchoActivity)
+	if !ok {
+		err := fmt.Errorf("this is weird %T is not %s config type", item, config.EchoActivityType)
+		return nil, err
+	}
+
+	ea.definition, err = config.UnmarshalEchoActivityDefinition(eaCfg.Definition, refs)
+	if err != nil {
+		return nil, err
+	}
+
+	if ea.definition.IsZero() {
+		ea.definition.Message = eaCfg.Message
+	}
 	return ea, nil
 }
 
 func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 	const semLogContext = string(config.EchoActivityType) + "::execute"
-
+	var err error
 	if !a.IsEnabled(wfc) {
 		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.EchoActivityType)).Msg("activity not enabled")
 		return nil
 	}
-
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
-	if err != nil {
-		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
-		return err
-	}
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
 
 	tcfg, ok := a.Cfg.(*config.EchoActivity)
 	if !ok {
@@ -45,6 +59,13 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
+	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	if err != nil {
+		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+		return err
+	}
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
+
 	if len(tcfg.ProcessVars) > 0 {
 		err := wfc.SetVars(expressionCtx, tcfg.ProcessVars, "", false)
 		if err != nil {
@@ -53,7 +74,100 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 	}
 
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("msg", tcfg.Message).Msg(semLogContext + " end")
+	if a.definition.IncludeInHar {
+		req, _ := a.newRequestDefinition(wfc)
+		_ = wfc.AddEndpointRequestData(a.Name(), req, config.PersonallyIdentifiableInformation{})
+
+		ct, b, err := a.computeBody(wfc)
+		if err != nil {
+			log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+			return err
+		}
+		resp := har.NewResponse(http.StatusOK, http.StatusText(http.StatusOK), ct, []byte(b), nil)
+		_ = wfc.AddEndpointResponseData(a.Name(), resp, config.PersonallyIdentifiableInformation{})
+	}
+
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("msg", a.definition.Message).Msg(semLogContext + " end")
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 	return nil
+}
+
+/*func (a *EchoActivity) harEntry(wfc *wfcase.WfCase) (*har.Entry, error) {
+	now := time.Now()
+
+	req, err := a.newRequestDefinition(wfc)
+	if err != nil {
+		return nil, err
+	}
+
+	ct, b, err := a.computeBody(wfc)
+	if err != nil {
+		return nil, err
+	}
+	resp := har.NewResponse(http.StatusOK, http.StatusText(http.StatusOK), ct, b, nil)
+
+	e := &har.Entry{
+		StartedDateTime: now.Format(time.RFC3339Nano),
+		StartDateTimeTm: now,
+		Request:         req,
+		Response:        resp,
+	}
+
+	return e, nil
+}*/
+
+func (a *EchoActivity) newRequestDefinition(wfc *wfcase.WfCase) (*har.Request, error) {
+	var opts []har.RequestOption
+
+	ub := har.UrlBuilder{}
+	ub.WithPort(0)
+	ub.WithScheme("echo")
+
+	ub.WithHostname("localhost")
+	ub.WithPath("/" + a.Name())
+
+	opts = append(opts, har.WithMethod("POST"))
+	opts = append(opts, har.WithUrl(ub.Url()))
+
+	b, err := json.Marshal(a.definition)
+	if err != nil {
+		return nil, err
+	}
+	opts = append(opts, har.WithBody(b))
+
+	req := har.Request{
+		HTTPVersion: "1.1",
+		Cookies:     []har.Cookie{},
+		QueryString: []har.NameValuePair{},
+		HeadersSize: -1,
+		Headers:     []har.NameValuePair{},
+		BodySize:    -1,
+	}
+	for _, o := range opts {
+		o(&req)
+	}
+
+	return &req, nil
+}
+
+func (a *EchoActivity) computeBody(wfc *wfcase.WfCase) (string, []byte, error) {
+
+	body := make(map[string]interface{})
+	body["message"] = a.definition.Message
+	if a.definition.ShowVars {
+		caseVariables := make(map[string]interface{})
+		for n, v := range wfc.Vars {
+			if reflect.ValueOf(v).Kind() != reflect.Func {
+				caseVariables[n] = v
+			}
+		}
+		body["process-vars"] = caseVariables
+	}
+
+	b, err := json.Marshal(body)
+	if err != nil {
+		return "", nil, err
+	}
+
+	return constants.ContentTypeApplicationJson, b, nil
 }

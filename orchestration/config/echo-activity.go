@@ -25,6 +25,11 @@ func (c *EchoActivity) WithExpressionContext(n string) *EchoActivity {
 	return c
 }
 
+func (c *EchoActivity) WithRefDefinition(n string) *EchoActivity {
+	c.Definition = n
+	return c
+}
+
 func NewEchoActivity() *EchoActivity {
 	s := EchoActivity{}
 	s.Tp = EchoActivityType

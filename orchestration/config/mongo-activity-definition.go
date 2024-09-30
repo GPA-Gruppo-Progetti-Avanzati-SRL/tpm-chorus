@@ -18,6 +18,12 @@ const (
 	MongoActivityFindOneSortProperty       = "sort"
 	MongoActivityFindOneProjectionProperty = "projection"
 	MongoActivityFindOneOptsProperty       = "opts"
+
+	MongoOperationResultMatchedCountPropertyVarName   = "matched-count"
+	MongoOperationResultModifiedCountPropertyVarName  = "modified-count"
+	MongoOperationResultUpsertedCountPropertyVarNName = "upserted-count"
+	MongoOperationResultDeletedCountPropertyVarName   = "deleted-count"
+	MongoOperationResultObjectIDPropertyVarName       = "object-id"
 )
 
 var opTypes = map[jsonops.MongoJsonOperationType]struct{}{
@@ -32,7 +38,7 @@ type MongoActivityDefinition struct {
 	LksName           string                                             `yaml:"lks-name,omitempty" json:"lks-name,omitempty" mapstructure:"lks-name,omitempty"`
 	CollectionId      string                                             `yaml:"collection-id,omitempty" json:"collection-id,omitempty" mapstructure:"collection-id,omitempty"`
 	StatementData     map[jsonops.MongoJsonOperationStatementPart]string `yaml:"statement,omitempty" json:"statement,omitempty" mapstructure:"statement,omitempty"`
-	OnResponseActions []OnResponseAction                                 `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
+	OnResponseActions OnResponseActions                                  `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
 	CacheConfig       CacheConfig                                        `yaml:"with-cache,omitempty" json:"with-cache,omitempty" mapstructure:"with-cache,omitempty"`
 	Statement         interface{}                                        `yaml:"-" json:"-" mapstructure:"-"`
 }
