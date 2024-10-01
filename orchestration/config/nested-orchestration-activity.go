@@ -2,12 +2,12 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/mitchellh/mapstructure"
+	"gopkg.in/yaml.v3"
 )
 
 type NestedOrchestrationActivity struct {
-	Activity
-	Message string `yaml:"message,omitempty" mapstructure:"message,omitempty" json:"message,omitempty"`
+	Activity `yaml:",inline" json:",inline"`
+	Message  string `yaml:"message,omitempty" mapstructure:"message,omitempty" json:"message,omitempty"`
 }
 
 func (c *NestedOrchestrationActivity) WithName(n string) *NestedOrchestrationActivity {
@@ -41,9 +41,10 @@ func NewNestedOrchestrationActivityFromJSON(message json.RawMessage) (Configurab
 	return i, nil
 }
 
-func NewNestedOrchestrationActivityFromYAML(mp interface{}) (Configurable, error) {
+func NewNestedOrchestrationActivityFromYAML(b []byte /* mp interface{}*/) (Configurable, error) {
 	sa := NewEchoActivity()
-	err := mapstructure.Decode(mp, sa)
+	// err := mapstructure.Decode(mp, sa)
+	err := yaml.Unmarshal(b, sa)
 	if err != nil {
 		return nil, err
 	}

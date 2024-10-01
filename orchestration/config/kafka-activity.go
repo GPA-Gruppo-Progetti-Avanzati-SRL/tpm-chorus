@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/mitchellh/mapstructure"
+	"gopkg.in/yaml.v3"
 )
 
 type ProducerDefinition struct {
@@ -23,7 +23,7 @@ type Producer struct {
 }
 
 type KafkaActivity struct {
-	Activity
+	Activity   `yaml:",inline" json:",inline"`
 	BrokerName string     `mapstructure:"broker-name" json:"broker-name" yaml:"broker-name"`
 	Producers  []Producer `yaml:"producers,omitempty" mapstructure:"producers,omitempty" json:"producers,omitempty"`
 }
@@ -63,9 +63,10 @@ func NewKafkaActivityFromJSON(message json.RawMessage) (Configurable, error) {
 	return i, nil
 }
 
-func NewKafkaActivityFromYAML(mp interface{}) (Configurable, error) {
+func NewKafkaActivityFromYAML(b []byte /* mp interface{}*/) (Configurable, error) {
 	epa := NewKafkaActivity()
-	err := mapstructure.Decode(mp, epa)
+	// err := mapstructure.Decode(mp, epa)
+	err := yaml.Unmarshal(b, epa)
 	if err != nil {
 		return nil, err
 	}

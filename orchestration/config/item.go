@@ -27,7 +27,7 @@ const (
 type ActivityTypeRegistryEntry struct {
 	Tp                 Type
 	UnmarshallFromJSON func(raw json.RawMessage) (Configurable, error)
-	UnmarshalFromYAML  func(mp interface{}) (Configurable, error)
+	UnmarshalFromYAML  func(b []byte /* mp interface{} */) (Configurable, error)
 }
 
 var activityTypeRegistry = map[Type]ActivityTypeRegistryEntry{
@@ -62,10 +62,10 @@ func NewActivityFromJSON(t Type, message json.RawMessage) (Configurable, error) 
 	return nil, fmt.Errorf("unknown activity type %s", t)
 }
 
-func NewActivityFromYAML(t Type, m interface{}) (Configurable, error) {
+func NewActivityFromYAML(t Type, b []byte /* m interface{} */) (Configurable, error) {
 
 	if e, ok := activityTypeRegistry[t]; ok {
-		c, err := e.UnmarshalFromYAML(m)
+		c, err := e.UnmarshalFromYAML(b)
 		return c, err
 	}
 

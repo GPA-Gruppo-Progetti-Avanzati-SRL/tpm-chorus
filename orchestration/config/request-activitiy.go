@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/mitchellh/mapstructure"
+	"gopkg.in/yaml.v3"
 )
 
 // RequestValidation
@@ -14,7 +14,7 @@ type RequestValidation struct {
 }
 
 type RequestActivity struct {
-	Activity
+	Activity `yaml:",inline" json:",inline"`
 	// ProcessVars []ProcessVar `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
 	Validations []RequestValidation `yaml:"validations,omitempty" mapstructure:"validations,omitempty" json:"validations,omitempty"`
 }
@@ -45,9 +45,10 @@ func NewRequestActivityFromJSON(message json.RawMessage) (Configurable, error) {
 	return i, nil
 }
 
-func NewRequestActivityFromYAML(mp interface{}) (Configurable, error) {
+func NewRequestActivityFromYAML(b []byte /* mp interface{}*/) (Configurable, error) {
 	sa := NewRequestActivity()
-	err := mapstructure.Decode(mp, sa)
+	// err := mapstructure.Decode(mp, sa)
+	err := yaml.Unmarshal(b, sa)
 	if err != nil {
 		return nil, err
 	}

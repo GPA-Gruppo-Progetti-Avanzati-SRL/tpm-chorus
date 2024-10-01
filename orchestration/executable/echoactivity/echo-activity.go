@@ -3,6 +3,8 @@ package echoactivity
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks/gocachelks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelksregistry"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
@@ -151,10 +153,11 @@ func (a *EchoActivity) newRequestDefinition(wfc *wfcase.WfCase) (*har.Request, e
 }
 
 func (a *EchoActivity) computeBody(wfc *wfcase.WfCase) (string, []byte, error) {
+	const semLogContext = "echo-activity::compute-body"
 
 	body := make(map[string]interface{})
 	body["message"] = a.definition.Message
-	if a.definition.ShowVars {
+	if a.definition.WithVars {
 		caseVariables := make(map[string]interface{})
 		for n, v := range wfc.Vars {
 			if reflect.ValueOf(v).Kind() != reflect.Func {
@@ -162,6 +165,17 @@ func (a *EchoActivity) computeBody(wfc *wfcase.WfCase) (string, []byte, error) {
 			}
 		}
 		body["process-vars"] = caseVariables
+	}
+
+	if a.definition.WithGoCache != "" {
+		items, err := cachelksregistry.GetItems4Cache(gocachelks.GoCacheLinkedServiceType, a.definition.WithGoCache)
+		if err != nil {
+			log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+		} else {
+			if len(items) > 0 {
+				body[a.definition.WithGoCache] = items
+			}
+		}
 	}
 
 	b, err := json.Marshal(body)

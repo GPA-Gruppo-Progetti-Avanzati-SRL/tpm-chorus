@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/mitchellh/mapstructure"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -32,7 +32,7 @@ type Response struct {
 }
 
 type ResponseActivity struct {
-	Activity
+	Activity  `yaml:",inline" json:",inline"`
 	Responses []Response `yaml:"responses,omitempty" mapstructure:"responses,omitempty" json:"responses,omitempty"`
 }
 
@@ -67,9 +67,10 @@ func NewResponseActivityFromJSON(message json.RawMessage) (Configurable, error) 
 	return i, nil
 }
 
-func NewResponseActivityFromYAML(mp interface{}) (Configurable, error) {
+func NewResponseActivityFromYAML(b []byte /* mp interface{}*/) (Configurable, error) {
 	sa := NewResponseActivity()
-	err := mapstructure.Decode(mp, sa)
+	// err := mapstructure.Decode(mp, sa)
+	err := yaml.Unmarshal(b, sa)
 	if err != nil {
 		return nil, err
 	}

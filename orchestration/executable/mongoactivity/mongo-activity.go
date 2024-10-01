@@ -148,6 +148,13 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 		_ = wfc.AddEndpointRequestData(a.Name(), req, maCfg.PII)
 
 		harResponse, err = a.Invoke(wfc, op)
+		if err != nil {
+			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+			metricsLabels[MetricIdStatusCode] = "500"
+			a.SetMetrics(beginOf, metricsLabels)
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+		}
+
 		if harResponse != nil {
 			_ = wfc.AddEndpointResponseData(a.Name(), harResponse, maCfg.PII)
 			metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
@@ -235,6 +242,7 @@ func (a *MongoActivity) Invoke(wfc *wfcase.WfCase, op jsonops.Operation) (*har.R
 	const semLogContext = "mongo-activity::invoke"
 	lks, err := mongolks.GetLinkedService(context.Background(), a.definition.LksName)
 	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
 		return nil, err
 	}
 

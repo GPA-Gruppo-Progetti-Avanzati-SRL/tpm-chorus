@@ -54,21 +54,21 @@ func TestNewProcessVarResolver(t *testing.T) {
 	require.NoError(t, err)
 	t.Log(r)
 
-	err = pvs.Set("beneficiario_natura", "{$.beneficiario.natura}", resolver)
+	err = pvs.Set("beneficiario_natura", "{$.beneficiario.natura}", resolver, false, -1)
 	require.NoError(t, err)
-	err = pvs.Set("can_ale", "{$[\"can-ale\"]}", resolver)
-	require.NoError(t, err)
-
-	err = pvs.Set("beneficiario_numero", "{$.beneficiario.numero}", resolver)
+	err = pvs.Set("can_ale", "{$[\"can-ale\"]}", resolver, false, -1)
 	require.NoError(t, err)
 
-	err = pvs.Set("beneficiario_numero2", `{$["operazioni"][0]["errori-ope"][0]["dsc-errore"]}`, resolver)
+	err = pvs.Set("beneficiario_numero", "{$.beneficiario.numero}", resolver, false, -1)
 	require.NoError(t, err)
 
-	err = pvs.Set("beneficiario_numero3", "{$.operazioni[0].pippo}", resolver)
+	err = pvs.Set("beneficiario_numero2", `{$["operazioni"][0]["errori-ope"][0]["dsc-errore"]}`, resolver, false, -1)
 	require.NoError(t, err)
 
-	err = pvs.Set("operazione_importo", "{$.operazione.importo}", resolver)
+	err = pvs.Set("beneficiario_numero3", "{$.operazioni[0].pippo}", resolver, false, -1)
+	require.NoError(t, err)
+
+	err = pvs.Set("operazione_importo", "{$.operazione.importo}", resolver, false, -1)
 	require.NoError(t, err)
 
 	t.Log(pvs)
@@ -96,9 +96,9 @@ func TestGVal(t *testing.T) {
 	resolver, err := wfcase.NewProcessVarResolver(wfcase.WithBody(constants.ContentTypeApplicationJson, j, ""))
 	require.NoError(t, err)
 
-	err = pvs.Set("beneficiario_natura", "{$.beneficiario.natura}", resolver)
+	err = pvs.Set("beneficiario_natura", "{$.beneficiario.natura}", resolver, false, -1)
 	require.NoError(t, err)
-	err = pvs.Set("beneficiario_numero", "{$.beneficiario.numero}", resolver)
+	err = pvs.Set("beneficiario_numero", "{$.beneficiario.numero}", resolver, false, -1)
 	require.NoError(t, err)
 
 	t.Log(pvs)

@@ -3,13 +3,13 @@ package config
 import (
 	"encoding/json"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/jsonops"
-	"github.com/mitchellh/mapstructure"
+	"gopkg.in/yaml.v3"
 )
 
 type MongoActivity struct {
-	Activity
-	OpType jsonops.MongoJsonOperationType    `yaml:"op-type,omitempty" mapstructure:"op-type,omitempty" json:"op-type,omitempty"`
-	PII    PersonallyIdentifiableInformation `yaml:"pii,omitempty" mapstructure:"pii,omitempty" json:"pii,omitempty"`
+	Activity `yaml:",inline" json:",inline"`
+	OpType   jsonops.MongoJsonOperationType    `yaml:"op-type,omitempty" mapstructure:"op-type,omitempty" json:"op-type,omitempty"`
+	PII      PersonallyIdentifiableInformation `yaml:"pii,omitempty" mapstructure:"pii,omitempty" json:"pii,omitempty"`
 }
 
 func (c *MongoActivity) WithName(n string) *MongoActivity {
@@ -54,9 +54,10 @@ func NewMongoActivityFromJSON(message json.RawMessage) (Configurable, error) {
 	return i, nil
 }
 
-func NewMongoActivityFromYAML(mp interface{}) (Configurable, error) {
+func NewMongoActivityFromYAML(b []byte /* mp interface{}*/) (Configurable, error) {
 	sa := NewMongoActivity()
-	err := mapstructure.Decode(mp, sa)
+	// err := mapstructure.Decode(mp, sa)
+	err := yaml.Unmarshal(b, sa)
 	if err != nil {
 		return nil, err
 	}

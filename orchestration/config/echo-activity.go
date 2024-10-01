@@ -2,12 +2,12 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/mitchellh/mapstructure"
+	"gopkg.in/yaml.v3"
 )
 
 type EchoActivity struct {
-	Activity
-	Message string `yaml:"message,omitempty" mapstructure:"message,omitempty" json:"message,omitempty"`
+	Activity `yaml:",inline" json:",inline"`
+	Message  string `yaml:"message,omitempty" mapstructure:"message,omitempty" json:"message,omitempty"`
 }
 
 func (c *EchoActivity) WithName(n string) *EchoActivity {
@@ -46,9 +46,10 @@ func NewEchoActivityFromJSON(message json.RawMessage) (Configurable, error) {
 	return i, nil
 }
 
-func NewEchoActivityFromYAML(mp interface{}) (Configurable, error) {
+func NewEchoActivityFromYAML(b []byte /* mp interface{}*/) (Configurable, error) {
 	sa := NewEchoActivity()
-	err := mapstructure.Decode(mp, sa)
+	// err := mapstructure.Decode(mp, sa)
+	err := yaml.Unmarshal(b, sa)
 	if err != nil {
 		return nil, err
 	}

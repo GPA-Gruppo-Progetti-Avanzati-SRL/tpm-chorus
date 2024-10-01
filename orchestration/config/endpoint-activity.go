@@ -2,8 +2,7 @@ package config
 
 import (
 	"encoding/json"
-
-	"github.com/mitchellh/mapstructure"
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -36,7 +35,7 @@ type Endpoint struct {
 }
 
 type EndpointActivity struct {
-	Activity
+	Activity  `yaml:",inline" json:",inline"`
 	Endpoints []Endpoint `yaml:"endpoints,omitempty" mapstructure:"endpoints,omitempty" json:"endpoints,omitempty"`
 }
 
@@ -75,9 +74,10 @@ func NewEndpointActivityFromJSON(message json.RawMessage) (Configurable, error) 
 	return i, nil
 }
 
-func NewEndpointActivityFromYAML(mp interface{}) (Configurable, error) {
+func NewEndpointActivityFromYAML(b []byte /* mp interface{}*/) (Configurable, error) {
 	epa := NewEndpointActivity()
-	err := mapstructure.Decode(mp, epa)
+	// err := mapstructure.Decode(mp, epa)
+	err := yaml.Unmarshal(b, epa)
 	if err != nil {
 		return nil, err
 	}

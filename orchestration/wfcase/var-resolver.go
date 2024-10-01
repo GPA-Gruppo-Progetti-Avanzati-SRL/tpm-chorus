@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
@@ -148,7 +149,7 @@ func NewProcessVarResolver(opts ...VarResolverOption) (*ProcessVarResolver, erro
 	return pvr, nil
 }
 
-var resolverTypePrefix = []string{"$.", "$[", "h:", "p:", "v:"}
+var resolverTypePrefix = []string{"$.", "$[", "h:", "p:", "v:", "g:"}
 
 func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 
@@ -230,6 +231,20 @@ func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 				s = fmt.Sprintf("%v", v)
 			}
 			return pvr.JSONEscape(s, doEscape), false */
+		}
+	case "g:":
+		vComp := strings.Split(s[2:], ",")
+		varValue, err = globals.GetGlobalVar("", variable.Name, "")
+		if err == nil {
+			if reflect.ValueOf(varValue).Kind() == reflect.Func {
+				varValue = pvr.resolveFunctionVar(varValue, variable.Name, vComp[1:]...)
+				skipVariableOpts = true
+			} /* else {
+				s = fmt.Sprintf("%v", v)
+			}
+			return pvr.JSONEscape(s, doEscape), false */
+		} else {
+			log.Error().Err(err).Msg(semLogContext)
 		}
 
 	default:
@@ -393,6 +408,8 @@ func (pvr *ProcessVarResolver) getPrefix(s string) (string, error) {
 		if pvr.vars != nil {
 			isValid = true
 		}
+	case "g:":
+		isValid = true
 	case "env":
 		isValid = true
 	}

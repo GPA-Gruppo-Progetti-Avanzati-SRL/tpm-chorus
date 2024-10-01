@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config/repo"
-	"github.com/mitchellh/mapstructure"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 	"strings"
+	"time"
 )
 
 /*
@@ -59,10 +59,13 @@ func (dr DataReferences) IsPresent(p string) bool {
 //}
 
 type ProcessVar struct {
-	Name  string `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
-	Value string `yaml:"value,omitempty" mapstructure:"value,omitempty" json:"value,omitempty"`
-	Type  string `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
-	Guard string `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
+	Name        string        `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
+	Value       string        `yaml:"value,omitempty" mapstructure:"value,omitempty" json:"value,omitempty"`
+	Type        string        `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
+	Guard       string        `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
+	GlobalScope bool          `yaml:"global,omitempty" mapstructure:"global,omitempty" json:"global,omitempty"`
+	Ttl         time.Duration `yaml:"ttl,omitempty" mapstructure:"ttl,omitempty" json:"ttl,omitempty"`
+
 	// ParsedExpr ProcessVarDefinitionValueExpression `mapstructure:"-" yaml:"-" json:"-"`
 }
 
@@ -352,7 +355,7 @@ func (o *Orchestration) MarshalJSON() ([]byte, error) {
 //}
 
 func (o *Orchestration) UnmarshalYAML(unmarshal func(interface{}) error) error {
-
+	const semLogContext = "orchestration::unmarshal-yaml"
 	type orchestration Orchestration
 
 	var m struct {
@@ -360,10 +363,10 @@ func (o *Orchestration) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		Description string                            `yaml:"description,omitempty" mapstructure:"description,omitempty" json:"description,omitempty"`
 		Paths       []Path                            `yaml:"paths,omitempty" mapstructure:"paths,omitempty" json:"paths,omitempty"`
 		Boundaries  []ExecBoundary                    `yaml:"boundaries,omitempty" mapstructure:"boundaries,omitempty" json:"boundaries,omitempty"`
-		Activities  []interface{}                     `json:"activities" yaml:"activities"`
+		Activities  []map[string]interface{}          `json:"activities" yaml:"activities"`
 		PII         PersonallyIdentifiableInformation `yaml:"pii,omitempty" mapstructure:"pii,omitempty" json:"pii,omitempty"`
 	}
-	m.Activities = make([]interface{}, 0)
+	m.Activities = make([]map[string]interface{}, 0)
 	err := unmarshal(&m)
 	if err != nil {
 		return err
@@ -375,16 +378,26 @@ func (o *Orchestration) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	o.Boundaries = m.Boundaries
 	o.PII = m.PII
 	for _, a := range m.Activities {
-		var wa struct {
-			Activity Activity
-		}
-		err := mapstructure.Decode(a, &wa)
+
+		/*
+			var wa struct {
+				Activity Activity
+			}
+			err := mapstructure.Decode(a, &wa)
+			if err != nil {
+				return err
+			}
+		*/
+
+		b, err := yaml.Marshal(a)
 		if err != nil {
+			log.Error().Err(err).Msgf(semLogContext)
 			return err
 		}
 
-		i, err := NewActivityFromYAML(wa.Activity.Type(), a)
+		i, err := NewActivityFromYAML(Type(a["type"].(string)), b)
 		if err != nil {
+			log.Error().Err(err).Msgf(semLogContext)
 			return err
 		}
 

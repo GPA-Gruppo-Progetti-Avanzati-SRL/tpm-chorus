@@ -9,7 +9,8 @@ import (
 type EchoActivityDefinition struct {
 	Message      string `yaml:"message,omitempty" json:"message,omitempty" mapstructure:"message,omitempty"`
 	IncludeInHar bool   `yaml:"in-har,omitempty" json:"in-har,omitempty" mapstructure:"in-har,omitempty"`
-	ShowVars     bool   `yaml:"display-vars,omitempty" json:"display-vars,omitempty" mapstructure:"display-vars,omitempty"`
+	WithVars     bool   `yaml:"with-vars,omitempty" json:"with-vars,omitempty" mapstructure:"with-vars,omitempty"`
+	WithGoCache  string `yaml:"with-go-cache,omitempty" json:"with-go-cache,omitempty" mapstructure:"with-go-cache,omitempty"`
 }
 
 func (def *EchoActivityDefinition) IsZero() bool {

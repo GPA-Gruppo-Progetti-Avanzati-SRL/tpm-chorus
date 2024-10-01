@@ -2,12 +2,12 @@ package config
 
 import (
 	"encoding/json"
-	"github.com/mitchellh/mapstructure"
+	"gopkg.in/yaml.v3"
 )
 
 type TransformActivity struct {
-	Activity
-	PII PersonallyIdentifiableInformation `yaml:"pii,omitempty" mapstructure:"pii,omitempty" json:"pii,omitempty"`
+	Activity `yaml:",inline" json:",inline"`
+	PII      PersonallyIdentifiableInformation `yaml:"pii,omitempty" mapstructure:"pii,omitempty" json:"pii,omitempty"`
 }
 
 func (c *TransformActivity) WithName(n string) *TransformActivity {
@@ -47,9 +47,10 @@ func NewTransformActivityFromJSON(message json.RawMessage) (Configurable, error)
 	return i, nil
 }
 
-func NewTransformActivityFromYAML(mp interface{}) (Configurable, error) {
+func NewTransformActivityFromYAML(b []byte /* mp interface{}*/) (Configurable, error) {
 	sa := NewTransformActivity()
-	err := mapstructure.Decode(mp, sa)
+	// err := mapstructure.Decode(mp, sa)
+	err := yaml.Unmarshal(b, sa)
 	if err != nil {
 		return nil, err
 	}

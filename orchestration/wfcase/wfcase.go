@@ -450,7 +450,7 @@ func (wfc *WfCase) SetVars(resolverContext ResolverContextReference, vars []conf
 		}
 
 		if boolGuard && err == nil {
-			err = wfc.Vars.Set(v.Name, v.Value, resolver)
+			err = wfc.Vars.Set(v.Name, v.Value, resolver, v.GlobalScope, v.Ttl)
 		}
 
 		if err != nil {
