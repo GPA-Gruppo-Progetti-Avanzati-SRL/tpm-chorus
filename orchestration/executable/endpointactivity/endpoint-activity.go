@@ -118,15 +118,18 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 
 	var err error
 
+	if !a.IsEnabled(wfc) {
+		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.EndpointActivityType)).Msg(semLogContext + " activity not enabled")
+		return nil
+	}
+
+	log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " start")
+	defer log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
+
 	_, _, err = a.MetricsGroup()
 	if err != nil {
 		log.Error().Err(err).Interface("metrics-config", a.Cfg.MetricsConfig()).Msg(semLogContext + " cannot found metrics group")
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
-	}
-
-	if !a.IsEnabled(wfc) {
-		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.EndpointActivityType)).Msg(semLogContext + " activity not enabled")
-		return nil
 	}
 
 	cfg, ok := a.Cfg.(*config.EndpointActivity)
@@ -153,8 +156,7 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 			log.Error().Err(err).Msg(semLogContext)
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}
-		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
-
+		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext)
 		err = wfc.SetVars(expressionCtx, cfg.ProcessVars, "", false)
 		if err != nil {
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
@@ -186,7 +188,7 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 				// The get of the cache triggers an error only.
 				log.Error().Err(err).Msg(semLogContext)
 			} else {
-				harResponse, err = a.resolveResponseFromCache(wfc, ep.FullId(a.Name()), cacheCfg)
+				harResponse, err = a.resolveResponseFromCache(wfc, ep.FullId(a.Name()), ep.Definition.Path, cacheCfg)
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext)
 					if harResponse == nil {
@@ -242,7 +244,6 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 		wfc.AddBreadcrumb(ep.Id, ep.Description, nil)
 	}
 
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
 	return nil
 }
 
@@ -540,8 +541,13 @@ func (a *EndpointActivity) resolveCacheConfig(wfc *wfcase.WfCase, resolver *wfca
 	return cfg, err
 }
 
-func (a *EndpointActivity) resolveResponseFromCache(wfc *wfcase.WfCase, endpointId string, cacheConfig config.CacheConfig) (*har.Response, error) {
-	cacheHarEntry, err := cacheoperation.Get(cacheConfig.LinkedServiceRef, a.Name()+";cache=true", cacheConfig.Key, constants.ContentTypeApplicationJson, cachelks.WithNamespace(cacheConfig.Namespace))
+func (a *EndpointActivity) resolveResponseFromCache(wfc *wfcase.WfCase, endpointId, endpointPath string, cacheConfig config.CacheConfig) (*har.Response, error) {
+	cacheHarEntry, err := cacheoperation.Get(
+		cacheConfig.LinkedServiceRef,
+		a.Name()+";cache=true",
+		cacheConfig.Key,
+		constants.ContentTypeApplicationJson,
+		cachelks.WithNamespace(cacheConfig.Namespace), cachelks.WithHarPath(fmt.Sprintf("%s;cache=true", endpointPath)))
 	if err != nil {
 		return nil, err
 	}

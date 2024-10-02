@@ -106,15 +106,18 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 	const semLogContext = string(config.KafkaActivityType) + "::execute"
 
 	var err error
+	if !a.IsEnabled(wfc) {
+		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.KafkaActivityType)).Msg(semLogContext + " activity not enabled")
+		return nil
+	}
+
+	log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " start")
+	defer log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
+
 	_, _, err = a.MetricsGroup()
 	if err != nil {
 		log.Error().Err(err).Interface("metrics-config", a.Cfg.MetricsConfig()).Msg(semLogContext + " cannot found metrics group")
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
-	}
-
-	if !a.IsEnabled(wfc) {
-		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.KafkaActivityType)).Msg(semLogContext + " activity not enabled")
-		return nil
 	}
 
 	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
@@ -122,7 +125,7 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		return err
 	}
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext)
 
 	cfg, ok := a.Cfg.(*config.KafkaActivity)
 	if !ok {
@@ -198,7 +201,6 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 		wfc.AddBreadcrumb(ep.Id, ep.Description, nil)
 	}
 
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
 	return nil
 }
 
@@ -392,16 +394,15 @@ func (a *KafkaActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Producer) (*
 	var opts []har.RequestOption
 
 	ub := har.UrlBuilder{}
-	ub.WithScheme("kafka")
+	ub.WithScheme("activity")
 
-	ub.WithHostname(fmt.Sprintf("%s.%s", a.BrokerName, "tpm-symphony"))
+	ub.WithHostname(fmt.Sprintf("%s", a.BrokerName))
 
 	s, _, err := varResolver.ResolveVariables(ep.Definition.TopicName, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
 	if err != nil {
 		return nil, err
 	}
-	ub.WithPath("/topics/" + s)
-
+	ub.WithPath(fmt.Sprintf("/%s/%s/topics/%s", string(config.KafkaActivityType), a.Name(), s))
 	opts = append(opts, har.WithMethod(http.MethodPost))
 	opts = append(opts, har.WithUrl(ub.Url()))
 

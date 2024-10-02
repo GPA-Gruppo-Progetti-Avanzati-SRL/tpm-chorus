@@ -78,6 +78,10 @@ func NewReporter(n string, cfg *Config, wg *sync.WaitGroup) (Reporter, error) {
 		w.jsonMask = jm
 		rep = w
 
+	case "devnull":
+		w := &DevNullReporter{cfg: cfg, wg: wg, workQueue: wq}
+		rep = w
+
 	case "kafka":
 		w := &KafkaReporter{cfg: cfg, wg: wg, workQueue: wq, metricsRegistry: mr}
 		w.jsonMask = jm

@@ -9,7 +9,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/endpointactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/kafkactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/mongoactivity"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/nestedorchestrationactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/requestactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/responseactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/transformactivity"
@@ -58,7 +57,19 @@ func NewOrchestration(cfg *config.Orchestration) (Orchestration, error) {
 		case config.KafkaActivityType:
 			ex, err = kafkactivity.NewKafkaActivity(cfgItem, cfg.References)
 		case config.NestedOrchestrationActivityType:
-			ex, err = nestedorchestrationactivity.NewNestedOrchestrationActivity(cfgItem, cfg.References)
+			if cfgItem.RefDefinition() != "" {
+				no, ok := mapOfNestedOrcs[cfgItem.RefDefinition()]
+				if ok {
+					ex, err = NewNestedOrchestrationActivity(cfgItem, cfg.References, no)
+				} else {
+					err = fmt.Errorf("unknown nested orchestration id %s", cfgItem.RefDefinition())
+					log.Error().Err(err).Msg(semLogContext)
+				}
+			} else {
+				err = errors.New("nested orchestration missing reference to orchestration id")
+				log.Error().Err(err).Msg(semLogContext)
+			}
+
 		case config.MongoActivityType:
 			ex, err = mongoactivity.NewMongoActivity(cfgItem, cfg.References)
 		case config.TransformActivityType:
@@ -149,6 +160,9 @@ func (o *Orchestration) IsValid() bool {
 func (o *Orchestration) Execute(wfc *wfcase.WfCase) (executable.Executable, error) {
 
 	const semLogContext = "orchestration::execute"
+	log.Info().Str("id", o.Cfg.Id).Msg(semLogContext + " start")
+	defer log.Info().Str("id", o.Cfg.Id).Msg(semLogContext + " end")
+
 	na := o.Cfg.StartActivity
 	var a executable.Executable
 	currentBoundary := config.DefaultActivityBoundary
@@ -160,13 +174,18 @@ func (o *Orchestration) Execute(wfc *wfcase.WfCase) (executable.Executable, erro
 			log.Info().Str("current-boundary", currentBoundary).Str("next-boundary", a.Boundary()).Msg(semLogContext + " boundary limit")
 		}
 
-		if _, ok := a.(*nestedorchestrationactivity.NestedOrchestrationActivity); ok {
-			log.Info().Msg(semLogContext + " should handle the sub orchestration")
-		} else {
-			err = a.Execute(wfc)
-			if err != nil {
-				return a, err
-			}
+		/*		if _, ok := a.(*NestedOrchestrationActivity); ok {
+					log.Info().Msg(semLogContext + " should handle the sub orchestration")
+				} else {
+					err = a.Execute(wfc)
+					if err != nil {
+						return a, err
+					}
+				}*/
+
+		err = a.Execute(wfc)
+		if err != nil {
+			return a, err
 		}
 
 		na, err = a.Next(wfc)

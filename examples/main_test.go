@@ -18,21 +18,22 @@ type AppConfig struct {
 
 var yamlCfg = []byte(`
 linked-services:
-   redis-cache:
-      addr: "localhost:6379"
-      key: ""
-      db: 0
-      ttl: "30m"
-      poolSize: 0  #Maximum number of socket connections. 0 is Default (10) 
-      maxRetries: -1 #Maximum number of retries before giving up. 0 is Default (3), -1 (not 0) disables retries.
-      dialTimeout: 1000 #In Milliseconds, Dial timeout for establishing new connections. 0 is Default (5000) 
-      readTimeout: 1500 #In Milliseconds, Timeout for socket reads. 0 is Default (3000)
-      writeTimeout: 1000 #In Milliseconds, Timeout for socket writes. 0 is Default (readTimeout)
-      idleTimeout: 5000 #In Milliseconds,  Amount of time after which client closes idle connections.Should be less than server's timeout. 0 isDefault (5 minutes)
-      metrics:
-        group-id: "redis"
-        counter-id: "cache-counter"
-        histogram-id: "cache-histogram"
+   cache:
+     redis:
+      - addr: "localhost:6379"
+        key: ""
+        db: 0
+        ttl: "30m"
+        poolSize: 0  #Maximum number of socket connections. 0 is Default (10) 
+        maxRetries: -1 #Maximum number of retries before giving up. 0 is Default (3), -1 (not 0) disables retries.
+        dialTimeout: 1000 #In Milliseconds, Dial timeout for establishing new connections. 0 is Default (5000) 
+        readTimeout: 1500 #In Milliseconds, Timeout for socket reads. 0 is Default (3000)
+        writeTimeout: 1000 #In Milliseconds, Timeout for socket writes. 0 is Default (readTimeout)
+        idleTimeout: 5000 #In Milliseconds,  Amount of time after which client closes idle connections.Should be less than server's timeout. 0 isDefault (5 minutes)
+        metrics:
+          group-id: "redis"
+          counter-id: "cache-counter"
+          histogram-id: "cache-histogram"
    rest-client:
       timeout: "15s"
       skv: true

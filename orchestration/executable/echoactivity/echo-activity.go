@@ -49,9 +49,12 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 	const semLogContext = string(config.EchoActivityType) + "::execute"
 	var err error
 	if !a.IsEnabled(wfc) {
-		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.EchoActivityType)).Msg("activity not enabled")
+		log.Info().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.EchoActivityType)).Msg("activity not enabled")
 		return nil
 	}
+
+	log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " start")
+	log.Info().Str(constants.SemLogActivity, a.Name()).Str("msg", a.definition.Message).Msg(semLogContext + " end")
 
 	tcfg, ok := a.Cfg.(*config.EchoActivity)
 	if !ok {
@@ -66,7 +69,8 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		return err
 	}
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
+
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext)
 
 	if len(tcfg.ProcessVars) > 0 {
 		err := wfc.SetVars(expressionCtx, tcfg.ProcessVars, "", false)
@@ -89,7 +93,6 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 		_ = wfc.AddEndpointResponseData(a.Name(), resp, config.PersonallyIdentifiableInformation{})
 	}
 
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("msg", a.definition.Message).Msg(semLogContext + " end")
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 	return nil
 }
@@ -123,10 +126,10 @@ func (a *EchoActivity) newRequestDefinition(wfc *wfcase.WfCase) (*har.Request, e
 
 	ub := har.UrlBuilder{}
 	ub.WithPort(0)
-	ub.WithScheme("echo")
+	ub.WithScheme("activity")
 
 	ub.WithHostname("localhost")
-	ub.WithPath("/" + a.Name())
+	ub.WithPath(fmt.Sprintf("/%s/%s", string(config.EchoActivityType), a.Name()))
 
 	opts = append(opts, har.WithMethod("POST"))
 	opts = append(opts, har.WithUrl(ub.Url()))

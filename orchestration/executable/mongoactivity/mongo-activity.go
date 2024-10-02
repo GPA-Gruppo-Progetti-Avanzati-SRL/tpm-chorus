@@ -51,18 +51,13 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	const semLogContext = string(config.MongoActivityType) + "::execute"
 	var err error
 
-	maCfg := a.Cfg.(*config.MongoActivity)
-
-	_, _, err = a.MetricsGroup()
-	if err != nil {
-		log.Error().Err(err).Interface("metrics-config", a.Cfg.MetricsConfig()).Msg(semLogContext + " cannot found metrics group")
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
-	}
-
 	if !a.IsEnabled(wfc) {
 		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.MongoActivityType)).Msg(semLogContext + " activity not enabled")
 		return nil
 	}
+
+	log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " start")
+	defer log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
 
 	tcfg, ok := a.Cfg.(*config.MongoActivity)
 	if !ok {
@@ -72,13 +67,19 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
+	_, _, err = a.MetricsGroup()
+	if err != nil {
+		log.Error().Err(err).Interface("metrics-config", a.Cfg.MetricsConfig()).Msg(semLogContext + " cannot found metrics group")
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+	}
+
 	if len(tcfg.ProcessVars) > 0 {
 		expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
 		if err != nil {
 			log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 			return err
 		}
-		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
+		log.Trace().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " start")
 
 		err = wfc.SetVars(expressionCtx, tcfg.ProcessVars, "", false)
 		if err != nil {
@@ -131,7 +132,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}
 
-		op, err := jsonops.NewOperation(maCfg.OpType, statementConfig)
+		op, err := jsonops.NewOperation(tcfg.OpType, statementConfig)
 		if err != nil {
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
@@ -145,7 +146,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
 		}
 
-		_ = wfc.AddEndpointRequestData(a.Name(), req, maCfg.PII)
+		_ = wfc.AddEndpointRequestData(a.Name(), req, tcfg.PII)
 
 		harResponse, err = a.Invoke(wfc, op)
 		if err != nil {
@@ -156,7 +157,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 
 		if harResponse != nil {
-			_ = wfc.AddEndpointResponseData(a.Name(), harResponse, maCfg.PII)
+			_ = wfc.AddEndpointResponseData(a.Name(), harResponse, tcfg.PII)
 			metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
 
 			if cacheEnabled && harResponse.Status == http.StatusOK {
@@ -186,7 +187,6 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	_ = a.SetMetrics(beginOf, metricsLabels)
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
 	return err
 }
 
@@ -308,7 +308,7 @@ func (a *MongoActivity) newRequestDefinition(wfc *wfcase.WfCase, op jsonops.Oper
 
 	ub.WithHostname("localhost")
 	ub.WithPath("/" + string(a.definition.OpType))
-
+	ub.WithPath(fmt.Sprintf("/%s/%s/%s", string(config.MongoActivityType), string(a.definition.OpType), a.Name()))
 	opts = append(opts, har.WithMethod("POST"))
 	opts = append(opts, har.WithUrl(ub.Url()))
 	opts = append(opts, har.WithBody([]byte(op.ToString())))
@@ -477,7 +477,12 @@ func (a *MongoActivity) resolveCacheConfig(wfc *wfcase.WfCase, resolver *wfcase.
 }
 
 func (a *MongoActivity) resolveResponseFromCache(wfc *wfcase.WfCase, cacheConfig config.CacheConfig) (*har.Response, error) {
-	cacheHarEntry, err := cacheoperation.Get(cacheConfig.LinkedServiceRef, a.Name()+";cache=true", cacheConfig.Key, constants.ContentTypeApplicationJson, cachelks.WithNamespace(cacheConfig.Namespace))
+	cacheHarEntry, err := cacheoperation.Get(
+		cacheConfig.LinkedServiceRef,
+		a.Name()+";cache=true",
+		cacheConfig.Key,
+		constants.ContentTypeApplicationJson,
+		cachelks.WithNamespace(cacheConfig.Namespace), cachelks.WithHarPath(fmt.Sprintf("/%s/%s/%s;cache=true", string(config.MongoActivityType), string(a.definition.OpType), a.Name())))
 	if err != nil {
 		return nil, err
 	}

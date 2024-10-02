@@ -1,7 +1,6 @@
 package wfcase
 
 import (
-	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
@@ -104,7 +103,7 @@ func NewWorkflowCase(id string, version, sha string, descr string, dicts config.
 
 	for n, val := range systemVars {
 		v[n] = val
-		log.Warn().Str("name", n).Interface("value", val).Msg(semLogContext + " - setting system variable")
+		log.Info().Str("name", n).Interface("value", val).Msg(semLogContext + " - setting system variable")
 	}
 
 	/*
@@ -119,6 +118,35 @@ func NewWorkflowCase(id string, version, sha string, descr string, dicts config.
 	*/
 	c.Vars = v
 	return c, nil
+}
+
+func (wfc *WfCase) NewChild(expressionCtx ResolverContextReference, id string, version, sha string, descr string, dicts config.Dictionaries, refs config.DataReferences, vars []config.ProcessVar, span opentracing.Span) (*WfCase, error) {
+	const semLogContext = "wf-case::new-child"
+	childWfc, err := NewWorkflowCase(id, version, sha, descr, dicts, refs, nil, span)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	err = wfc.SetVars(expressionCtx, vars, "", false)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	req, err := wfc.GetRequestFromContext(expressionCtx, "POST", fmt.Sprintf("activity://localhost/%s/%s", config.NestedOrchestrationActivityType, id))
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return childWfc, err
+	}
+
+	err = childWfc.AddEndpointRequestData("request", req, config.PersonallyIdentifiableInformation{})
+	if err != nil {
+		log.Error().Err(err)
+		return childWfc, err
+	}
+
+	return childWfc, nil
 }
 
 /*
@@ -287,23 +315,6 @@ func (wfc *WfCase) AddBreadcrumb(n string, d string, e error) {
 	wfc.Breadcrumb = append(wfc.Breadcrumb, BreadcrumbStep{Name: n, Description: d, Err: e})
 }
 
-func (wfc *WfCase) GetHeaderFromContext(ctxName string, hn string) string {
-	if endpointData, ok := wfc.Entries[ctxName]; ok {
-		if ok {
-			v := ""
-			if ctxName == config.InitialRequestContextNameStringReference {
-				v = endpointData.Request.Headers.GetFirst(hn).Value
-			} else {
-				v = endpointData.Response.Headers.GetFirst(hn).Value
-			}
-
-			return v
-		}
-	}
-
-	return ""
-}
-
 func (wfc *WfCase) ResolveExpressionContextName(n string) (ResolverContextReference, error) {
 	const semLogContext = "wf-case::resolve-expression-context"
 	if n == "" {
@@ -323,42 +334,6 @@ func (wfc *WfCase) ResolveExpressionContextName(n string) (ResolverContextRefere
 	}
 
 	return ResolverContextReference{Name: n, UseResponse: n != config.InitialRequestContextNameStringReference}, nil
-}
-
-func (wfc *WfCase) GetBodyByContext(resolverContext ResolverContextReference, ignoreNonApplicationJsonResponseContent bool) ([]byte, error) {
-	var b []byte
-	var err error
-	if entry, ok := wfc.Entries[resolverContext.Name]; ok {
-		if resolverContext.UseResponse {
-			if entry.Response.Content != nil {
-				if strings.HasPrefix(entry.Response.Content.MimeType, constants.ContentTypeApplicationJson) {
-					b = entry.Response.Content.Data
-				} else {
-					if ignoreNonApplicationJsonResponseContent {
-						return nil, nil
-					}
-
-					return nil, errors.New("content type is not application/json")
-				}
-			}
-		} else {
-			if entry.Request.PostData != nil {
-				if strings.HasPrefix(entry.Request.PostData.MimeType, constants.ContentTypeApplicationJson) {
-					b = entry.Request.PostData.Data
-				} else {
-					if ignoreNonApplicationJsonResponseContent {
-						return nil, nil
-					}
-
-					return nil, errors.New("content type is not application/json")
-				}
-			}
-		}
-	} else {
-		return nil, fmt.Errorf("cannot find ctxName %s in case", resolverContext.Name)
-	}
-
-	return b, err
 }
 
 func (wfc *WfCase) GetResolverByContext(resolverContext ResolverContextReference, withVars bool, withTransformationId string, ignoreNonApplicationJsonResponseContent bool) (*ProcessVarResolver, error) {

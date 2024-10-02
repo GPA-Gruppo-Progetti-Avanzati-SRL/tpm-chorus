@@ -7,7 +7,6 @@ import (
 
 type NestedOrchestrationActivity struct {
 	Activity `yaml:",inline" json:",inline"`
-	Message  string `yaml:"message,omitempty" mapstructure:"message,omitempty" json:"message,omitempty"`
 }
 
 func (c *NestedOrchestrationActivity) WithName(n string) *NestedOrchestrationActivity {

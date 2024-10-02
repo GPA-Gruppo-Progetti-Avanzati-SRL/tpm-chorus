@@ -83,16 +83,10 @@ func NewResponseActivity(item config.Configurable, refs config.DataReferences) (
 
 func (a *ResponseActivity) Execute(wfc *wfcase.WfCase) error {
 	const semLogContext = string(config.ResponseActivityType) + "::execute"
+	var err error
 
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", "response").Msg("start activity")
-	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
-
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
-	if err != nil {
-		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
-		return err
-	}
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
+	log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " start")
+	defer log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
 
 	cfg, ok := a.Cfg.(*config.ResponseActivity)
 	if !ok {
@@ -102,6 +96,15 @@ func (a *ResponseActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
+	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
+
+	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	if err != nil {
+		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+		return err
+	}
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext)
+
 	//if len(cfg.ProcessVars) > 0 {
 	err = wfc.SetVars(expressionCtx, cfg.ProcessVars, "", false)
 	if err != nil {
@@ -109,7 +112,6 @@ func (a *ResponseActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 	//}
 
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
 	return nil
 }
 

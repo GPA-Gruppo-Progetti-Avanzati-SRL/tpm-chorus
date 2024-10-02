@@ -48,6 +48,7 @@ type Configurable interface {
 	Boundary() string
 	IsBoundary() bool
 	Description() string
+	RefDefinition() string
 	MetricsConfig() promutil.MetricsConfigReference
 	ExpressionContextNameStringReference() string
 }
@@ -142,6 +143,10 @@ func (c *Activity) Description() string {
 
 func (c *Activity) Enabled() string {
 	return c.En
+}
+
+func (c *Activity) RefDefinition() string {
+	return c.Definition
 }
 
 func (c *Activity) Boundary() string {

@@ -8,7 +8,8 @@ import (
 )
 
 const (
-	OrchestrationFolder = "./movies-orchestration"
+	// OrchestrationFolder = "./movies-orchestration"
+	OrchestrationFolder = "../examples/test2"
 )
 
 /*

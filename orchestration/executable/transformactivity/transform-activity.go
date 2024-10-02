@@ -44,25 +44,13 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 	const semLogContext = string(config.TransformActivityType) + "::execute"
 	var err error
 
-	maCfg := a.Cfg.(*config.TransformActivity)
-
-	_, _, err = a.MetricsGroup()
-	if err != nil {
-		log.Error().Err(err).Interface("metrics-config", a.Cfg.MetricsConfig()).Msg(semLogContext + " cannot found metrics group")
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
-	}
-
 	if !a.IsEnabled(wfc) {
 		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("type", string(config.TransformActivityType)).Msg(semLogContext + " activity not enabled")
 		return nil
 	}
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
-	if err != nil {
-		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
-		return err
-	}
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext + " start")
+	log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " start")
+	defer log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
 
 	tcfg, ok := a.Cfg.(*config.TransformActivity)
 	if !ok {
@@ -71,6 +59,19 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 		log.Error().Err(err).Msg(semLogContext)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
+
+	_, _, err = a.MetricsGroup()
+	if err != nil {
+		log.Error().Err(err).Interface("metrics-config", a.Cfg.MetricsConfig()).Msg(semLogContext + " cannot found metrics group")
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+	}
+
+	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	if err != nil {
+		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+		return err
+	}
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext)
 
 	if len(tcfg.ProcessVars) > 0 {
 		err := wfc.SetVars(expressionCtx, tcfg.ProcessVars, "", false)
@@ -91,11 +92,11 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
 	}
 
-	_ = wfc.AddEndpointRequestData(a.Name(), req, maCfg.PII)
+	_ = wfc.AddEndpointRequestData(a.Name(), req, tcfg.PII)
 
 	harResponse, err := a.Invoke(wfc, expressionCtx)
 	if harResponse != nil {
-		_ = wfc.AddEndpointResponseData(a.Name(), harResponse, maCfg.PII)
+		_ = wfc.AddEndpointResponseData(a.Name(), harResponse, tcfg.PII)
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
 	}
 
@@ -114,8 +115,6 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 
 	_ = a.SetMetrics(beginOf, metricsLabels)
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
-
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " end")
 
 	return err
 }
@@ -218,11 +217,10 @@ func (a *TransformActivity) newRequestDefinition(wfc *wfcase.WfCase, expressionC
 
 	ub := har.UrlBuilder{}
 	ub.WithPort(0000)
-	ub.WithScheme("xform")
+	ub.WithScheme("activity")
 
 	ub.WithHostname("localhost")
-	ub.WithPath("/" + string(a.Name()))
-
+	ub.WithPath(fmt.Sprintf("/%s/%s", string(config.TransformActivityType), a.Name()))
 	opts = append(opts, har.WithMethod("POST"))
 	opts = append(opts, har.WithUrl(ub.Url()))
 
