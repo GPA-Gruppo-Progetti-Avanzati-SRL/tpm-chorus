@@ -25,6 +25,11 @@ func (c *NestedOrchestrationActivity) WithExpressionContext(n string) *NestedOrc
 	return c
 }
 
+func (c *NestedOrchestrationActivity) WithRefDefinition(n string) *NestedOrchestrationActivity {
+	c.Definition = n
+	return c
+}
+
 func NewNestedOrchestrationActivity() *NestedOrchestrationActivity {
 	s := NestedOrchestrationActivity{}
 	s.Tp = NestedOrchestrationActivityType
@@ -32,7 +37,7 @@ func NewNestedOrchestrationActivity() *NestedOrchestrationActivity {
 }
 
 func NewNestedOrchestrationActivityFromJSON(message json.RawMessage) (Configurable, error) {
-	i := NewEchoActivity()
+	i := NewNestedOrchestrationActivity()
 	err := json.Unmarshal(message, i)
 	if err != nil {
 		return nil, err
@@ -42,7 +47,7 @@ func NewNestedOrchestrationActivityFromJSON(message json.RawMessage) (Configurab
 }
 
 func NewNestedOrchestrationActivityFromYAML(b []byte /* mp interface{}*/) (Configurable, error) {
-	sa := NewEchoActivity()
+	sa := NewNestedOrchestrationActivity()
 	// err := mapstructure.Decode(mp, sa)
 	err := yaml.Unmarshal(b, sa)
 	if err != nil {
