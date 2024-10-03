@@ -15,10 +15,14 @@ import (
 	"sync"
 )
 
-const CountHarMessagesMetricId = "har-messages"
+const (
+	CountHarMessagesMetricId  = "har-messages"
+	DefaultKafkaKeyHeaderName = "requestId"
+)
 
 type KafkaConfig struct {
-	Topic string `mapstructure:"topic"`
+	Topic         string `mapstructure:"topic,omitempty" yaml:"topic,omitempty" json:"topic,omitempty"`
+	KeyHeaderName string `mapstructure:"key-header-name,omitempty" yaml:"key-header-name,omitempty" json:"key-header-name,omitempty"`
 }
 
 type KafkaOption func(o *KafkaConfig)
@@ -65,6 +69,11 @@ func (kr *KafkaReporter) doWorkLoop() {
 	const semLogContext = "kafka-reporter::work-loop"
 	log.Info().Msg(semLogContext + " starting...")
 
+	keyHeaderName := DefaultKafkaKeyHeaderName
+	if kr.cfg.Kafka.KeyHeaderName != "" {
+		keyHeaderName = kr.cfg.Kafka.KeyHeaderName
+	}
+
 	for wfc := range kr.workQueue {
 
 		metricLabels := kr.MetricsLabels()
@@ -92,7 +101,7 @@ func (kr *KafkaReporter) doWorkLoop() {
 			_ = kr.SetMetrics(metricLabels)
 		} else {
 			//Recupero requestId dal wfc per utilizzarlo come Key del message kafka
-			requestId := wfc.GetHeaderFromContext(config.InitialRequestContextNameStringReference, "requestId")
+			requestId := wfc.GetHeaderFromContext(config.InitialRequestContextNameStringReference, keyHeaderName)
 			/*			reqEntry, ok := wfc.Entries["request"]
 						if ok {
 							requestId = reqEntry.Request.Headers.GetFirst("requestId").Value
