@@ -2,11 +2,14 @@ package wfcase_test
 
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
+	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/PaesslerAG/gval"
 	"github.com/stretchr/testify/require"
 	"strings"
 	"testing"
+	"time"
 )
 
 var j = []byte(`
@@ -54,21 +57,21 @@ func TestNewProcessVarResolver(t *testing.T) {
 	require.NoError(t, err)
 	t.Log(r)
 
-	err = pvs.Set("beneficiario_natura", "{$.beneficiario.natura}", resolver, false, -1)
+	err = interpolateEvaluateAndSet(pvs, "beneficiario_natura", "{$.beneficiario.natura}", resolver, false, -1)
 	require.NoError(t, err)
-	err = pvs.Set("can_ale", "{$[\"can-ale\"]}", resolver, false, -1)
-	require.NoError(t, err)
-
-	err = pvs.Set("beneficiario_numero", "{$.beneficiario.numero}", resolver, false, -1)
+	err = interpolateEvaluateAndSet(pvs, "can_ale", "{$[\"can-ale\"]}", resolver, false, -1)
 	require.NoError(t, err)
 
-	err = pvs.Set("beneficiario_numero2", `{$["operazioni"][0]["errori-ope"][0]["dsc-errore"]}`, resolver, false, -1)
+	err = interpolateEvaluateAndSet(pvs, "beneficiario_numero", "{$.beneficiario.numero}", resolver, false, -1)
 	require.NoError(t, err)
 
-	err = pvs.Set("beneficiario_numero3", "{$.operazioni[0].pippo}", resolver, false, -1)
+	err = interpolateEvaluateAndSet(pvs, "beneficiario_numero2", `{$["operazioni"][0]["errori-ope"][0]["dsc-errore"]}`, resolver, false, -1)
 	require.NoError(t, err)
 
-	err = pvs.Set("operazione_importo", "{$.operazione.importo}", resolver, false, -1)
+	err = interpolateEvaluateAndSet(pvs, "beneficiario_numero3", "{$.operazioni[0].pippo}", resolver, false, -1)
+	require.NoError(t, err)
+
+	err = interpolateEvaluateAndSet(pvs, "operazione_importo", "{$.operazione.importo}", resolver, false, -1)
 	require.NoError(t, err)
 
 	t.Log(pvs)
@@ -96,9 +99,9 @@ func TestGVal(t *testing.T) {
 	resolver, err := wfcase.NewProcessVarResolver(wfcase.WithBody(constants.ContentTypeApplicationJson, j, ""))
 	require.NoError(t, err)
 
-	err = pvs.Set("beneficiario_natura", "{$.beneficiario.natura}", resolver, false, -1)
+	err = interpolateEvaluateAndSet(pvs, "beneficiario_natura", "{$.beneficiario.natura}", resolver, false, -1)
 	require.NoError(t, err)
-	err = pvs.Set("beneficiario_numero", "{$.beneficiario.numero}", resolver, false, -1)
+	err = interpolateEvaluateAndSet(pvs, "beneficiario_numero", "{$.beneficiario.numero}", resolver, false, -1)
 	require.NoError(t, err)
 
 	t.Log(pvs)
@@ -124,4 +127,31 @@ func TestGVal(t *testing.T) {
 	exprValue, err = gval.Evaluate(`"hello"`, evalMap)
 	require.NoError(t, err)
 	require.Equal(t, "hello", exprValue)
+}
+
+func interpolateEvaluateAndSet(pvs map[string]interface{}, n string, expr string, resolver *wfcase.ProcessVarResolver, globalScope bool, ttl time.Duration) error {
+
+	val, _, err := varResolver.ResolveVariables(expr, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	if err != nil {
+		return err
+	}
+
+	val, isExpr := wfcase.IsExpression(val)
+
+	// Was isExpression(val) but in doing this I use the evaluated value and I depend on the value of the variables  with potentially weird values.
+	var varValue interface{} = val
+	if isExpr && val != "" {
+		varValue, err = gval.Evaluate(val, pvs)
+		if err != nil {
+			return err
+		}
+	}
+
+	if globalScope {
+		err = globals.SetGlobalVar("", n, varValue, ttl)
+	} else {
+		pvs[n] = varValue
+	}
+
+	return nil
 }

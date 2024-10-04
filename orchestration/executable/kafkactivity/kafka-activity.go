@@ -10,6 +10,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common/kafkalks"
@@ -184,18 +185,32 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(resp.Status)
-		actNdx := ep.findProducerResponseAction(resp.Status)
-		if actNdx >= 0 {
-			remappedStatusCode, err := a.processProducerResponseAction(wfc, a.Name(), ep, actNdx, resp)
-			if remappedStatusCode != 0 {
-				metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
-			}
-			if err != nil {
-				wfc.AddBreadcrumb(ep.Id, ep.Description, err)
-				_ = a.SetMetrics(beginOf, metricsLabels)
-				return err
-			}
+
+		remappedStatusCode, err := a.ProcessResponseActionByStatusCode(
+			resp.Status, a.Name(), util.StringCoalesce(ep.Id, ep.Name), wfcase.ResolverContextReference{Name: ep.Id, UseResponse: true}, wfc, ep.Definition.OnResponseActions, false)
+		if remappedStatusCode > 0 {
+			metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 		}
+		if err != nil {
+			wfc.AddBreadcrumb(ep.Id, ep.Description, err)
+			_ = a.SetMetrics(beginOf, metricsLabels)
+			return err
+		}
+
+		/*
+			actNdx := ep.findProducerResponseAction(resp.Status)
+			if actNdx >= 0 {
+				remappedStatusCode, err := a.processProducerResponseAction(wfc, a.Name(), ep, actNdx, resp)
+				if remappedStatusCode != 0 {
+					metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
+				}
+				if err != nil {
+					wfc.AddBreadcrumb(ep.Id, ep.Description, err)
+					_ = a.SetMetrics(beginOf, metricsLabels)
+					return err
+				}
+			}
+		*/
 
 		_ = a.SetMetrics(beginOf, metricsLabels)
 		wfc.AddBreadcrumb(ep.Id, ep.Description, nil)
@@ -204,7 +219,8 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 	return nil
 }
 
-func (a *KafkaActivity) processProducerResponseAction(wfc *wfcase.WfCase, activityName string, ep Producer, actionIndex int, resp *har.Response) (int, error) /* *smperror.SymphonyError */ {
+/*
+func (a *KafkaActivity) processProducerResponseAction(wfc *wfcase.WfCase, activityName string, ep Producer, actionIndex int, resp *har.Response) (int, error) {
 	const semLogContext = "kafka-activity::process-producer-response-action"
 	act := ep.Definition.OnResponseActions[actionIndex]
 
@@ -290,6 +306,7 @@ func (ep *Producer) findProducerResponseAction(statusCode int) int {
 
 	return matchedAction
 }
+*/
 
 func (a *KafkaActivity) Produce(wfc *wfcase.WfCase, ep Producer, reqDef *har.Request) (*har.Entry, error) {
 

@@ -83,12 +83,12 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 
 	beginOf := time.Now()
 	metricsLabels := a.MetricsLabels()
+	defer func() { a.SetMetrics(beginOf, metricsLabels) }()
 
 	req, err := a.newRequestDefinition(wfc, expressionCtx) // TODO calcolare lo statement
 	if err != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		metricsLabels[MetricIdStatusCode] = "500"
-		a.SetMetrics(beginOf, metricsLabels)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
 	}
 
@@ -100,20 +100,30 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
 	}
 
-	actNdx := a.findResponseAction(harResponse.Status)
-	if actNdx >= 0 {
-		remappedStatusCode, err := a.processResponseAction(wfc, a.Name(), actNdx, harResponse)
-		if remappedStatusCode != 0 {
-			metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
-		}
-		if err != nil {
-			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-			a.SetMetrics(beginOf, metricsLabels)
-			return err
-		}
+	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(harResponse.Status, a.Name(), a.Name(), wfcase.ResolverContextReference{Name: a.Name(), UseResponse: true}, wfc, a.definition.OnResponseActions, false)
+	if remappedStatusCode > 0 {
+		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
+	}
+	if err != nil {
+		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
-	_ = a.SetMetrics(beginOf, metricsLabels)
+	/*	actNdx := a.findResponseAction(harResponse.Status)
+		if actNdx >= 0 {
+			remappedStatusCode, err := a.processResponseAction(wfc, a.Name(), actNdx, harResponse)
+			if remappedStatusCode != 0 {
+				metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
+			}
+			if err != nil {
+				wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+				a.SetMetrics(beginOf, metricsLabels)
+				return err
+			}
+		}
+	*/
+
+	// _ = a.SetMetrics(beginOf, metricsLabels)
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 
 	return err

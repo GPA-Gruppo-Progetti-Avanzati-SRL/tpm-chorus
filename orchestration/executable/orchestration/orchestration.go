@@ -57,19 +57,7 @@ func NewOrchestration(cfg *config.Orchestration) (Orchestration, error) {
 		case config.KafkaActivityType:
 			ex, err = kafkactivity.NewKafkaActivity(cfgItem, cfg.References)
 		case config.NestedOrchestrationActivityType:
-			if cfgItem.RefDefinition() != "" {
-				no, ok := mapOfNestedOrcs[cfgItem.RefDefinition()]
-				if ok {
-					ex, err = NewNestedOrchestrationActivity(cfgItem, cfg.References, no)
-				} else {
-					err = fmt.Errorf("unknown nested orchestration id %s", cfgItem.RefDefinition())
-					log.Error().Err(err).Msg(semLogContext)
-				}
-			} else {
-				err = errors.New("nested orchestration missing reference to orchestration id")
-				log.Error().Err(err).Msg(semLogContext)
-			}
-
+			ex, err = NewNestedOrchestrationActivity(cfgItem, cfg.References, mapOfNestedOrcs)
 		case config.MongoActivityType:
 			ex, err = mongoactivity.NewMongoActivity(cfgItem, cfg.References)
 		case config.TransformActivityType:

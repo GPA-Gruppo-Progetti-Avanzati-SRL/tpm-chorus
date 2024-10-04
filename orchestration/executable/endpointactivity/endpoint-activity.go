@@ -12,6 +12,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client/restclient"
@@ -188,7 +189,7 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 				// The get of the cache triggers an error only.
 				log.Error().Err(err).Msg(semLogContext)
 			} else {
-				harResponse, err = a.resolveResponseFromCache(wfc, ep.FullId(a.Name()), ep.Definition.Path, cacheCfg)
+				harResponse, err = a.resolveResponseFromCache(wfc, ep.FullId(a.Name()), cacheCfg.Key /* ep.Definition.Path */, cacheCfg)
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext)
 					if harResponse == nil {
@@ -203,7 +204,7 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 			if err != nil {
 				wfc.AddBreadcrumb(ep.FullId(a.Name()), ep.Description, err)
 				metricsLabels[MetricIdStatusCode] = "500"
-				a.SetMetrics(beginOf, metricsLabels)
+				_ = a.SetMetrics(beginOf, metricsLabels)
 				return smperror.NewExecutableServerError(smperror.WithErrorAmbit(ep.Name), smperror.WithStep(ep.Id), smperror.WithCode("HTTP"), smperror.WithErrorMessage(err.Error()))
 			}
 
@@ -227,19 +228,31 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 			}
 		}
 
-		actNdx := findResponseAction(ep, harResponse.Status)
-		if actNdx >= 0 {
-			remappedStatusCode, err := processResponseAction(wfc, a.Name(), ep, actNdx, harResponse)
-			if remappedStatusCode != 0 {
-				metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
-			}
-			if err != nil {
-				wfc.AddBreadcrumb(ep.Id, ep.Description, err)
-				_ = a.SetMetrics(beginOf, metricsLabels)
-				return err
-			}
+		remappedStatusCode, err := a.ProcessResponseActionByStatusCode(
+			harResponse.Status, a.Name(), util.StringCoalesce(ep.Id, ep.Name), wfcase.ResolverContextReference{Name: ep.FullId(a.Name()), UseResponse: true}, wfc, ep.Definition.OnResponseActions, ep.Definition.IgnoreNonApplicationJsonResponseContent)
+		if remappedStatusCode > 0 {
+			metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
+		}
+		if err != nil {
+			wfc.AddBreadcrumb(ep.Id, ep.Description, err)
+			_ = a.SetMetrics(beginOf, metricsLabels)
+			return err
 		}
 
+		/*
+			actNdx := findResponseAction(ep, harResponse.Status)
+			if actNdx >= 0 {
+				remappedStatusCode, err := processResponseAction(wfc, a.Name(), ep, actNdx, harResponse)
+				if remappedStatusCode != 0 {
+					metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
+				}
+				if err != nil {
+					wfc.AddBreadcrumb(ep.Id, ep.Description, err)
+					_ = a.SetMetrics(beginOf, metricsLabels)
+					return err
+				}
+			}
+		*/
 		_ = a.SetMetrics(beginOf, metricsLabels)
 		wfc.AddBreadcrumb(ep.Id, ep.Description, nil)
 	}
@@ -261,113 +274,63 @@ func (a *EndpointActivity) getResolver(wfc *wfcase.WfCase) (*wfcase.ProcessVarRe
 	return resolver, nil
 }
 
-func processResponseAction(wfc *wfcase.WfCase, activityName string, ep Endpoint, actionIndex int, resp *har.Response) (int, error) /* *smperror.SymphonyError */ {
-	act := ep.Definition.OnResponseActions[actionIndex]
+/*
+	func processResponseAction(wfc *wfcase.WfCase, activityName string, ep Endpoint, actionIndex int, resp *har.Response) (int, error) {
+		act := ep.Definition.OnResponseActions[actionIndex]
 
-	ignoreNonJSONResponseContent := ep.Definition.IgnoreNonApplicationJsonResponseContent
-	if !ignoreNonJSONResponseContent {
-		ignoreNonJSONResponseContent = act.IgnoreNonApplicationJsonResponseContent
-	}
+		ignoreNonJSONResponseContent := ep.Definition.IgnoreNonApplicationJsonResponseContent
+		if !ignoreNonJSONResponseContent {
+			ignoreNonJSONResponseContent = act.IgnoreNonApplicationJsonResponseContent
+		}
 
-	transformId, err := chooseTransformation(wfc, act.Transforms)
-	if err != nil {
-		log.Error().Err(err).Str("ctx", ep.Id).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in selecting transformation")
-		return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(ep.Name), smperror.WithCode("500"), smperror.WithErrorMessage("error selecting transformation"), smperror.WithDescription(err.Error()))
-	}
-
-	resolverContextReference := wfcase.ResolverContextReference{Name: ep.FullId(activityName), UseResponse: true}
-
-	if len(act.ProcessVars) > 0 {
-		err := wfc.SetVars(resolverContextReference, act.ProcessVars, transformId, ignoreNonJSONResponseContent)
+		transformId, err := chooseTransformation(wfc, act.Transforms)
 		if err != nil {
-			log.Error().Err(err).Str("ctx", ep.Id).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in setting variables")
-			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(ep.Name), smperror.WithCode("500"), smperror.WithErrorMessage("error processing response body"), smperror.WithDescription(err.Error()))
+			log.Error().Err(err).Str("ctx", ep.Id).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in selecting transformation")
+			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(ep.Name), smperror.WithCode("500"), smperror.WithErrorMessage("error selecting transformation"), smperror.WithDescription(err.Error()))
 		}
+
+		resolverContextReference := wfcase.ResolverContextReference{Name: ep.FullId(activityName), UseResponse: true}
+
+		if len(act.ProcessVars) > 0 {
+			err := wfc.SetVars(resolverContextReference, act.ProcessVars, transformId, ignoreNonJSONResponseContent)
+			if err != nil {
+				log.Error().Err(err).Str("ctx", ep.Id).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in setting variables")
+				return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(ep.Name), smperror.WithCode("500"), smperror.WithErrorMessage("error processing response body"), smperror.WithDescription(err.Error()))
+			}
+		}
+
+		if ndx := chooseError(wfc, act.Errors); ndx >= 0 {
+
+			e := act.Errors[ndx]
+			ambit := e.Ambit
+			if ambit == "" {
+				ambit = activityName
+			}
+
+			step := e.Step
+			if step == "" {
+				step = ep.Name
+			}
+			if step == "" {
+				step = ep.Id
+			}
+
+			statusCode := int(resp.Status)
+			if e.StatusCode > 0 {
+				statusCode = e.StatusCode
+			}
+
+			m, err := wfc.ResolveStrings(resolverContextReference, []string{e.Code, e.Message, e.Description, step}, "", ignoreNonJSONResponseContent)
+			if err != nil {
+				log.Error().Err(err).Msgf("error resolving values %s, %s and %s", e.Code, e.Message, e.Description)
+				return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambit), smperror.WithStep(step), smperror.WithCode(e.Code), smperror.WithErrorMessage(e.Message), smperror.WithDescription(err.Error()))
+			}
+			return statusCode, smperror.NewExecutableError(smperror.WithErrorStatusCode(statusCode), smperror.WithErrorAmbit(ambit), smperror.WithStep(m[3]), smperror.WithCode(m[0]), smperror.WithErrorMessage(m[1]), smperror.WithDescription(m[2]))
+		}
+
+		return 0, nil
 	}
-
-	if ndx := chooseError(wfc, act.Errors); ndx >= 0 {
-
-		e := act.Errors[ndx]
-		ambit := e.Ambit
-		if ambit == "" {
-			ambit = activityName
-		}
-
-		step := e.Step
-		if step == "" {
-			step = ep.Name
-		}
-		if step == "" {
-			step = ep.Id
-		}
-
-		statusCode := int(resp.Status)
-		if e.StatusCode > 0 {
-			statusCode = e.StatusCode
-		}
-
-		m, err := wfc.ResolveStrings(resolverContextReference, []string{e.Code, e.Message, e.Description, step}, "", ignoreNonJSONResponseContent)
-		if err != nil {
-			log.Error().Err(err).Msgf("error resolving values %s, %s and %s", e.Code, e.Message, e.Description)
-			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambit), smperror.WithStep(step), smperror.WithCode(e.Code), smperror.WithErrorMessage(e.Message), smperror.WithDescription(err.Error()))
-		}
-		return statusCode, smperror.NewExecutableError(smperror.WithErrorStatusCode(statusCode), smperror.WithErrorAmbit(ambit), smperror.WithStep(m[3]), smperror.WithCode(m[0]), smperror.WithErrorMessage(m[1]), smperror.WithDescription(m[2]))
-	}
-
-	return 0, nil
-}
-
-func chooseTransformation(wfc *wfcase.WfCase, trs []transform.TransformReference) (string, error) {
-	for _, t := range trs {
-
-		b := true
-		if t.Guard != "" {
-			b = wfc.EvalExpression(t.Guard)
-		}
-
-		if b {
-			return t.Id, nil
-		}
-	}
-
-	return "", nil
-}
-
-func chooseError(wfc *wfcase.WfCase, errors []config.ErrorInfo) int {
-	for i, e := range errors {
-		if e.Guard == "" {
-			return i
-		}
-
-		if wfc.EvalExpression(e.Guard) {
-			return i
-		}
-	}
-
-	return -1
-}
-
-func findResponseAction(ep Endpoint, statusCode int) int {
-
-	matchedAction := -1
-	defaultAction := -1
-	for ndx, act := range ep.Definition.OnResponseActions {
-		if act.StatusCode == statusCode {
-			matchedAction = ndx
-			break
-		}
-
-		if act.StatusCode == -1 {
-			defaultAction = ndx
-		}
-	}
-
-	if matchedAction < 0 && defaultAction >= 0 {
-		matchedAction = defaultAction
-	}
-
-	return matchedAction
-}
+*/
 
 func (a *EndpointActivity) Invoke(wfc *wfcase.WfCase, ep Endpoint, req *har.Request) (*har.Entry, error) {
 

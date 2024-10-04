@@ -121,11 +121,11 @@ var expressionSmell = []string{
 	// "\"",
 }
 
-// isExpression In order not to clutter the process vars assignments in simple cases.... try to detect if this is an expression or not.
+// IsExpression In order not to clutter the process vars assignments in simple cases.... try to detect if this is an expression or not.
 // didn't parse the thing but try to find if there is any 'reserved' word in there.
 // example: 'hello' is not an expression, '"hello"' is an expression which evaluates to 'hello'. This trick is to avoid something like
 // value: '"{$.operazione.commissione}"' in the yamls. Someday I'll get to there.... sure...
-func isExpression(e string) (string, bool) {
+func IsExpression(e string) (string, bool) {
 	if e == "" {
 		return e, false
 	}

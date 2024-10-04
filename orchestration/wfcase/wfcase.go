@@ -9,6 +9,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/templateutil"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
+	"github.com/PaesslerAG/gval"
 	"github.com/opentracing/opentracing-go"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -128,7 +129,7 @@ func (wfc *WfCase) NewChild(expressionCtx ResolverContextReference, id string, v
 		return nil, err
 	}
 
-	err = wfc.SetVars(expressionCtx, vars, "", false)
+	err = childWfc.SetVarsFromCase(wfc, expressionCtx, vars, "", false)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return nil, err
@@ -322,7 +323,7 @@ func (wfc *WfCase) ResolveExpressionContextName(n string) (ResolverContextRefere
 	}
 
 	var ok bool
-	n, ok = isExpression(n)
+	n, ok = IsExpression(n)
 	if ok {
 		v, err := wfc.Vars.EvalToString(n)
 		if err != nil {
@@ -406,29 +407,59 @@ func (wfc *WfCase) getResolverForResponseEntry(endpointData *har.Entry, withVars
 }
 
 func (wfc *WfCase) SetVars(resolverContext ResolverContextReference, vars []config.ProcessVar, transformationId string, ignoreNonApplicationJsonResponseContent bool) error {
+	return wfc.SetVarsFromCase(nil, resolverContext, vars, transformationId, ignoreNonApplicationJsonResponseContent)
+}
 
+func (wfc *WfCase) SetVarsFromCase(sourceWfc *WfCase, resolverContext ResolverContextReference, vars []config.ProcessVar, transformationId string, ignoreNonApplicationJsonResponseContent bool) error {
+	const semLogContext = "wf-case::set-vars-from-case"
 	if len(vars) == 0 {
 		return nil
 	}
 
-	resolver, err := wfc.GetResolverByContext(resolverContext, true, transformationId, ignoreNonApplicationJsonResponseContent)
+	if sourceWfc == nil {
+		sourceWfc = wfc
+	}
 
+	resolver, err := sourceWfc.GetResolverByContext(resolverContext, true, transformationId, ignoreNonApplicationJsonResponseContent)
 	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
 		return err
 	}
 
 	for _, v := range vars {
-
 		boolGuard := true
 		if v.Guard != "" {
-			boolGuard, err = wfc.Vars.EvalToBool(v.Guard)
+			boolGuard, err = sourceWfc.Vars.EvalToBool(v.Guard)
 		}
 
 		if boolGuard && err == nil {
-			err = wfc.Vars.Set(v.Name, v.Value, resolver, v.GlobalScope, v.Ttl)
+			val, _, err := varResolver.ResolveVariables(v.Value, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+			if err != nil {
+				log.Error().Err(err).Msg(semLogContext)
+				return err
+			}
+
+			val, isExpr := IsExpression(val)
+
+			// Was isExpression(val) but in doing this I use the evaluated value and I depend on the value of the variables  with potentially weird values.
+			var varValue interface{} = val
+			if isExpr && val != "" {
+				varValue, err = gval.Evaluate(val, sourceWfc.Vars)
+				if err != nil {
+					log.Error().Err(err).Msg(semLogContext)
+					return err
+				}
+			}
+
+			err = wfc.Vars.Set(v.Name, varValue, v.GlobalScope, v.Ttl)
+			if err != nil {
+				log.Error().Err(err).Msg(semLogContext)
+				return err
+			}
 		}
 
 		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
 			return err
 		}
 	}

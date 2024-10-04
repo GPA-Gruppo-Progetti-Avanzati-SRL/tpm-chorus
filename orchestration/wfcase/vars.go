@@ -3,7 +3,6 @@ package wfcase
 import (
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
-	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/PaesslerAG/gval"
 	"github.com/rs/zerolog/log"
 	"regexp"
@@ -23,14 +22,15 @@ type ProcessVar struct {
 
 type ProcessVars map[string]interface{}
 
-func (vs ProcessVars) Set(n string, expr string, resolver *ProcessVarResolver, globalScope bool, ttl time.Duration) error {
+/*
+func (vs ProcessVars) InterpolateEvaluateAndSet(n string, expr string, resolver *ProcessVarResolver, globalScope bool, ttl time.Duration) error {
 
 	val, _, err := varResolver.ResolveVariables(expr, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
 	if err != nil {
 		return err
 	}
 
-	val, isExpr := isExpression(val)
+	val, isExpr := IsExpression(val)
 
 	// Was isExpression(val) but in doing this I use the evaluated value and I depend on the value of the variables  with potentially weird values.
 	var varValue interface{} = val
@@ -49,6 +49,7 @@ func (vs ProcessVars) Set(n string, expr string, resolver *ProcessVarResolver, g
 
 	return nil
 }
+*/
 
 /*
 	func (vs ProcessVars) Get(n string) (interface{}, bool) {
@@ -56,6 +57,18 @@ func (vs ProcessVars) Set(n string, expr string, resolver *ProcessVarResolver, g
 		return v, ok
 	}
 */
+
+func (vs ProcessVars) Set(n string, value interface{}, globalScope bool, ttl time.Duration) error {
+	var err error
+
+	if globalScope {
+		err = globals.SetGlobalVar("", n, value, ttl)
+	} else {
+		vs[n] = value
+	}
+
+	return err
+}
 
 type EvaluationMode string
 

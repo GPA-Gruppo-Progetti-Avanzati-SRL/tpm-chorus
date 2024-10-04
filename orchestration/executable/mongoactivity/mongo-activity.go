@@ -9,7 +9,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
@@ -171,18 +170,31 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 	}
 
-	actNdx := a.definition.OnResponseActions.FindByStatusCode(harResponse.Status)
-	if actNdx >= 0 {
-		remappedStatusCode, err := a.processResponseAction(wfc, a.Name(), actNdx, harResponse)
-		if remappedStatusCode != 0 {
-			metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
-		}
-		if err != nil {
-			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-			a.SetMetrics(beginOf, metricsLabels)
-			return err
-		}
+	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(
+		harResponse.Status, a.Name(), a.Name(), wfcase.ResolverContextReference{Name: a.Name(), UseResponse: true}, wfc, a.definition.OnResponseActions, false)
+	if remappedStatusCode > 0 {
+		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 	}
+	if err != nil {
+		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+		_ = a.SetMetrics(beginOf, metricsLabels)
+		return err
+	}
+
+	/*
+		actNdx := a.definition.OnResponseActions.FindByStatusCode(harResponse.Status)
+		if actNdx >= 0 {
+			remappedStatusCode, err := a.processResponseAction(wfc, a.Name(), actNdx, harResponse)
+			if remappedStatusCode != 0 {
+				metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
+			}
+			if err != nil {
+				wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+				a.SetMetrics(beginOf, metricsLabels)
+				return err
+			}
+		}
+	*/
 
 	_ = a.SetMetrics(beginOf, metricsLabels)
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
@@ -348,7 +360,8 @@ func (a *MongoActivity) MetricsLabels() prometheus.Labels {
 	return metricsLabels
 }
 
-func (a *MongoActivity) processResponseAction(wfc *wfcase.WfCase, activityName string, actionIndex int, resp *har.Response) (int, error) /* *smperror.SymphonyError */ {
+/*
+func (a *MongoActivity) processResponseAction(wfc *wfcase.WfCase, activityName string, actionIndex int, resp *har.Response) (int, error)  {
 	const semLogContext = "mongo-activity::processResponseAction"
 
 	act := a.definition.OnResponseActions[actionIndex]
@@ -431,7 +444,7 @@ func chooseError(wfc *wfcase.WfCase, errors []config.ErrorInfo) int {
 	return -1
 }
 
-/*
+
 func (a *MongoActivity) findResponseAction(statusCode int) int {
 
 	matchedAction := -1

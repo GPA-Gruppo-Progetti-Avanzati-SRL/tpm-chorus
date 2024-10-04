@@ -41,6 +41,10 @@ var activityTypeRegistry = map[Type]ActivityTypeRegistryEntry{
 	TransformActivityType:           {Tp: TransformActivityType, UnmarshallFromJSON: NewTransformActivityFromJSON, UnmarshalFromYAML: NewTransformActivityFromYAML},
 }
 
+type Guarded interface {
+	IsGuarded() string
+}
+
 type Configurable interface {
 	Name() string
 	Type() Type
@@ -209,6 +213,10 @@ type ErrorInfo struct {
 
 func (ei ErrorInfo) IsZero() bool {
 	return ei.StatusCode == 0 && ei.Ambit == "" && ei.Message == ""
+}
+
+func (ei ErrorInfo) IsGuarded() string {
+	return ei.Guard
 }
 
 const (

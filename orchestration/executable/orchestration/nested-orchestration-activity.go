@@ -11,20 +11,48 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
+	"net/http"
+	"time"
 )
 
 type NestedOrchestrationActivity struct {
 	executable.Activity
+	definition    config.NestedOrchestrationActivityDefinition
 	orchestration Orchestration
 }
 
-func NewNestedOrchestrationActivity(item config.Configurable, refs config.DataReferences, orc Orchestration) (*NestedOrchestrationActivity, error) {
+func NewNestedOrchestrationActivity(item config.Configurable, refs config.DataReferences, mapOfNestedOrcs map[string]Orchestration) (*NestedOrchestrationActivity, error) {
+	var err error
 
 	ea := &NestedOrchestrationActivity{}
 	ea.Cfg = item
 	ea.Refs = refs
-	ea.orchestration = orc
+
+	eaCfg, ok := item.(*config.NestedOrchestrationActivity)
+	if !ok {
+		err := fmt.Errorf("this is weird %T is not %s config type", item, config.NestedOrchestrationActivityType)
+		return nil, err
+	}
+
+	ea.definition, err = config.UnmarshalNestedOrchestrationActivityDefinition(eaCfg.Definition, refs)
+	if err != nil {
+		return nil, err
+	}
+
+	if ea.definition.OrchestrationId == "" {
+		err = errors.New("nested orchestration must specify id of orchestration")
+		return nil, err
+	}
+
+	no, ok := mapOfNestedOrcs[ea.definition.OrchestrationId]
+	if !ok {
+		err = fmt.Errorf("unknown nested orchestration id %s", ea.definition.OrchestrationId)
+		return nil, err
+	}
+
+	ea.orchestration = no
 	return ea, nil
 }
 
@@ -48,6 +76,12 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
+	_, _, err = a.MetricsGroup()
+	if err != nil {
+		log.Error().Err(err).Interface("metrics-config", a.Cfg.MetricsConfig()).Msg(semLogContext + " cannot found metrics group")
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+	}
+
 	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
@@ -66,6 +100,10 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 	*/
 
+	beginOf := time.Now()
+	metricsLabels := a.MetricsLabels()
+	defer func() { a.SetMetrics(beginOf, metricsLabels) }()
+
 	wfcChild, err := wfc.NewChild(
 		expressionCtx,
 		a.orchestration.Cfg.Id,
@@ -76,6 +114,12 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		a.orchestration.Cfg.References,
 		tcfg.ProcessVars,
 		nil)
+
+	if err != nil {
+		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+		metricsLabels[MetricIdStatusCode] = "500"
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+	}
 
 	err = a.executeNestedOrchestration(wfcChild)
 	harData := wfcChild.GetHarData(wfcase.ReportLogHAR, nil)
@@ -90,6 +134,15 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 	}
 
+	st := http.StatusOK
+	if err != nil {
+		st = http.StatusInternalServerError
+	}
+
+	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(st, a.Name(), a.Name(), wfcase.ResolverContextReference{Name: "request", UseResponse: true}, wfcChild, a.definition.OnResponseActions, false)
+	if remappedStatusCode > 0 {
+		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
+	}
 	if err != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
@@ -104,6 +157,7 @@ func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfC
 
 	var orchestrationErr error
 
+	var harResponse *har.Response
 	var finalExec executable.Executable
 	finalExec, orchestrationErr = a.orchestration.Execute(wfc)
 	if orchestrationErr == nil {
@@ -115,14 +169,12 @@ func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfC
 		var resp *har.Response
 		resp, orchestrationErr = respExec.ResponseJSON(wfc)
 		if orchestrationErr == nil {
-			_ = wfc.AddEndpointResponseData(
-				"request",
-				har.NewResponse(
-					resp.Status, resp.StatusText,
-					resp.Content.MimeType, resp.Content.Data,
-					resp.Headers,
-				),
-				a.orchestration.Cfg.PII)
+			harResponse = har.NewResponse(
+				resp.Status, resp.StatusText,
+				resp.Content.MimeType, resp.Content.Data,
+				resp.Headers,
+			)
+			_ = wfc.AddEndpointResponseData("request", harResponse, a.orchestration.Cfg.PII)
 			log.Info().Str("response", string(resp.Content.Data)).Msg(semLogContext)
 		}
 	}
@@ -130,14 +182,12 @@ func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfC
 	if orchestrationErr != nil {
 		log.Error().Err(orchestrationErr).Msg(semLogContext)
 		sc, ct, resp := produceErrorResponse(orchestrationErr)
-		err := wfc.AddEndpointResponseData(
-			"request",
-			har.NewResponse(
-				sc, "execution error",
-				constants.ContentTypeApplicationJson, resp,
-				[]har.NameValuePair{{Name: constants.ContentTypeHeader, Value: ct}},
-			),
-			a.orchestration.Cfg.PII)
+		harResponse = har.NewResponse(
+			sc, "execution error",
+			constants.ContentTypeApplicationJson, resp,
+			[]har.NameValuePair{{Name: constants.ContentTypeHeader, Value: ct}},
+		)
+		err := wfc.AddEndpointResponseData("request", harResponse, a.orchestration.Cfg.PII)
 		if err != nil {
 			log.Error().Err(err).Str("response", string(resp)).Msg(semLogContext)
 		} else {
@@ -172,4 +222,22 @@ func produceErrorResponse(err error) (int, string, []byte) {
 	}
 
 	return exeErr.StatusCode, constants.ContentTypeApplicationJson, response
+}
+
+const (
+	MetricIdActivityType = "type"
+	MetricIdActivityName = "name"
+	MetricIdOpType       = "op-type"
+	MetricIdStatusCode   = "status-code"
+)
+
+func (a *NestedOrchestrationActivity) MetricsLabels() prometheus.Labels {
+
+	metricsLabels := prometheus.Labels{
+		MetricIdActivityType: string(a.Cfg.Type()),
+		MetricIdActivityName: a.Name(),
+		MetricIdStatusCode:   "-1",
+	}
+
+	return metricsLabels
 }

@@ -3,8 +3,9 @@ package executable
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
-	error2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
@@ -119,7 +120,7 @@ func (a *Activity) Next(wfc *wfcase.WfCase) (string, error) {
 		}
 		selectedPath, err := wfc.BooleanEvalProcessVars(outputVect)
 		if err != nil {
-			return "", error2.NewExecutableServerError(error2.WithErrorAmbit(a.Name()), error2.WithErrorMessage(err.Error()))
+			return "", smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}
 		return a.Outputs[selectedPath].Cfg.TargetName, nil
 	}
@@ -164,4 +165,93 @@ func (a *Activity) SetMetrics(begin time.Time, lbls prometheus.Labels) error {
 	}
 
 	return nil
+}
+
+func (a *Activity) ProcessResponseActionByStatusCode(
+	st int,
+	ambitName, stepName string,
+	contextReference wfcase.ResolverContextReference,
+	wfc *wfcase.WfCase,
+	actions config.OnResponseActions,
+	ignoreNonJSONResponseContent bool) (int, error) {
+
+	actNdx := actions.FindByStatusCode(st)
+	if actNdx < 0 {
+		return -1, nil
+	}
+
+	act := actions[actNdx]
+	transformId, err := a.ChooseTransformation(wfc, act.Transforms)
+	if err != nil {
+		log.Error().Err(err).Str("ctx", stepName).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in selecting transformation")
+		return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambitName), smperror.WithStep(stepName), smperror.WithCode("500"), smperror.WithErrorMessage("error selecting transformation"), smperror.WithDescription(err.Error()))
+	}
+
+	//contextReference := wfcase.ResolverContextReference{Name: a.Name(), UseResponse: true}
+
+	if len(act.ProcessVars) > 0 {
+		err := wfc.SetVars(contextReference, act.ProcessVars, transformId, ignoreNonJSONResponseContent)
+		if err != nil {
+			log.Error().Err(err).Str("ctx", stepName).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in setting variables")
+			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambitName), smperror.WithStep(stepName), smperror.WithCode("500"), smperror.WithErrorMessage("error processing response body"), smperror.WithDescription(err.Error()))
+		}
+	}
+
+	if ndx := a.ChooseError(wfc, act.Errors); ndx >= 0 {
+
+		e := act.Errors[ndx]
+		ambit := e.Ambit
+		if ambit == "" {
+			ambit = ambitName
+		}
+
+		step := e.Step
+		if step == "" {
+			step = stepName
+		}
+
+		statusCode := st
+		if e.StatusCode > 0 {
+			statusCode = e.StatusCode
+		}
+
+		m, err := wfc.ResolveStrings(contextReference, []string{e.Code, e.Message, e.Description, step}, "", false)
+		if err != nil {
+			log.Error().Err(err).Msgf("error resolving values %s, %s and %s", e.Code, e.Message, e.Description)
+			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambit), smperror.WithStep(step), smperror.WithCode(e.Code), smperror.WithErrorMessage(e.Message), smperror.WithDescription(err.Error()))
+		}
+		return statusCode, smperror.NewExecutableError(smperror.WithErrorStatusCode(statusCode), smperror.WithErrorAmbit(ambit), smperror.WithStep(m[3]), smperror.WithCode(m[0]), smperror.WithErrorMessage(m[1]), smperror.WithDescription(m[2]))
+	}
+
+	return 0, nil
+}
+
+func (a *Activity) ChooseTransformation(wfc *wfcase.WfCase, trs []transform.TransformReference) (string, error) {
+	for _, t := range trs {
+
+		b := true
+		if t.Guard != "" {
+			b = wfc.EvalExpression(t.Guard)
+		}
+
+		if b {
+			return t.Id, nil
+		}
+	}
+
+	return "", nil
+}
+
+func (a *Activity) ChooseError(wfc *wfcase.WfCase, errors []config.ErrorInfo) int {
+	for i, e := range errors {
+		if e.Guard == "" {
+			return i
+		}
+
+		if wfc.EvalExpression(e.Guard) {
+			return i
+		}
+	}
+
+	return -1
 }
