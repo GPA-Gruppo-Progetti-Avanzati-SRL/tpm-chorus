@@ -22,6 +22,7 @@ const (
 	NestedOrchestrationActivityType Type = "nested-orchestration-activity"
 	MongoActivityType               Type = "mongo-activity"
 	TransformActivityType           Type = "transform-activity"
+	ScriptActivityType              Type = "script-activity"
 )
 
 type ActivityTypeRegistryEntry struct {
