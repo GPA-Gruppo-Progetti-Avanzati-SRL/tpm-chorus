@@ -95,6 +95,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	return builtins
 }
 
+/*
 var expressionSmell = []string{
 	"dict",
 	"isDate",
@@ -120,6 +121,7 @@ var expressionSmell = []string{
 	"=",
 	// "\"",
 }
+*/
 
 // IsExpression In order not to clutter the process vars assignments in simple cases.... try to detect if this is an expression or not.
 // didn't parse the thing but try to find if there is any 'reserved' word in there.
@@ -134,11 +136,13 @@ func IsExpression(e string) (string, bool) {
 		return strings.TrimPrefix(e, ":"), true
 	}
 
-	for _, s := range expressionSmell {
-		if strings.Contains(e, s) {
-			return e, true
+	/*
+		for _, s := range expressionSmell {
+			if strings.Contains(e, s) {
+				return e, true
+			}
 		}
-	}
+	*/
 
 	return e, false
 }
