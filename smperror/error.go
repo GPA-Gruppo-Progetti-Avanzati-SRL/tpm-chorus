@@ -108,11 +108,11 @@ func (exe SymphonyError) ToJSON(withTemplate []byte) ([]byte, error) {
 	var err error
 	if len(withTemplate) > 0 {
 		m := map[string]interface{}{
-			"ambit":       util.JSONEscape(exe.Ambit),
-			"message":     util.JSONEscape(exe.Message),
-			"code":        util.JSONEscape(exe.ErrCode),
-			"description": util.JSONEscape(exe.Description),
-			"step":        util.JSONEscape(exe.Step),
+			"ambit":       util.JSONEscape(exe.Ambit, false),
+			"message":     util.JSONEscape(exe.Message, false),
+			"code":        util.JSONEscape(exe.ErrCode, false),
+			"description": util.JSONEscape(exe.Description, false),
+			"step":        util.JSONEscape(exe.Step, false),
 			"ts":          exe.Ts,
 		}
 

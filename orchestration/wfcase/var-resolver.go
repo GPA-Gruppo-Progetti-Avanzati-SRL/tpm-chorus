@@ -6,7 +6,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/google/uuid"
@@ -341,12 +340,14 @@ func (pvr *ProcessVarResolver) resolveFunctionVar(v interface{}, funcName string
 	return s
 }
 
-func (pvr *ProcessVarResolver) JSONEscape(s string, doEscape bool) string {
-	if doEscape {
-		s = util.JSONEscape(s)
+/*
+	func (pvr *ProcessVarResolver) JSONEscape(s string, doEscape bool) string {
+		if doEscape {
+			s = util.JSONEscape(s, false)
+		}
+		return s
 	}
-	return s
-}
+*/
 
 func (pvr *ProcessVarResolver) resolveJsonPathExpr(v interface{}) (string, error) {
 

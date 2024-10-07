@@ -218,7 +218,7 @@ func produceErrorResponse(err error) (int, string, []byte) {
 
 	response, err := exeErr.ToJSON(nil)
 	if err != nil {
-		response = []byte(fmt.Sprintf("{ \"err\": %s }", util.JSONEscape(err.Error())))
+		response = []byte(fmt.Sprintf("{ \"err\": %s }", util.JSONEscape(err.Error(), false)))
 	}
 
 	return exeErr.StatusCode, constants.ContentTypeApplicationJson, response
