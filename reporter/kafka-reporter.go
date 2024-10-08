@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/jsonmask"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
@@ -79,7 +78,7 @@ func (kr *KafkaReporter) doWorkLoop() {
 		metricLabels := kr.MetricsLabels()
 
 		wfc.ShowBreadcrumb()
-		wfc.ShowVars(false)
+		wfc.Vars.ShowVars(false)
 
 		var b []byte
 		var err error
@@ -101,7 +100,7 @@ func (kr *KafkaReporter) doWorkLoop() {
 			_ = kr.SetMetrics(metricLabels)
 		} else {
 			//Recupero requestId dal wfc per utilizzarlo come Key del message kafka
-			requestId := wfc.GetHeaderFromContext(config.InitialRequestContextNameStringReference, keyHeaderName)
+			requestId := wfc.GetHeaderInHarEntry(wfcase.InitialRequestHarEntryId, keyHeaderName)
 			/*			reqEntry, ok := wfc.Entries["request"]
 						if ok {
 							requestId = reqEntry.Request.Headers.GetFirst("requestId").Value

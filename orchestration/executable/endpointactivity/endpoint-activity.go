@@ -11,6 +11,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
@@ -152,7 +153,7 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 
 	if len(cfg.ProcessVars) > 0 {
 		// note the ignoreNonApplicationJsonResponseContent has been set to false since it doesn't apply to the request processing
-		expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+		expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
@@ -170,7 +171,7 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 		beginOf := time.Now()
 		metricsLabels := a.MetricsLabels(ep)
 
-		resolver, err := a.getResolver(wfc)
+		resolver, err := a.GetEvaluator(wfc)
 		if err != nil {
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}
@@ -208,13 +209,13 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 				return smperror.NewExecutableServerError(smperror.WithErrorAmbit(ep.Name), smperror.WithStep(ep.Id), smperror.WithCode("HTTP"), smperror.WithErrorMessage(err.Error()))
 			}
 
-			_ = wfc.AddEndpointRequestData(ep.FullId(a.Name()), req, ep.PII)
+			_ = wfc.SetHarEntryRequest(ep.FullId(a.Name()), req, ep.PII)
 
 			entry, err := a.Invoke(wfc, ep, req)
 			if entry != nil {
 				harResponse = entry.Response
 			}
-			_ = wfc.AddEndpointResponseData(ep.FullId(a.Name()), harResponse, ep.PII)
+			_ = wfc.SetHarEntryResponse(ep.FullId(a.Name()), harResponse, ep.PII)
 			metricsLabels[MetricIdHttpStatusCode] = fmt.Sprint(harResponse.Status)
 			metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
 
@@ -229,7 +230,7 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 
 		remappedStatusCode, err := a.ProcessResponseActionByStatusCode(
-			harResponse.Status, a.Name(), util.StringCoalesce(ep.Id, ep.Name), wfcase.ResolverContextReference{Name: ep.FullId(a.Name()), UseResponse: true}, wfc, ep.Definition.OnResponseActions, ep.Definition.IgnoreNonApplicationJsonResponseContent)
+			harResponse.Status, a.Name(), util.StringCoalesce(ep.Id, ep.Name), wfcase.HarEntryReference{Name: ep.FullId(a.Name()), UseResponse: true}, wfc, ep.Definition.OnResponseActions, ep.Definition.IgnoreNonApplicationJsonResponseContent)
 		if remappedStatusCode > 0 {
 			metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 		}
@@ -260,19 +261,21 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 	return nil
 }
 
-func (a *EndpointActivity) getResolver(wfc *wfcase.WfCase) (*wfcase.ProcessVarResolver, error) {
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+/*
+func (a *EndpointActivity) getResolver(wfc *wfcase.WfCase) (*wfexpressions.Evaluator, error) {
+	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		return nil, err
 	}
 
-	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
+	resolver, err := wfc.GetEvaluatorByHarEntryReference(expressionCtx, true, "", false)
 	if err != nil {
 		return nil, err
 	}
 
 	return resolver, nil
 }
+*/
 
 /*
 	func processResponseAction(wfc *wfcase.WfCase, activityName string, ep Endpoint, actionIndex int, resp *har.Response) (int, error) {
@@ -382,13 +385,13 @@ func (a *EndpointActivity) Invoke(wfc *wfcase.WfCase, ep Endpoint, req *har.Requ
 
 func (a *EndpointActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Endpoint) (*har.Request, error) {
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		return nil, err
 	}
 
 	// note the ignoreNonApplicationJsonResponseContent has been set to false since it doesn't apply to the request processing
-	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
+	resolver, err := wfc.GetEvaluatorByHarEntryReference(expressionCtx, true, "", false)
 	if err != nil {
 		return nil, err
 	}
@@ -399,13 +402,13 @@ func (a *EndpointActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Endpoint)
 	ub.WithPort(ep.Definition.PortAsInt())
 	ub.WithScheme(ep.Definition.Scheme)
 
-	s, _, err := varResolver.ResolveVariables(ep.Definition.HostName, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	s, _, err := varResolver.ResolveVariables(ep.Definition.HostName, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return nil, err
 	}
 	ub.WithHostname(s)
 
-	s, _, err = varResolver.ResolveVariables(ep.Definition.Path, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	s, _, err = varResolver.ResolveVariables(ep.Definition.Path, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return nil, err
 	}
@@ -415,7 +418,7 @@ func (a *EndpointActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Endpoint)
 	opts = append(opts, har.WithUrl(ub.Url()))
 
 	for _, h := range ep.Definition.Headers {
-		r, _, err := varResolver.ResolveVariables(h.Value, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+		r, _, err := varResolver.ResolveVariables(h.Value, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 		if err != nil {
 			return nil, err
 		}
@@ -445,10 +448,10 @@ func (a *EndpointActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Endpoint)
 	return &req, nil
 }
 
-func (a *EndpointActivity) newRequestDefinitionBody(wfc *wfcase.WfCase, ep Endpoint, resolver *wfcase.ProcessVarResolver) (har.RequestOption, error) {
+func (a *EndpointActivity) newRequestDefinitionBody(wfc *wfcase.WfCase, ep Endpoint, resolver *wfexpressions.Evaluator) (har.RequestOption, error) {
 
 	bodyContent, _ := a.Refs.Find(ep.Definition.Body.ExternalValue)
-	s, _, err := varResolver.ResolveVariables(string(bodyContent), varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	s, _, err := varResolver.ResolveVariables(string(bodyContent), varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return nil, err
 	}
@@ -482,7 +485,7 @@ func (a *EndpointActivity) MetricsLabels(ep Endpoint) prometheus.Labels {
 	return metricsLabels
 }
 
-func (a *EndpointActivity) resolveCacheConfig(wfc *wfcase.WfCase, resolver *wfcase.ProcessVarResolver, cacheConfig config.CacheConfig, refs config.DataReferences) (config.CacheConfig, error) {
+func (a *EndpointActivity) resolveCacheConfig(wfc *wfcase.WfCase, resolver *wfexpressions.Evaluator, cacheConfig config.CacheConfig, refs config.DataReferences) (config.CacheConfig, error) {
 	cfg := cacheConfig
 	if refs.IsPresent(cacheConfig.Key) {
 		if key, ok := refs.Find(cacheConfig.Key); ok {
@@ -490,7 +493,7 @@ func (a *EndpointActivity) resolveCacheConfig(wfc *wfcase.WfCase, resolver *wfca
 		}
 	}
 
-	s, _, err := varResolver.ResolveVariables(cfg.Key, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	s, _, err := varResolver.ResolveVariables(cfg.Key, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return cfg, err
 	}
@@ -522,7 +525,7 @@ func (a *EndpointActivity) resolveResponseFromCache(wfc *wfcase.WfCase, endpoint
 		entryId = a.Name() + ";cache=true"
 	}
 
-	_ = wfc.AddEndpointHarEntry(entryId, cacheHarEntry)
+	_ = wfc.SetHarEntry(entryId, cacheHarEntry)
 	return cacheHarEntry.Response, nil
 }
 

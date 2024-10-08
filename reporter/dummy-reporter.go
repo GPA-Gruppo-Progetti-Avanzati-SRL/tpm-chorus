@@ -55,7 +55,7 @@ func (drep *DummyReporter) doWorkLoop() {
 		metricLabels := drep.MetricsLabels()
 
 		wfc.ShowBreadcrumb()
-		wfc.ShowVars(true)
+		wfc.Vars.ShowVars(true)
 
 		var b []byte
 		var err error

@@ -4,6 +4,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/PaesslerAG/gval"
 	"github.com/stretchr/testify/require"
@@ -49,8 +50,8 @@ var j = []byte(`
 
 func TestNewProcessVarResolver(t *testing.T) {
 
-	pvs := wfcase.ProcessVars(make(map[string]interface{}))
-	resolver, err := wfcase.NewProcessVarResolver(wfcase.WithBody(constants.ContentTypeApplicationJson, j, ""))
+	pvs := wfexpressions.ProcessVars(make(map[string]interface{}))
+	resolver, err := wfexpressions.NewEvaluator("no-name", wfexpressions.WithBody(constants.ContentTypeApplicationJson, j, ""))
 	require.NoError(t, err)
 
 	r, err := pvs.Eval("donotexist")
@@ -90,13 +91,13 @@ func TestNewProcessVarResolver(t *testing.T) {
 }
 
 type GValEvaluator struct {
-	Vars wfcase.ProcessVars
+	Vars wfexpressions.ProcessVars
 }
 
 func TestGVal(t *testing.T) {
 
-	pvs := wfcase.ProcessVars(make(map[string]interface{}))
-	resolver, err := wfcase.NewProcessVarResolver(wfcase.WithBody(constants.ContentTypeApplicationJson, j, ""))
+	pvs := wfexpressions.ProcessVars(make(map[string]interface{}))
+	resolver, err := wfexpressions.NewEvaluator("no-name", wfexpressions.WithBody(constants.ContentTypeApplicationJson, j, ""))
 	require.NoError(t, err)
 
 	err = interpolateEvaluateAndSet(pvs, "beneficiario_natura", "{$.beneficiario.natura}", resolver, false, -1)
@@ -129,9 +130,9 @@ func TestGVal(t *testing.T) {
 	require.Equal(t, "hello", exprValue)
 }
 
-func interpolateEvaluateAndSet(pvs map[string]interface{}, n string, expr string, resolver *wfcase.ProcessVarResolver, globalScope bool, ttl time.Duration) error {
+func interpolateEvaluateAndSet(pvs map[string]interface{}, n string, expr string, resolver *wfexpressions.Evaluator, globalScope bool, ttl time.Duration) error {
 
-	val, _, err := varResolver.ResolveVariables(expr, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	val, _, err := varResolver.ResolveVariables(expr, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return err
 	}

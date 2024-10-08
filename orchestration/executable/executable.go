@@ -5,6 +5,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"github.com/prometheus/client_golang/prometheus"
@@ -167,10 +168,24 @@ func (a *Activity) SetMetrics(begin time.Time, lbls prometheus.Labels) error {
 	return nil
 }
 
+func (a *Activity) GetEvaluator(wfc *wfcase.WfCase) (*wfexpressions.Evaluator, error) {
+	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
+	if err != nil {
+		return nil, err
+	}
+
+	resolver, err := wfc.GetEvaluatorByHarEntryReference(expressionCtx, true, "", false)
+	if err != nil {
+		return nil, err
+	}
+
+	return resolver, nil
+}
+
 func (a *Activity) ProcessResponseActionByStatusCode(
 	st int,
 	ambitName, stepName string,
-	contextReference wfcase.ResolverContextReference,
+	contextReference wfcase.HarEntryReference,
 	wfc *wfcase.WfCase,
 	actions config.OnResponseActions,
 	ignoreNonJSONResponseContent bool) (int, error) {

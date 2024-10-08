@@ -1,11 +1,13 @@
-package wfcase
+package wfexpressions
 
 import (
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
 	"github.com/PaesslerAG/gval"
 	"github.com/rs/zerolog/log"
+	"reflect"
 	"regexp"
+	"sort"
 	"time"
 )
 
@@ -16,11 +18,47 @@ import (
 var IsIdentifierRegexp = regexp.MustCompile("^[a-zA-Z_0-9]+(\\.[a-zA-Z_0-9]+)*$")
 
 type ProcessVar struct {
-	Name  string      `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
-	Value interface{} `yaml:"value,omitempty" mapstructure:"value,omitempty" json:"value,omitempty"`
+	Name        string      `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
+	Value       interface{} `yaml:"value,omitempty" mapstructure:"value,omitempty" json:"value,omitempty"`
+	IsTemporary bool        `yaml:"is-temp,omitempty" mapstructure:"is-temp,omitempty" json:"is-temp,omitempty"`
 }
 
 type ProcessVars map[string]interface{}
+
+func (vs ProcessVars) ClearTemporary(temps []string) {
+	for _, n := range temps {
+		delete(vs, n)
+	}
+}
+
+func (vs ProcessVars) ShowVars(sorted bool) {
+
+	if len(vs) == 0 {
+		return
+	}
+
+	var varNames []string
+	if sorted {
+		log.Warn().Msg("please disable sorting of process variables")
+		for n, _ := range vs {
+			varNames = append(varNames, n)
+		}
+
+		sort.Strings(varNames)
+		for _, n := range varNames {
+			i := vs[n]
+			if reflect.ValueOf(i).Kind() != reflect.Func {
+				log.Trace().Str("name", n).Interface("value", i).Msg("case variable")
+			}
+		}
+	} else {
+		for n, v := range vs {
+			if reflect.ValueOf(v).Kind() != reflect.Func {
+				log.Trace().Str("name", n).Interface("value", v).Msg("case variable")
+			}
+		}
+	}
+}
 
 /*
 func (vs ProcessVars) InterpolateEvaluateAndSet(n string, expr string, resolver *ProcessVarResolver, globalScope bool, ttl time.Duration) error {

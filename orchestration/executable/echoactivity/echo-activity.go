@@ -54,7 +54,7 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	log.Info().Str(constants.SemLogActivity, a.Name()).Msg(semLogContext + " start")
-	log.Info().Str(constants.SemLogActivity, a.Name()).Str("msg", a.definition.Message).Msg(semLogContext + " end")
+	defer log.Info().Str(constants.SemLogActivity, a.Name()).Str("msg", a.definition.Message).Msg(semLogContext + " end")
 
 	tcfg, ok := a.Cfg.(*config.EchoActivity)
 	if !ok {
@@ -64,7 +64,7 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		return err
@@ -82,7 +82,7 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 
 	if a.definition.IncludeInHar {
 		req, _ := a.newRequestDefinition(wfc)
-		_ = wfc.AddEndpointRequestData(a.Name(), req, config.PersonallyIdentifiableInformation{})
+		_ = wfc.SetHarEntryRequest(a.Name(), req, config.PersonallyIdentifiableInformation{})
 
 		ct, b, err := a.computeBody(wfc)
 		if err != nil {
@@ -90,7 +90,7 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 			return err
 		}
 		resp := har.NewResponse(http.StatusOK, http.StatusText(http.StatusOK), ct, []byte(b), nil)
-		_ = wfc.AddEndpointResponseData(a.Name(), resp, config.PersonallyIdentifiableInformation{})
+		_ = wfc.SetHarEntryResponse(a.Name(), resp, config.PersonallyIdentifiableInformation{})
 	}
 
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)

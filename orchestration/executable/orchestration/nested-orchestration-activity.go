@@ -82,7 +82,7 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		return err
@@ -139,7 +139,7 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		st = http.StatusInternalServerError
 	}
 
-	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(st, a.Name(), a.Name(), wfcase.ResolverContextReference{Name: "request", UseResponse: true}, wfcChild, a.definition.OnResponseActions, false)
+	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(st, a.Name(), a.Name(), wfcase.HarEntryReference{Name: "request", UseResponse: true}, wfcChild, a.definition.OnResponseActions, false)
 	if remappedStatusCode > 0 {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 	}
@@ -174,7 +174,7 @@ func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfC
 				resp.Content.MimeType, resp.Content.Data,
 				resp.Headers,
 			)
-			_ = wfc.AddEndpointResponseData("request", harResponse, a.orchestration.Cfg.PII)
+			_ = wfc.SetHarEntryResponse("request", harResponse, a.orchestration.Cfg.PII)
 			log.Info().Str("response", string(resp.Content.Data)).Msg(semLogContext)
 		}
 	}
@@ -187,7 +187,7 @@ func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfC
 			constants.ContentTypeApplicationJson, resp,
 			[]har.NameValuePair{{Name: constants.ContentTypeHeader, Value: ct}},
 		)
-		err := wfc.AddEndpointResponseData("request", harResponse, a.orchestration.Cfg.PII)
+		err := wfc.SetHarEntryResponse("request", harResponse, a.orchestration.Cfg.PII)
 		if err != nil {
 			log.Error().Err(err).Str("response", string(resp)).Msg(semLogContext)
 		} else {

@@ -58,7 +58,7 @@ func (a *RequestActivity) Execute(wfc *wfcase.WfCase) error {
 		a.SetMetrics(start, metricsLabels)
 	}(beginOf)
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		return err

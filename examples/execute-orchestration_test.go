@@ -72,7 +72,7 @@ func TestExecuteMoviesOrchestration(t *testing.T) {
 	)
 	require.NoError(t, err)
 
-	err = wfCase.AddEndpointRequestData(config.InitialRequestContextNameStringReference, req, exec.Cfg.PII)
+	err = wfCase.SetHarEntryRequest(wfcase.InitialRequestHarEntryId, req, exec.Cfg.PII)
 	require.NoError(t, err)
 
 	finalExec, err := exec.Execute(wfCase)
@@ -86,8 +86,8 @@ func TestExecuteMoviesOrchestration(t *testing.T) {
 		var resp *har.Response
 		resp, err = respExec.ResponseJSON(wfCase)
 		if err == nil {
-			_ = wfCase.AddEndpointResponseData(
-				config.InitialRequestContextNameStringReference,
+			_ = wfCase.SetHarEntryResponse(
+				wfcase.InitialRequestHarEntryId,
 				har.NewResponse(
 					resp.Status, resp.StatusText,
 					resp.Content.MimeType, resp.Content.Data,
@@ -101,8 +101,8 @@ func TestExecuteMoviesOrchestration(t *testing.T) {
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		sc, ct, resp := produceErrorResponse(err)
-		err = wfCase.AddEndpointResponseData(
-			config.InitialRequestContextNameStringReference,
+		err = wfCase.SetHarEntryResponse(
+			wfcase.InitialRequestHarEntryId,
 			har.NewResponse(
 				sc, "execution error",
 				constants.ContentTypeApplicationJson, resp,

@@ -1,4 +1,4 @@
-package wfcase_test
+package wfexpressions_test
 
 import (
 	"encoding/json"

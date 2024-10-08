@@ -7,6 +7,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
@@ -66,7 +67,7 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		return err
@@ -92,15 +93,15 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
 	}
 
-	_ = wfc.AddEndpointRequestData(a.Name(), req, tcfg.PII)
+	_ = wfc.SetHarEntryRequest(a.Name(), req, tcfg.PII)
 
 	harResponse, err := a.Invoke(wfc, expressionCtx)
 	if harResponse != nil {
-		_ = wfc.AddEndpointResponseData(a.Name(), harResponse, tcfg.PII)
+		_ = wfc.SetHarEntryResponse(a.Name(), harResponse, tcfg.PII)
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
 	}
 
-	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(harResponse.Status, a.Name(), a.Name(), wfcase.ResolverContextReference{Name: a.Name(), UseResponse: true}, wfc, a.definition.OnResponseActions, false)
+	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(harResponse.Status, a.Name(), a.Name(), wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, wfc, a.definition.OnResponseActions, false)
 	if remappedStatusCode > 0 {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 	}
@@ -145,9 +146,9 @@ func (a *TransformActivity) executeMergeTransformation(wfc *wfcase.WfCase, merge
 	return xform.Execute(wfc, currentData)
 }
 
-func (a *TransformActivity) executeTemplateTransformation(wfc *wfcase.WfCase, bodyTemplate []byte, resolver *wfcase.ProcessVarResolver) ([]byte, error) {
+func (a *TransformActivity) executeTemplateTransformation(wfc *wfcase.WfCase, bodyTemplate []byte, resolver *wfexpressions.Evaluator) ([]byte, error) {
 
-	s, _, err := varResolver.ResolveVariables(string(bodyTemplate), varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	s, _, err := varResolver.ResolveVariables(string(bodyTemplate), varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return nil, err
 	}
@@ -160,11 +161,11 @@ func (a *TransformActivity) executeTemplateTransformation(wfc *wfcase.WfCase, bo
 	return b, nil
 }
 
-func (a *TransformActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.ResolverContextReference) (*har.Response, error) {
+func (a *TransformActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.HarEntryReference) (*har.Response, error) {
 
 	const semLogContext = "transform-activity::invoke"
 	var err error
-	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", true)
+	resolver, err := wfc.GetEvaluatorByHarEntryReference(expressionCtx, true, "", true)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		r := har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
@@ -219,7 +220,7 @@ func (a *TransformActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.Reso
 	return r, nil
 }
 
-func (a *TransformActivity) newRequestDefinition(wfc *wfcase.WfCase, expressionCtx wfcase.ResolverContextReference) (*har.Request, error) {
+func (a *TransformActivity) newRequestDefinition(wfc *wfcase.WfCase, expressionCtx wfcase.HarEntryReference) (*har.Request, error) {
 
 	const semLogContext = "transform-activity::new-request-definition"
 
@@ -234,7 +235,7 @@ func (a *TransformActivity) newRequestDefinition(wfc *wfcase.WfCase, expressionC
 	opts = append(opts, har.WithMethod("POST"))
 	opts = append(opts, har.WithUrl(ub.Url()))
 
-	b, err := wfc.GetBodyByContext(expressionCtx, true)
+	b, err := wfc.GetBodyInHarEntry(expressionCtx, true)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 	}
@@ -282,7 +283,7 @@ func (a *TransformActivity) processResponseAction(wfc *wfcase.WfCase, activityNa
 		return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(activityName), smperror.WithStep(a.Name()), smperror.WithCode("500"), smperror.WithErrorMessage("error selecting transformation"), smperror.WithDescription(err.Error()))
 	}
 
-	contextReference := wfcase.ResolverContextReference{Name: a.Name(), UseResponse: true}
+	contextReference := wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}
 
 	if len(act.ProcessVars) > 0 {
 		err := wfc.SetVars(contextReference, act.ProcessVars, transformId, false)

@@ -2,22 +2,12 @@ package wfcase
 
 import (
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
-	utils2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/util"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/jsonmask"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/templateutil"
-	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
-	"github.com/PaesslerAG/gval"
 	"github.com/opentracing/opentracing-go"
 	"github.com/rs/zerolog/log"
-	"net/http"
 	"os"
-	"reflect"
-	"sort"
-	"strings"
-	"text/template"
 	"time"
 )
 
@@ -31,14 +21,7 @@ const (
 	SymphonyOrchestrationDescriptionProcessVar = "smp_orchestration_descr"
 )
 
-type BreadcrumbStep struct {
-	Name        string
-	Description string
-	Err         error
-}
-
-type Breadcrumb []BreadcrumbStep
-
+/*
 type HttpParam struct {
 	Key   string
 	Value string
@@ -50,25 +33,22 @@ type EndpointData struct {
 	Headers http.Header
 	Params  []HttpParam
 }
-
-var InitialRequestContextReference = ResolverContextReference{Name: config.InitialRequestContextNameStringReference}
-
-type ResolverContextReference struct {
-	Name        string
-	UseResponse bool
-}
+*/
 
 type WfCase struct {
 	Id          string
+	RequestId   string
 	Browser     *har.Creator
 	Description string
 	StartAt     time.Time
-	Vars        ProcessVars
+	Vars        wfexpressions.ProcessVars
 	Entries     map[string]*har.Entry
 	Dicts       config.Dictionaries
 	Refs        config.DataReferences
 	Breadcrumb  Breadcrumb
 	Span        opentracing.Span
+
+	ExpressionEvaluator *wfexpressions.Evaluator
 }
 
 func NewWorkflowCase(id string, version, sha string, descr string, dicts config.Dictionaries, refs config.DataReferences, systemVars map[string]interface{}, span opentracing.Span) (*WfCase, error) {
@@ -97,7 +77,7 @@ func NewWorkflowCase(id string, version, sha string, descr string, dicts config.
 		Refs:        refs,
 		Span:        span}
 
-	v := ProcessVars(make(map[string]interface{}))
+	v := wfexpressions.ProcessVars(make(map[string]interface{}))
 	for fn, fb := range GetFuncMap(c) {
 		v[fn] = fb
 	}
@@ -121,7 +101,7 @@ func NewWorkflowCase(id string, version, sha string, descr string, dicts config.
 	return c, nil
 }
 
-func (wfc *WfCase) NewChild(expressionCtx ResolverContextReference, id string, version, sha string, descr string, dicts config.Dictionaries, refs config.DataReferences, vars []config.ProcessVar, span opentracing.Span) (*WfCase, error) {
+func (wfc *WfCase) NewChild(expressionCtx HarEntryReference, id string, version, sha string, descr string, dicts config.Dictionaries, refs config.DataReferences, vars []config.ProcessVar, span opentracing.Span) (*WfCase, error) {
 	const semLogContext = "wf-case::new-child"
 	childWfc, err := NewWorkflowCase(id, version, sha, descr, dicts, refs, nil, span)
 	if err != nil {
@@ -135,13 +115,13 @@ func (wfc *WfCase) NewChild(expressionCtx ResolverContextReference, id string, v
 		return nil, err
 	}
 
-	req, err := wfc.GetRequestFromContext(expressionCtx, "POST", fmt.Sprintf("activity://localhost/%s/%s", config.NestedOrchestrationActivityType, id))
+	req, err := wfc.NewHarRequestFromHarEntryReference(expressionCtx, "POST", fmt.Sprintf("activity://localhost/%s/%s", config.NestedOrchestrationActivityType, id))
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return childWfc, err
 	}
 
-	err = childWfc.AddEndpointRequestData("request", req, config.PersonallyIdentifiableInformation{})
+	err = childWfc.SetHarEntryRequest("request", req, config.PersonallyIdentifiableInformation{})
 	if err != nil {
 		log.Error().Err(err)
 		return childWfc, err
@@ -159,32 +139,15 @@ func (wfc *WfCase) AddEndpointData(id string, body []byte, headers http.Header, 
 }
 */
 
-func (wfc *WfCase) AddEndpointHarEntry(id string, entry *har.Entry) error {
-	wfc.Entries[id] = entry
-	return nil
-}
-
-func (wfc *WfCase) AddEndpointRequestData(id string, req *har.Request, pii config.PersonallyIdentifiableInformation) error {
-	e, ok := wfc.Entries[id]
-	if !ok {
-		now := time.Now()
-		e = &har.Entry{
-			Comment:         id,
-			StartedDateTime: now.Format("2006-01-02T15:04:05.999999999Z07:00"),
-			StartDateTimeTm: now,
-		}
-	}
-	e.Request = req
-	e.PII = har.PersonallyIdentifiableInformation{
-		Domain:    pii.Domain,
-		AppliesTo: pii.AppliesTo,
-	}
-	wfc.Entries[id] = e
-	return nil
-}
-
 func (wfc *WfCase) GetRequestId() string {
-	e, ok := wfc.Entries[config.InitialRequestContextNameStringReference]
+	const semLogContext = "wf-case::get-request-id"
+
+	// This code is to move the setting of requestId outside, not any more dependent from constant
+	if wfc.RequestId == "" {
+		log.Warn().Msg(semLogContext + " request-id has not been set in case")
+	}
+
+	e, ok := wfc.Entries[InitialRequestHarEntryId]
 	if !ok || e.Request == nil || len(e.Request.Headers) == 0 {
 		return ""
 	}
@@ -238,397 +201,36 @@ func (wfc *WfCase) AddEndpointRequestData(id string, method string, url string, 
 	return nil
 }
 */
-
-func (wfc *WfCase) AddEndpointResponseData(id string, resp *har.Response, pii config.PersonallyIdentifiableInformation) error {
-
-	const semLogContext = "wf-case::add-endpoint-response-data"
-
-	// epData := EndpointData{Id: id, Body: body, Headers: headers, Params: params}
-	// wfc.EpInfo[epData.Id] = epData
-	e, ok := wfc.Entries[id]
-	if !ok {
-		now := time.Now()
-		e = &har.Entry{
-			StartDateTimeTm: now,
-			StartedDateTime: now.Format("2006-01-02T15:04:05.999999999Z07:00"),
-		}
-	} else {
-		if e.StartedDateTime != "" {
-			elapsed := time.Since(e.StartDateTimeTm)
-			e.Time = float64(elapsed.Milliseconds())
-			log.Trace().Interface("st", e.StartDateTimeTm).Dur("elapsed", elapsed).Msg(semLogContext)
-		}
-	}
-
-	e.Timings = &har.Timings{
-		Blocked: -1,
-		DNS:     -1,
-		Connect: -1,
-		Send:    -1,
-		Wait:    e.Time,
-		Receive: -1,
-		Ssl:     -1,
-	}
-
-	e.Response = resp
-	e.PII = har.PersonallyIdentifiableInformation{
-		Domain:    pii.Domain,
-		AppliesTo: pii.AppliesTo,
-	}
-
-	wfc.Entries[id] = e
-
-	/*
-		var hs []har.NameValuePair
-		for n, h := range headers {
-			for i := range h {
-				hs = append(hs, har.NameValuePair{Name: n, Value: h[i]})
-			}
-		}
-
-		bodyMimeType := constants.ContentTypeApplicationJson
-		ct := headers.Get("Content-Type")
-		if ct != "" {
-			bodyMimeType = ct
-		}
-
-		e.Response = &har.Response{
-			HTTPVersion: "1.1",
-			Headers:     hs,
-			HeadersSize: -1,
-			Status:      int64(sc),
-			BodySize:    int64(len(body)),
-			Cookies:     []har.Cookie{},
-			Content: &har.Content{
-				MimeType: bodyMimeType,
-				Size:     int64(len(body)),
-				Data:     body,
-			},
-		}
-
-		wfc.Entries[id] = e
-
-	*/
-	return nil
-}
-
-func (wfc *WfCase) AddBreadcrumb(n string, d string, e error) {
-	wfc.Breadcrumb = append(wfc.Breadcrumb, BreadcrumbStep{Name: n, Description: d, Err: e})
-}
-
-func (wfc *WfCase) ResolveExpressionContextName(n string) (ResolverContextReference, error) {
-	const semLogContext = "wf-case::resolve-expression-context"
-	if n == "" {
-		return InitialRequestContextReference, nil
-	}
-
-	var ok bool
-	n, ok = IsExpression(n)
-	if ok {
-		v, err := wfc.Vars.EvalToString(n)
-		if err != nil {
-			log.Error().Err(err).Msg(semLogContext)
-			return ResolverContextReference{Name: n, UseResponse: n != config.InitialRequestContextNameStringReference}, err
-		}
-
-		return ResolverContextReference{Name: v, UseResponse: v != config.InitialRequestContextNameStringReference}, nil
-	}
-
-	return ResolverContextReference{Name: n, UseResponse: n != config.InitialRequestContextNameStringReference}, nil
-}
-
-func (wfc *WfCase) GetResolverByContext(resolverContext ResolverContextReference, withVars bool, withTransformationId string, ignoreNonApplicationJsonResponseContent bool) (*ProcessVarResolver, error) {
-	var resolver *ProcessVarResolver
-	var err error
-	if entry, ok := wfc.Entries[resolverContext.Name]; ok {
-		if resolverContext.UseResponse {
-			resolver, err = wfc.getResolverForResponseEntry(entry, withVars, withTransformationId, ignoreNonApplicationJsonResponseContent)
-		} else {
-			resolver, err = wfc.getResolverForRequestEntry(entry, withVars, withTransformationId)
-		}
-	} else {
-		return nil, fmt.Errorf("cannot find ctxName %s in case", resolverContext.Name)
-	}
-
-	return resolver, err
-}
-
-func (wfc *WfCase) getResolverForRequestEntry(endpointData *har.Entry, withVars bool, withTransformationId string) (*ProcessVarResolver, error) {
-
-	var err error
-	var resolver *ProcessVarResolver
-
-	opts := []VarResolverOption{WithHeaders(endpointData.Request.Headers)}
-	if endpointData.Request.PostData != nil {
-		opts = append(opts, WithBody(endpointData.Request.PostData.MimeType, endpointData.Request.PostData.Data, withTransformationId), WithParams(endpointData.Request.PostData.Params))
-	}
-
-	if withVars {
-		opts = append(opts, WithProcessVars(wfc.Vars))
-	}
-	resolver, err = NewProcessVarResolver(opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return resolver, nil
-}
-
-func (wfc *WfCase) GetHarEntry(entryId string) (*har.Entry, error) {
-	if endpointData, ok := wfc.Entries[entryId]; ok {
-		return endpointData, nil
-	}
-	return nil, fmt.Errorf("cannot find ctxName %s in case", entryId)
-}
-
-func (wfc *WfCase) getResolverForResponseEntry(endpointData *har.Entry, withVars bool, withTransformationId string, ignoreNonApplicationJsonContent bool) (*ProcessVarResolver, error) {
-
-	var err error
-	var resolver *ProcessVarResolver
-
-	opts := []VarResolverOption{WithHeaders(endpointData.Response.Headers)}
-	if endpointData.Response.Content != nil && len(endpointData.Response.Content.Data) > 0 {
-		// This condition should not consider the body if is not application json and the ignore flag has been set to true
-		if strings.HasPrefix(endpointData.Response.Content.MimeType, constants.ContentTypeApplicationJson) || !ignoreNonApplicationJsonContent {
-			opts = append(opts, WithBody(endpointData.Response.Content.MimeType, endpointData.Response.Content.Data, withTransformationId))
-		} else {
-			log.Debug().Str("content-type", endpointData.Response.Content.MimeType).Msg("ignoring body")
-		}
-	}
-	if withVars {
-		opts = append(opts, WithProcessVars(wfc.Vars))
-	}
-	resolver, err = NewProcessVarResolver(opts...)
-	if err != nil {
-		return nil, err
-	}
-
-	return resolver, nil
-}
-
-func (wfc *WfCase) SetVars(resolverContext ResolverContextReference, vars []config.ProcessVar, transformationId string, ignoreNonApplicationJsonResponseContent bool) error {
-	return wfc.SetVarsFromCase(nil, resolverContext, vars, transformationId, ignoreNonApplicationJsonResponseContent)
-}
-
-func (wfc *WfCase) SetVarsFromCase(sourceWfc *WfCase, resolverContext ResolverContextReference, vars []config.ProcessVar, transformationId string, ignoreNonApplicationJsonResponseContent bool) error {
-	const semLogContext = "wf-case::set-vars-from-case"
-	if len(vars) == 0 {
-		return nil
-	}
-
-	if sourceWfc == nil {
-		sourceWfc = wfc
-	}
-
-	resolver, err := sourceWfc.GetResolverByContext(resolverContext, true, transformationId, ignoreNonApplicationJsonResponseContent)
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return err
-	}
-
-	for _, v := range vars {
-		boolGuard := true
-		if v.Guard != "" {
-			boolGuard, err = sourceWfc.Vars.EvalToBool(v.Guard)
-		}
-
-		if boolGuard && err == nil {
-			val, _, err := varResolver.ResolveVariables(v.Value, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
-			if err != nil {
-				log.Error().Err(err).Msg(semLogContext)
-				return err
-			}
-
-			val, isExpr := IsExpression(val)
-
-			// Was isExpression(val) but in doing this I use the evaluated value and I depend on the value of the variables  with potentially weird values.
-			var varValue interface{} = val
-			if isExpr && val != "" {
-				varValue, err = gval.Evaluate(val, sourceWfc.Vars)
-				if err != nil {
-					log.Error().Err(err).Msg(semLogContext)
-					return err
-				}
-			}
-
-			err = wfc.Vars.Set(v.Name, varValue, v.GlobalScope, v.Ttl)
-			if err != nil {
-				log.Error().Err(err).Msg(semLogContext)
-				return err
-			}
-		}
-
-		if err != nil {
-			log.Error().Err(err).Msg(semLogContext)
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (wfc *WfCase) ResolveStrings(resolverContext ResolverContextReference, expr []string, transformationId string, ignoreNonApplicationJsonResponseContent bool) ([]string, error) {
-
-	resolver, err := wfc.GetResolverByContext(resolverContext, true, transformationId, ignoreNonApplicationJsonResponseContent)
-	if err != nil {
-		return nil, err
-	}
-
-	var resolved []string
-	for _, s := range expr {
-		val, _, err := varResolver.ResolveVariables(s, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
-		if err != nil {
-			return nil, err
-		}
-
-		resolved = append(resolved, val)
-	}
-
-	return resolved, nil
-}
-
+/*
 func (wfc *WfCase) ShowVars(sorted bool) {
 
-	var varNames []string
-	if sorted {
-		log.Warn().Msg("please disable sorting of process variables")
-		for n, _ := range wfc.Vars {
-			varNames = append(varNames, n)
-		}
+	wfc.Vars.ShowVars(sorted)
 
-		sort.Strings(varNames)
-		for _, n := range varNames {
-			i := wfc.Vars[n]
-			if reflect.ValueOf(i).Kind() != reflect.Func {
-				log.Trace().Str("name", n).Interface("value", i).Msg("case variable")
-			}
-		}
-	} else {
-		for n, v := range wfc.Vars {
-			if reflect.ValueOf(v).Kind() != reflect.Func {
-				log.Trace().Str("name", n).Interface("value", v).Msg("case variable")
-			}
-		}
-	}
-}
 
-func (wfc *WfCase) ShowBreadcrumb() {
-	for stepNumber, v := range wfc.Breadcrumb {
-		log.Trace().Int("at", stepNumber).Str("name", v.Name).Msg("breadcrumb")
-		if v.Err != nil {
-			log.Trace().Str("with-err", v.Err.Error()).Int("at", stepNumber).Str("name", v.Name).Msg("breadcrumb")
-		}
-	}
-}
-
-func (wfc *WfCase) BooleanEvalProcessVars(varExpressions []string) (int, error) {
-	return wfc.Vars.IndexOfTrueExpression(varExpressions)
-}
-
-func (wfc *WfCase) EvalExpression(varExpression string) bool {
-	_, err := wfc.Vars.IndexOfTrueExpression([]string{varExpression})
-	return err == nil
-}
-
-func (wfc *WfCase) getTemplateFunctions() template.FuncMap {
-
-	fMap := template.FuncMap(GetFuncMap(wfc))
-	/* {
-		"dict": func(dictName string, elems ...string) string {
-			s, err := wfc.Dicts.Map(dictName, elems...)
-			if err != nil {
-				log.Error().Err(err).Send()
-			}
-			return s
-		},
-		"now": func(format string) string {
-			return time.Now().Format(format)
-		},
-	}*/
-
-	return fMap
-}
-
-func (wfc *WfCase) ProcessTemplate(tmpl string) ([]byte, error) {
-
-	ti := []templateutil.Info{
-		{
-			Name:    "body",
-			Content: tmpl,
-		},
-	}
-
-	pkgTemplate, err := templateutil.Parse(ti, wfc.getTemplateFunctions())
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := templateutil.Process(pkgTemplate, wfc.Vars, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return resp, nil
-}
-
-type ReportLogDetail string
-
-const (
-	ReportLogHAR        ReportLogDetail = "har"
-	ReportLogHARRequest                 = "har-request"
-	ReportLogSimple                     = "simple"
-)
-
-func (wfc *WfCase) GetHarData(detail ReportLogDetail, jm *jsonmask.JsonMask) *har.HAR {
-
-	const semLogContext = "wf-case::get-har-data"
-	podName := os.Getenv("HOSTNAME")
-	if podName == "" {
-		log.Warn().Msg(semLogContext + " HOSTNAME env variable not set")
-		podName = "localhost"
-	}
-
-	har := har.HAR{
-		Log: &har.Log{
-			Version: "1.1",
-			Creator: &har.Creator{
-				Name:    "tpm-symphony",
-				Version: utils2.GetVersion(),
-			},
-			Browser: wfc.Browser,
-			Comment: wfc.Id,
-		},
-	}
-
-	for n, e := range wfc.Entries {
-
-		incl := true
-		if detail == ReportLogHARRequest && e.Comment != config.InitialRequestContextNameStringReference {
-			incl = false
-		}
-
-		if incl {
-
-			err := e.MaskRequestBody(jm)
-			if err != nil {
-				log.Error().Err(err).Str("request-id", wfc.GetRequestId()).Msg("error masking request sensitive data")
+		var varNames []string
+		if sorted {
+			log.Warn().Msg("please disable sorting of process variables")
+			for n, _ := range wfc.Vars {
+				varNames = append(varNames, n)
 			}
 
-			err = e.MaskResponseBody(jm)
-			if err != nil {
-				log.Error().Err(err).Str("request-id", wfc.GetRequestId()).Msg("error masking response sensitive data")
+			sort.Strings(varNames)
+			for _, n := range varNames {
+				i := wfc.Vars[n]
+				if reflect.ValueOf(i).Kind() != reflect.Func {
+					log.Trace().Str("name", n).Interface("value", i).Msg("case variable")
+				}
 			}
-
-			log.Trace().Str("id", n).Msg("adding entry to har")
-			har.Log.Entries = append(har.Log.Entries, e)
 		} else {
-			log.Trace().Str("id", n).Msg("skipping entry from har")
+			for n, v := range wfc.Vars {
+				if reflect.ValueOf(v).Kind() != reflect.Func {
+					log.Trace().Str("name", n).Interface("value", v).Msg("case variable")
+				}
+			}
 		}
-	}
 
-	return &har
 }
-
+*/
 /*
 func maskEnrty(e *har.Entry, jm *jsonmask.JsonMask) error {
 

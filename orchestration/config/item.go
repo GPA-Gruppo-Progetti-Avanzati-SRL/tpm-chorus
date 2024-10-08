@@ -40,6 +40,7 @@ var activityTypeRegistry = map[Type]ActivityTypeRegistryEntry{
 	NestedOrchestrationActivityType: {Tp: NestedOrchestrationActivityType, UnmarshallFromJSON: NewNestedOrchestrationActivityFromJSON, UnmarshalFromYAML: NewNestedOrchestrationActivityFromYAML},
 	MongoActivityType:               {Tp: MongoActivityType, UnmarshallFromJSON: NewMongoActivityFromJSON, UnmarshalFromYAML: NewMongoActivityFromYAML},
 	TransformActivityType:           {Tp: TransformActivityType, UnmarshallFromJSON: NewTransformActivityFromJSON, UnmarshalFromYAML: NewTransformActivityFromYAML},
+	ScriptActivityType:              {Tp: ScriptActivityType, UnmarshallFromJSON: NewScriptActivityFromJSON, UnmarshalFromYAML: NewScriptActivityFromYAML},
 }
 
 type Guarded interface {
@@ -170,13 +171,14 @@ func (c *Activity) MetricsConfig() promutil.MetricsConfigReference {
 	return r
 }
 
+// ActivityDefaultExpressionContextName To be aligned with wfcase.InitialRequestHarEntryId
 const (
-	InitialRequestContextNameStringReference = "request"
+	ActivityDefaultExpressionContextName = "request"
 )
 
 func (c *Activity) ExpressionContextNameStringReference() string {
 	if c.ExprContextName == "" {
-		return InitialRequestContextNameStringReference
+		return ActivityDefaultExpressionContextName
 	}
 
 	return c.ExprContextName

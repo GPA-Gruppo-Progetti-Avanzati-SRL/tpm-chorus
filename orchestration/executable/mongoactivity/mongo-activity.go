@@ -8,6 +8,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
@@ -73,7 +74,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	if len(tcfg.ProcessVars) > 0 {
-		expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+		expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 		if err != nil {
 			log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 			return err
@@ -89,8 +90,9 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 
 	beginOf := time.Now()
 	metricsLabels := a.MetricsLabels()
+	defer func() { a.SetMetrics(beginOf, metricsLabels) }()
 
-	resolver, err := a.getResolver(wfc)
+	resolver, err := a.GetEvaluator(wfc)
 	if err != nil {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
@@ -141,22 +143,22 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 		if err != nil {
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 			metricsLabels[MetricIdStatusCode] = "500"
-			a.SetMetrics(beginOf, metricsLabels)
+			// See defer a.SetMetrics(beginOf, metricsLabels)
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
 		}
 
-		_ = wfc.AddEndpointRequestData(a.Name(), req, tcfg.PII)
+		_ = wfc.SetHarEntryRequest(a.Name(), req, tcfg.PII)
 
 		harResponse, err = a.Invoke(wfc, op)
 		if err != nil {
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 			metricsLabels[MetricIdStatusCode] = "500"
-			a.SetMetrics(beginOf, metricsLabels)
+			// See defer a.SetMetrics(beginOf, metricsLabels)
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
 		}
 
 		if harResponse != nil {
-			_ = wfc.AddEndpointResponseData(a.Name(), harResponse, tcfg.PII)
+			_ = wfc.SetHarEntryResponse(a.Name(), harResponse, tcfg.PII)
 			metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
 
 			if cacheEnabled && harResponse.Status == http.StatusOK {
@@ -171,13 +173,13 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(
-		harResponse.Status, a.Name(), a.Name(), wfcase.ResolverContextReference{Name: a.Name(), UseResponse: true}, wfc, a.definition.OnResponseActions, false)
+		harResponse.Status, a.Name(), a.Name(), wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, wfc, a.definition.OnResponseActions, false)
 	if remappedStatusCode > 0 {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 	}
 	if err != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		_ = a.SetMetrics(beginOf, metricsLabels)
+		// see defer_ = a.SetMetrics(beginOf, metricsLabels)
 		return err
 	}
 
@@ -196,24 +198,10 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 	*/
 
-	_ = a.SetMetrics(beginOf, metricsLabels)
+	// See defer _ = a.SetMetrics(beginOf, metricsLabels)
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 
 	return err
-}
-
-func (a *MongoActivity) getResolver(wfc *wfcase.WfCase) (*wfcase.ProcessVarResolver, error) {
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
-	if err != nil {
-		return nil, err
-	}
-
-	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
-	if err != nil {
-		return nil, err
-	}
-
-	return resolver, nil
 }
 
 func (a *MongoActivity) resolveStatementParts(wfc *wfcase.WfCase, m map[jsonops.MongoJsonOperationStatementPart][]byte) (map[jsonops.MongoJsonOperationStatementPart][]byte, error) {
@@ -226,14 +214,14 @@ func (a *MongoActivity) resolveStatementParts(wfc *wfcase.WfCase, m map[jsonops.
 
 		resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
 	*/
-	resolver, err := a.getResolver(wfc)
+	resolver, err := a.GetEvaluator(wfc)
 	if err != nil {
 		return nil, err
 	}
 
 	newMap := map[jsonops.MongoJsonOperationStatementPart][]byte{}
 	for n, b := range m {
-		s, _, err := varResolver.ResolveVariables(string(b), varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+		s, _, err := varResolver.ResolveVariables(string(b), varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 		if err != nil {
 			return nil, err
 		}
@@ -467,7 +455,7 @@ func (a *MongoActivity) findResponseAction(statusCode int) int {
 	return matchedAction
 } */
 
-func (a *MongoActivity) resolveCacheConfig(wfc *wfcase.WfCase, resolver *wfcase.ProcessVarResolver, cacheConfig config.CacheConfig, refs config.DataReferences) (config.CacheConfig, error) {
+func (a *MongoActivity) resolveCacheConfig(wfc *wfcase.WfCase, resolver *wfexpressions.Evaluator, cacheConfig config.CacheConfig, refs config.DataReferences) (config.CacheConfig, error) {
 	cfg := cacheConfig
 	if refs.IsPresent(cacheConfig.Key) {
 		if key, ok := refs.Find(cacheConfig.Key); ok {
@@ -475,7 +463,7 @@ func (a *MongoActivity) resolveCacheConfig(wfc *wfcase.WfCase, resolver *wfcase.
 		}
 	}
 
-	s, _, err := varResolver.ResolveVariables(cfg.Key, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	s, _, err := varResolver.ResolveVariables(cfg.Key, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return cfg, err
 	}
@@ -507,7 +495,7 @@ func (a *MongoActivity) resolveResponseFromCache(wfc *wfcase.WfCase, cacheConfig
 		entryId = a.Name() + ";cache=true"
 	}
 
-	_ = wfc.AddEndpointHarEntry(entryId, cacheHarEntry)
+	_ = wfc.SetHarEntry(entryId, cacheHarEntry)
 	return cacheHarEntry.Response, nil
 }
 

@@ -9,6 +9,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
@@ -121,7 +122,7 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		return err
@@ -171,14 +172,14 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 			}
 		}
 
-		_ = wfc.AddEndpointRequestData(ep.Id, req, ep.PII)
+		_ = wfc.SetHarEntryRequest(ep.Id, req, ep.PII)
 
 		entry, err := a.Produce(wfc, ep, req)
 		var resp *har.Response
 		if entry != nil {
 			resp = entry.Response
 		}
-		_ = wfc.AddEndpointResponseData(ep.Id, resp, ep.PII)
+		_ = wfc.SetHarEntryResponse(ep.Id, resp, ep.PII)
 
 		if owned {
 			span.Finish()
@@ -187,7 +188,7 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(resp.Status)
 
 		remappedStatusCode, err := a.ProcessResponseActionByStatusCode(
-			resp.Status, a.Name(), util.StringCoalesce(ep.Id, ep.Name), wfcase.ResolverContextReference{Name: ep.Id, UseResponse: true}, wfc, ep.Definition.OnResponseActions, false)
+			resp.Status, a.Name(), util.StringCoalesce(ep.Id, ep.Name), wfcase.HarEntryReference{Name: ep.Id, UseResponse: true}, wfc, ep.Definition.OnResponseActions, false)
 		if remappedStatusCode > 0 {
 			metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 		}
@@ -398,12 +399,12 @@ func (a *KafkaActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Producer) (*
 
 	const semLogContext = "kafka-activity::new-request-definition"
 	// note the ignoreNonApplicationJsonResponseContent has been set to false since it doesn't apply to the request processing
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		return nil, err
 	}
 
-	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
+	resolver, err := wfc.GetEvaluatorByHarEntryReference(expressionCtx, true, "", false)
 	if err != nil {
 		return nil, err
 	}
@@ -415,7 +416,7 @@ func (a *KafkaActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Producer) (*
 
 	ub.WithHostname(fmt.Sprintf("%s", a.BrokerName))
 
-	s, _, err := varResolver.ResolveVariables(ep.Definition.TopicName, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	s, _, err := varResolver.ResolveVariables(ep.Definition.TopicName, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return nil, err
 	}
@@ -424,7 +425,7 @@ func (a *KafkaActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Producer) (*
 	opts = append(opts, har.WithUrl(ub.Url()))
 
 	for _, h := range ep.Definition.Headers {
-		r, _, err := varResolver.ResolveVariables(h.Value, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+		r, _, err := varResolver.ResolveVariables(h.Value, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 		if err != nil {
 			return nil, err
 		}
@@ -464,10 +465,10 @@ func (a *KafkaActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Producer) (*
 	return &req, nil
 }
 
-func (a *KafkaActivity) newRequestDefinitionMessageBody(wfc *wfcase.WfCase, ep Producer, resolver *wfcase.ProcessVarResolver) (har.RequestOption, error) {
+func (a *KafkaActivity) newRequestDefinitionMessageBody(wfc *wfcase.WfCase, ep Producer, resolver *wfexpressions.Evaluator) (har.RequestOption, error) {
 
 	bodyContent, _ := a.Refs.Find(ep.Definition.Body.ExternalValue)
-	s, _, err := varResolver.ResolveVariables(string(bodyContent), varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	s, _, err := varResolver.ResolveVariables(string(bodyContent), varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return nil, err
 	}
@@ -485,7 +486,7 @@ func (a *KafkaActivity) newRequestDefinitionMessageBody(wfc *wfcase.WfCase, ep P
 
 }
 
-func (a *KafkaActivity) newRequestDefinitionMessageKey(wfc *wfcase.WfCase, ep Producer, resolver *wfcase.ProcessVarResolver) (har.RequestOption, error) {
+func (a *KafkaActivity) newRequestDefinitionMessageKey(wfc *wfcase.WfCase, ep Producer, resolver *wfexpressions.Evaluator) (har.RequestOption, error) {
 
 	const semLogContext = "kafka-activity::new-message-key"
 
@@ -494,7 +495,7 @@ func (a *KafkaActivity) newRequestDefinitionMessageKey(wfc *wfcase.WfCase, ep Pr
 	if ep.Definition.Key != "" {
 		// messageKey, _ := a.Refs.Find(ep.Definition.Key)
 		messageKey := ep.Definition.Key
-		s, _, err = varResolver.ResolveVariables(string(messageKey), varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+		s, _, err = varResolver.ResolveVariables(string(messageKey), varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 		if err != nil {
 			return nil, err
 		}

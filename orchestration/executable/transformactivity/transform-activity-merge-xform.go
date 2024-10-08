@@ -32,8 +32,8 @@ func (xform MergeXForm) Execute(wfc *wfcase.WfCase, data []byte) ([]byte, error)
 	}
 
 	for _, src := range xform.Sources {
-		var expressionCtx wfcase.ResolverContextReference
-		expressionCtx, err = wfc.ResolveExpressionContextName(src)
+		var expressionCtx wfcase.HarEntryReference
+		expressionCtx, err = wfc.ResolveHarEntryReferenceByName(src)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return nil, err
@@ -41,7 +41,7 @@ func (xform MergeXForm) Execute(wfc *wfcase.WfCase, data []byte) ([]byte, error)
 		log.Trace().Str("expr-scope", expressionCtx.Name).Msg(semLogContext)
 
 		var b []byte
-		b, err = wfc.GetBodyByContext(expressionCtx, true)
+		b, err = wfc.GetBodyInHarEntry(expressionCtx, true)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return nil, err

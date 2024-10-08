@@ -1,4 +1,4 @@
-package wfcase
+package wfexpressions
 
 import (
 	"encoding/json"
@@ -6,29 +6,80 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/templateutil"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
+	"github.com/PaesslerAG/gval"
 	"github.com/google/uuid"
 	"os"
 	"reflect"
 	"strings"
+	"text/template"
 
 	"github.com/PaesslerAG/jsonpath"
 	"github.com/rs/zerolog/log"
 )
 
-type VarResolverOption func(r *ProcessVarResolver) error
+type EvaluatorOption func(r *Evaluator) error
 
-type ProcessVarResolver struct {
+type Evaluator struct {
+	Name string
+
 	vars    ProcessVars
 	body    interface{}
 	headers har.NameValuePairs
 	params  har.Params
 
-	TempVars map[string]interface{}
+	tempVarsw []string
 }
 
-func (pvr *ProcessVarResolver) BodyAsByteArray() ([]byte, error) {
+func (pvr *Evaluator) ClearTempVariables() {
+	if len(pvr.tempVarsw) > 0 {
+		pvr.vars.ClearTemporary(pvr.tempVarsw)
+	}
+}
+
+func (pvr *Evaluator) VariableLookup(varName string, defaultValue string) (interface{}, bool) {
+
+	var varValue interface{}
+	var ok bool
+	if len(pvr.vars) > 0 {
+		varValue, ok = pvr.vars.Lookup(varName, defaultValue)
+	}
+	/*
+		if !ok && includeTemporary && len(pvr.tempVars) > 0 {
+			varValue, ok = pvr.tempVars.Lookup(varName, defaultValue)
+		}
+	*/
+
+	return varValue, ok
+}
+
+/*
+	func (pvr *Evaluator) mergeVariables() ProcessVars {
+		var resultVars ProcessVars
+		if len(pvr.vars) > 0 && len(pvr.tempVars) > 0 {
+			resultVars = make(ProcessVars)
+			for n, v := range pvr.vars {
+				resultVars[n] = v
+			}
+
+			for n, v := range pvr.tempVars {
+				resultVars[n] = v
+			}
+		} else {
+			if len(pvr.vars) > 0 {
+				resultVars = pvr.vars
+			} else {
+				resultVars = pvr.tempVars
+			}
+		}
+
+		return resultVars
+	}
+*/
+
+func (pvr *Evaluator) BodyAsByteArray() ([]byte, error) {
 	const semLogContext = "variable-resolver::get-body-as-byte-array"
 
 	var err error
@@ -53,7 +104,14 @@ func (pvr *ProcessVarResolver) BodyAsByteArray() ([]byte, error) {
 	}
 }
 
-func (pvr *ProcessVarResolver) WithBody(ct string, aBody []byte, transformationId string) error {
+func (pvr *Evaluator) WithTemporaryProcessVars(tempVars ProcessVars) {
+	for n, v := range tempVars {
+		pvr.tempVarsw = append(pvr.tempVarsw, n)
+		pvr.vars[n] = v
+	}
+}
+
+func (pvr *Evaluator) WithBody(ct string, aBody []byte, transformationId string) error {
 	const semLogContext = "variable-resolver::with-body"
 	var err error
 	if aBody != nil {
@@ -81,16 +139,23 @@ func (pvr *ProcessVarResolver) WithBody(ct string, aBody []byte, transformationI
 	return nil
 }
 
-func WithProcessVars(prcVars ProcessVars) VarResolverOption {
-	return func(r *ProcessVarResolver) error {
+func WithTemporaryProcessVars(prcVars ProcessVars) EvaluatorOption {
+	return func(r *Evaluator) error {
+		r.WithTemporaryProcessVars(prcVars)
+		return nil
+	}
+}
+
+func WithProcessVars(prcVars ProcessVars) EvaluatorOption {
+	return func(r *Evaluator) error {
 		r.vars = prcVars
 		return nil
 	}
 }
 
-func WithBody(ct string, aBody []byte, transformationId string) VarResolverOption {
+func WithBody(ct string, aBody []byte, transformationId string) EvaluatorOption {
 	const semLogContext = "variable-resolver::with-body"
-	return func(r *ProcessVarResolver) error {
+	return func(r *Evaluator) error {
 		return r.WithBody(ct, aBody, transformationId)
 		/*
 			var err error
@@ -121,22 +186,22 @@ func WithBody(ct string, aBody []byte, transformationId string) VarResolverOptio
 	}
 }
 
-func WithHeaders(h []har.NameValuePair) VarResolverOption {
-	return func(r *ProcessVarResolver) error {
+func WithHeaders(h []har.NameValuePair) EvaluatorOption {
+	return func(r *Evaluator) error {
 		r.headers = h
 		return nil
 	}
 }
 
-func WithParams(p []har.Param) VarResolverOption {
-	return func(r *ProcessVarResolver) error {
+func WithParams(p []har.Param) EvaluatorOption {
+	return func(r *Evaluator) error {
 		r.params = p
 		return nil
 	}
 }
 
-func NewProcessVarResolver(opts ...VarResolverOption) (*ProcessVarResolver, error) {
-	pvr := &ProcessVarResolver{}
+func NewEvaluator(aName string, opts ...EvaluatorOption) (*Evaluator, error) {
+	pvr := &Evaluator{Name: aName}
 
 	for _, o := range opts {
 		err := o(pvr)
@@ -150,7 +215,88 @@ func NewProcessVarResolver(opts ...VarResolverOption) (*ProcessVarResolver, erro
 
 var resolverTypePrefix = []string{"$.", "$[", "h:", "p:", "v:", "g:"}
 
-func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
+func (pvr *Evaluator) Interpolate(s string) (string, error) {
+	val, _, err := varResolver.ResolveVariables(s, varResolver.SimpleVariableReference, pvr.VarResolverFunc, true)
+	if err != nil {
+		return "", err
+	}
+
+	return val, nil
+}
+
+func (pvr *Evaluator) InterpolateMany(expr []string) ([]string, error) {
+	var resolved []string
+	for _, s := range expr {
+		val, _, err := varResolver.ResolveVariables(s, varResolver.SimpleVariableReference, pvr.VarResolverFunc, true)
+		if err != nil {
+			return nil, err
+		}
+
+		resolved = append(resolved, val)
+	}
+
+	return resolved, nil
+}
+
+func (pvr *Evaluator) InterpolateAndEval(s string) (interface{}, error) {
+	const semLogContext = "wf-evaluator::interpolate-eval"
+	val, _, err := varResolver.ResolveVariables(s, varResolver.SimpleVariableReference, pvr.VarResolverFunc, true)
+	if err != nil {
+		return "", err
+	}
+
+	val, isExpr := pvr.IsExpression(val)
+	if isExpr {
+		return pvr.Eval(val)
+	}
+
+	return val, nil
+}
+
+func (pvr *Evaluator) IsExpression(e string) (string, bool) {
+	if e == "" {
+		return e, false
+	}
+
+	if strings.HasPrefix(e, ":") {
+		return strings.TrimPrefix(e, ":"), true
+	}
+	return e, false
+}
+
+func (pvr *Evaluator) Eval(s string) (interface{}, error) {
+	const semLogContext = "wf-evaluator::eval"
+
+	if s != "" {
+		varValue, err := gval.Evaluate(s, pvr.vars)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+		}
+		return varValue, err
+	}
+
+	return s, nil
+}
+
+func (pvr *Evaluator) EvalToBool(s string) (bool, error) {
+	boolVal := true
+
+	if s != "" {
+		exprValue, err := gval.Evaluate(s, pvr.vars)
+		if err != nil {
+			return false, err
+		}
+
+		ok := false
+		if boolVal, ok = exprValue.(bool); !ok {
+			return false, fmt.Errorf("expression %s is not a boolean expression", s)
+		}
+	}
+
+	return boolVal, nil
+}
+
+func (pvr *Evaluator) VarResolverFunc(_, s string) (string, bool) {
 
 	const semLogContext = "process-var-resolver::resolve-var"
 	var err error
@@ -221,10 +367,10 @@ func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 
 	case "v:":
 		vComp := strings.Split(s[2:], ",")
-		varValue, ok = pvr.vars.Lookup(variable.Name, "")
+		varValue, ok = pvr.VariableLookup(variable.Name, "")
 		if ok {
 			if reflect.ValueOf(varValue).Kind() == reflect.Func {
-				varValue = pvr.resolveFunctionVar(varValue, variable.Name, vComp[1:]...)
+				varValue = pvr.evaluateFunction(varValue, variable.Name, vComp[1:]...)
 				skipVariableOpts = true
 			} /* else {
 				s = fmt.Sprintf("%v", v)
@@ -236,7 +382,7 @@ func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 		varValue, err = globals.GetGlobalVar("", variable.Name, "")
 		if err == nil {
 			if reflect.ValueOf(varValue).Kind() == reflect.Func {
-				varValue = pvr.resolveFunctionVar(varValue, variable.Name, vComp[1:]...)
+				varValue = pvr.evaluateFunction(varValue, variable.Name, vComp[1:]...)
 				skipVariableOpts = true
 			} /* else {
 				s = fmt.Sprintf("%v", v)
@@ -263,10 +409,11 @@ func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 
 	if variable.IsTagPresent(varResolver.FormatOptWithTempVar) {
 		newName := fmt.Sprintf("%s_%s", "TMP_", uuid.New().String())
-		if pvr.TempVars == nil {
-			pvr.TempVars = make(map[string]interface{})
+		if pvr.vars == nil {
+			pvr.vars = make(map[string]interface{})
 		}
-		pvr.TempVars[newName] = varValue
+		pvr.tempVarsw = append(pvr.tempVarsw, newName)
+		pvr.vars[newName] = varValue
 		varValue = newName
 	}
 	s, err = variable.ToString(varValue, doEscape, skipVariableOpts)
@@ -277,6 +424,33 @@ func (pvr *ProcessVarResolver) ResolveVar(_, s string) (string, bool) {
 	return s, false
 }
 
+func (pvr *Evaluator) EvaluateTemplate(tmpl string, funcMap template.FuncMap) ([]byte, error) {
+	s, err := pvr.Interpolate(string(tmpl))
+	// s, _, err := varResolver.ResolveVariables(string(tmpl), varResolver.SimpleVariableReference, pvr.VarResolverFunc, true)
+	if err != nil {
+		return nil, err
+	}
+
+	ti := []templateutil.Info{
+		{
+			Name:    "body",
+			Content: s,
+		},
+	}
+
+	pkgTemplate, err := templateutil.Parse(ti, funcMap)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := templateutil.Process(pkgTemplate, pvr.vars, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 func isJsonPathUnknownKey(err error) bool {
 	if err != nil {
 		return strings.HasPrefix(err.Error(), "unknown key")
@@ -285,7 +459,7 @@ func isJsonPathUnknownKey(err error) bool {
 	return false
 }
 
-func (pvr *ProcessVarResolver) resolveFunctionVar(v interface{}, funcName string, params ...string) string {
+func (pvr *Evaluator) evaluateFunction(v interface{}, funcName string, params ...string) string {
 	const semLogContext = "process-var-resolver::resolve-func-var"
 	log.Trace().Interface("kind", reflect.ValueOf(v).Kind()).Msg(semLogContext)
 
@@ -349,7 +523,8 @@ func (pvr *ProcessVarResolver) resolveFunctionVar(v interface{}, funcName string
 	}
 */
 
-func (pvr *ProcessVarResolver) resolveJsonPathExpr(v interface{}) (string, error) {
+/*
+func (pvr *Evaluator) resolveJsonPathExpr(v interface{}) (string, error) {
 
 	var s string
 	var err error
@@ -375,8 +550,9 @@ func (pvr *ProcessVarResolver) resolveJsonPathExpr(v interface{}) (string, error
 
 	return s, err
 }
+*/
 
-func (pvr *ProcessVarResolver) getPrefix(s string) (string, error) {
+func (pvr *Evaluator) getPrefix(s string) (string, error) {
 
 	matchedPrefix := "env"
 

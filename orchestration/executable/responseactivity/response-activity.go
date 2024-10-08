@@ -11,6 +11,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/prometheus/client_golang/prometheus"
@@ -98,7 +99,7 @@ func (a *ResponseActivity) Execute(wfc *wfcase.WfCase) error {
 
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 
-	expressionCtx, err := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
+	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		return err
@@ -146,8 +147,8 @@ func (a *ResponseActivity) ResponseJSON(wfc *wfcase.WfCase) (*har.Response, erro
 	}
 
 	tcfg := a.Cfg.(*config.ResponseActivity)
-	expressionCtx, _ := wfc.ResolveExpressionContextName(a.Cfg.ExpressionContextNameStringReference())
-	resolver, err := wfc.GetResolverByContext(expressionCtx, true, "", false)
+	expressionCtx, _ := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
+	resolver, err := wfc.GetEvaluatorByHarEntryReference(expressionCtx, true, "", false)
 	if err != nil {
 		return nil, err
 	}
@@ -267,7 +268,7 @@ const (
 	ResponseCacheMiss = 3
 )
 
-func (a *ResponseActivity) handleResponseCache(r *config.Response, resolver *wfcase.ProcessVarResolver, cacheInfo config.CacheInfo) ([]byte, int, error) {
+func (a *ResponseActivity) handleResponseCache(r *config.Response, resolver *wfexpressions.Evaluator, cacheInfo config.CacheInfo) ([]byte, int, error) {
 
 	const semLogContext = string(config.ResponseActivityType) + "::handle-cache"
 
@@ -317,9 +318,9 @@ func (a *ResponseActivity) selectResponse(cfg *config.ResponseActivity, wfc *wfc
 	return -1
 }
 
-func (a *ResponseActivity) computeBody(wfc *wfcase.WfCase, bodyTemplate []byte, resolver *wfcase.ProcessVarResolver) ([]byte, error) {
+func (a *ResponseActivity) computeBody(wfc *wfcase.WfCase, bodyTemplate []byte, resolver *wfexpressions.Evaluator) ([]byte, error) {
 
-	s, _, err := varResolver.ResolveVariables(string(bodyTemplate), varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	s, _, err := varResolver.ResolveVariables(string(bodyTemplate), varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return nil, err
 	}
@@ -333,12 +334,12 @@ func (a *ResponseActivity) computeBody(wfc *wfcase.WfCase, bodyTemplate []byte, 
 
 }
 
-func (a *ResponseActivity) computeHeaders(headers []config.NameValuePair, resolver *wfcase.ProcessVarResolver) ([]har.NameValuePair, error) {
+func (a *ResponseActivity) computeHeaders(headers []config.NameValuePair, resolver *wfexpressions.Evaluator) ([]har.NameValuePair, error) {
 
 	var resolvedHeaders []har.NameValuePair
 	if len(headers) > 0 {
 		for _, h := range headers {
-			r, _, err := varResolver.ResolveVariables(h.Value, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+			r, _, err := varResolver.ResolveVariables(h.Value, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 			if err != nil {
 				return nil, err
 			}
@@ -350,12 +351,12 @@ func (a *ResponseActivity) computeHeaders(headers []config.NameValuePair, resolv
 
 }
 
-func (a *ResponseActivity) getCachedResponse(resolver *wfcase.ProcessVarResolver, redisBrokerName, cacheKey string) ([]byte, error) {
+func (a *ResponseActivity) getCachedResponse(resolver *wfexpressions.Evaluator, redisBrokerName, cacheKey string) ([]byte, error) {
 
 	const semLogContext = string(config.ResponseActivityType) + "::get-cached-response"
 
 	var err error
-	cacheKey, _, err = varResolver.ResolveVariables(cacheKey, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	cacheKey, _, err = varResolver.ResolveVariables(cacheKey, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return nil, err
 	}
@@ -386,12 +387,12 @@ func (a *ResponseActivity) getCachedResponse(resolver *wfcase.ProcessVarResolver
 	return nil, nil
 }
 
-func (a *ResponseActivity) setCachedResponse(resolver *wfcase.ProcessVarResolver, redisBrokerName, cacheKey string, v interface{}) error {
+func (a *ResponseActivity) setCachedResponse(resolver *wfexpressions.Evaluator, redisBrokerName, cacheKey string, v interface{}) error {
 
 	const semLogContext = string(config.ResponseActivityType) + "::set-cached-response"
 
 	var err error
-	cacheKey, _, err = varResolver.ResolveVariables(cacheKey, varResolver.SimpleVariableReference, resolver.ResolveVar, true)
+	cacheKey, _, err = varResolver.ResolveVariables(cacheKey, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return err
 	}
