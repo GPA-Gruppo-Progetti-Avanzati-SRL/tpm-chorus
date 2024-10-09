@@ -282,6 +282,14 @@ func TestFuncs(t *testing.T) {
 			layouts:   nil,
 			wantedInt: 0,
 		},
+		{
+			funcName:     "ParseAndFmtDate",
+			input:        "2024-07-11 16:55:43.747975000000",
+			fmtLayout:    "02/01/2006 15:04:05",
+			layouts:      []string{"2006-01-02T15:04:05Z07:00"},
+			wantedString: "12/04/2023 23:15:56",
+			location:     "",
+		},
 		// {
 		// 	funcName:  "DateDiff",
 		// 	input:     now,
@@ -346,4 +354,17 @@ func TestLocation(t *testing.T) {
 	fmt.Println(date)
 	fmt.Println(dateLocal)
 	fmt.Println(dateLocal.In(location))
+}
+
+func TestParseDate(t *testing.T) {
+	// var locale = "Europe/Rome"
+	// var location, _ = time.LoadLocation(locale)
+
+	var layout = "2006-01-02 15:04:05.999999"
+	var dateString = "2024-07-11 16:55:43.747975000000"
+
+	date, err := time.Parse(layout, dateString)
+	require.NoError(t, err)
+	fmt.Println(date)
+
 }

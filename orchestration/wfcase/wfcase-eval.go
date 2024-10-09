@@ -138,6 +138,16 @@ func (wfc *WfCase) SetVarsFromCase(sourceWfc *WfCase, resolverContext HarEntryRe
 		}
 
 		if boolGuard && err == nil {
+
+			resolvedName := v.Name
+			if v.GlobalScope {
+				resolvedName, err = resolver.InterpolateAndEvalToString(v.Name)
+				if err != nil {
+					log.Error().Err(err).Msg(semLogContext)
+					return err
+				}
+			}
+
 			val, _, err := varResolver.ResolveVariables(v.Value, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 			if err != nil {
 				log.Error().Err(err).Msg(semLogContext)
@@ -156,7 +166,7 @@ func (wfc *WfCase) SetVarsFromCase(sourceWfc *WfCase, resolverContext HarEntryRe
 				}
 			}
 
-			err = wfc.Vars.Set(v.Name, varValue, v.GlobalScope, v.Ttl)
+			err = wfc.Vars.Set(resolvedName, varValue, v.GlobalScope, v.Ttl)
 			if err != nil {
 				log.Error().Err(err).Msg(semLogContext)
 				return err

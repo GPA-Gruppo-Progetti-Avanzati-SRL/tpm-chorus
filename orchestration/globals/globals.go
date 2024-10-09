@@ -67,6 +67,10 @@ func GetGlobalVar(ns, name, defaultValue string) (interface{}, error) {
 		return nil, err
 	}
 
+	if v == nil {
+		return defaultValue, nil
+	}
+
 	return v, nil
 }
 

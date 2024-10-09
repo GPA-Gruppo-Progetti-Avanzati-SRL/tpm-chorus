@@ -238,6 +238,22 @@ func (pvr *Evaluator) InterpolateMany(expr []string) ([]string, error) {
 	return resolved, nil
 }
 
+func (pvr *Evaluator) InterpolateAndEvalToString(s string) (string, error) {
+	const semLogContext = "wf-evaluator::interpolate-and-eval-to-string"
+
+	val, err := pvr.InterpolateAndEval(s)
+	if err != nil {
+		return "", err
+	}
+
+	if s, ok := val.(string); ok {
+		return s, nil
+	}
+
+	log.Warn().Str("expr", s).Str("type", fmt.Sprintf("%T", val)).Msg(semLogContext)
+	return fmt.Sprintf("%v", val), nil
+}
+
 func (pvr *Evaluator) InterpolateAndEval(s string) (interface{}, error) {
 	const semLogContext = "wf-evaluator::interpolate-eval"
 	val, _, err := varResolver.ResolveVariables(s, varResolver.SimpleVariableReference, pvr.VarResolverFunc, true)

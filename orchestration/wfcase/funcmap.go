@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/withenvfuncs"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/rs/zerolog/log"
 	"strings"
@@ -91,7 +92,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins["uuid"] = purefuncs.Uuid
 	builtins["regexMatch"] = purefuncs.RegexMatch
 	builtins["regexExtractFirst"] = purefuncs.RegexExtractFirst
-
+	builtins["globalVar"] = globals.GetGlobalVar
 	return builtins
 }
 
