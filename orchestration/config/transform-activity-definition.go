@@ -21,7 +21,7 @@ func UnmarshalTransformActivityDefinition(def string, refs DataReferences) (Tran
 	data, ok := refs.Find(def)
 	if len(data) == 0 || !ok {
 		err = errors.New("cannot find transform activity definition")
-		log.Error().Err(err).Msg(semLogContext)
+		log.Error().Err(err).Str("def", def).Msg(semLogContext)
 		return maDef, err
 	}
 

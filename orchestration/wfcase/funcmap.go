@@ -87,6 +87,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins["left"] = purefuncs.Left
 	builtins["right"] = purefuncs.Right
 	builtins["len"] = purefuncs.Len
+	builtins["substr"] = purefuncs.Substr
 	builtins["isDef"] = purefuncs.IsDefined
 	builtins["b64"] = purefuncs.Base64
 	builtins["uuid"] = purefuncs.Uuid
