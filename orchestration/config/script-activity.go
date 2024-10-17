@@ -9,7 +9,7 @@ import (
 
 type ScriptActivity struct {
 	Activity `yaml:",inline" json:",inline"`
-	Engine   string `yaml:"engine,omitempty" json:"engine,omitempty" mapstructure:"engine,omitempty"`
+	// Engine   string `yaml:"engine,omitempty" json:"engine,omitempty" mapstructure:"engine,omitempty"`
 }
 
 func (c *ScriptActivity) WithName(n string) *ScriptActivity {

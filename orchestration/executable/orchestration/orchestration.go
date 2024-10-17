@@ -7,6 +7,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/echoactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/endpointactivity"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/jsonschemaactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/kafkactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/mongoactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/requestactivity"
@@ -65,6 +66,8 @@ func NewOrchestration(cfg *config.Orchestration) (Orchestration, error) {
 			ex, err = transformactivity.NewTransformActivity(cfgItem, cfg.References)
 		case config.ScriptActivityType:
 			ex, err = scriptactivity.NewScriptActivity(cfgItem, cfg.References)
+		case config.JsonSchemaActivityType:
+			ex, err = jsonschemaactivity.NewJsonSchemaActivity(cfgItem, cfg.References)
 		default:
 			panic(fmt.Errorf("this should not happen %s, unrecognized sctivity type", cfgItem.Type()))
 		}
