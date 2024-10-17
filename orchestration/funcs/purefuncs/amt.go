@@ -85,7 +85,7 @@ func AmtConv(sourceUnit, targetUnit string, decimalFormat bool, amt interface{})
 	}
 
 	if iAmt < 0 {
-		log.Warn().Int64("total", iAmt).Msg("Op gives a negative result")
+		log.Info().Int64("total", iAmt).Msg("Op gives a negative result")
 	}
 
 	convName := fmt.Sprintf(ConversionMapKetFormat, exprSourceUnit, targetUnit)
@@ -160,7 +160,7 @@ func Amt(opType string, sourceUnit, targetUnit string, decimalFormat bool, amts 
 	}
 
 	if total < 0 {
-		log.Warn().Int64("total", total).Msg("Op gives a negative result")
+		log.Info().Int64("total", total).Msg("Op gives a negative result")
 	}
 
 	convName := fmt.Sprintf(ConversionMapKetFormat, exprSourceUnit, targetUnit)
