@@ -109,6 +109,7 @@ func (kr *KafkaReporter) doWorkLoop() {
 			if err != nil {
 				metricLabels[MetricIdStatusCode] = "500"
 				_ = kr.SetMetrics(metricLabels)
+				log.Error().Err(err).Msg(semLogContext)
 			}
 		}
 
