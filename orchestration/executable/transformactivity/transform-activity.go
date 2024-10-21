@@ -11,6 +11,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/util"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -134,6 +135,10 @@ func (a *TransformActivity) executeKazaamTransformation(kazaamId string, data []
 	return transform.GetRegistry().Transform(kazaamId, data)
 }
 
+func (a *TransformActivity) executeJsonExt2JsonTransformation(data []byte) ([]byte, error) {
+	return util.JsonExtended2JsonConv(data)
+}
+
 func (a *TransformActivity) executeMergeTransformation(wfc *wfcase.WfCase, mergeXForm []byte, currentData []byte) ([]byte, error) {
 	const semLogContext = "transform-activity::execute-merge-transformation"
 
@@ -183,6 +188,8 @@ func (a *TransformActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.HarE
 		case config.XFormMerge:
 			b, err = resolver.BodyAsByteArray()
 			b, err = a.executeMergeTransformation(wfc, xform.Data, b)
+		case config.XFormJsonExt2Json:
+			b, err = a.executeJsonExt2JsonTransformation(b)
 		default:
 			log.Warn().Str("type", xform.Typ).Msg(semLogContext + " unsupported transformation")
 		}

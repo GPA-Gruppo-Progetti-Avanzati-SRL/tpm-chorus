@@ -53,6 +53,8 @@ func UnmarshalTransformActivityDefinition(def string, refs DataReferences) (Tran
 				return maDef, err
 			}
 			maDef.Transforms[i].Data = b
+		case XFormJsonExt2Json:
+			// Nothing to do...
 		default:
 			err = fmt.Errorf("unknown xform type: %s", xForm.Typ)
 			log.Error().Err(err).Msg(semLogContext)
