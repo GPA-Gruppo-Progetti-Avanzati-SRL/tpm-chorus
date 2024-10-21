@@ -190,6 +190,7 @@ func (a *TransformActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.HarE
 			b, err = resolver.BodyAsByteArray()
 			b, err = a.executeMergeTransformation(wfc, xform.Data, b)
 		case config.XFormJsonExt2Json:
+			b, err = resolver.BodyAsByteArray()
 			b, err = a.executeJsonExt2JsonTransformation(b)
 		default:
 			log.Warn().Str("type", xform.Typ).Msg(semLogContext + " unsupported transformation")
