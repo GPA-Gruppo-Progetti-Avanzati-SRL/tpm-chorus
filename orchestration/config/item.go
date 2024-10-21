@@ -225,10 +225,11 @@ func (ei ErrorInfo) IsGuarded() string {
 }
 
 const (
-	XFormMerge        = "merge"
-	XFormTemplate     = "template"
-	XFormKazaam       = "kazaam"
-	XFormJsonExt2Json = "jsonext2json"
+	XFormMerge         = "merge"
+	XFormTemplate      = "template"
+	XFormKazaam        = "kazaam"
+	XFormKazaamDynamic = "kazaam-dynamic"
+	XFormJsonExt2Json  = "jsonext2json"
 )
 
 // OnResponseAction TODO Verificare dove vengono utilizzate le transforms.

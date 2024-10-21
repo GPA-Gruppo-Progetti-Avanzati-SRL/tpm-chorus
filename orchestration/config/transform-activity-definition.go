@@ -33,6 +33,14 @@ func UnmarshalTransformActivityDefinition(def string, refs DataReferences) (Tran
 	for i, xForm := range maDef.Transforms {
 		var b []byte
 		switch xForm.Typ {
+		case XFormKazaamDynamic:
+			b, err := loadKazaamXForm(refs, xForm)
+			if err != nil {
+				log.Error().Err(err).Msg(semLogContext)
+				return maDef, err
+			}
+			maDef.Transforms[i].Data = b
+
 		case XFormKazaam:
 			err = registerKazaamXForm(refs, xForm)
 			if err != nil {
@@ -82,6 +90,18 @@ func loadTemplateXForm(refs DataReferences, templateRef string) ([]byte, error) 
 	trasDef, _ := refs.Find(templateRef)
 	if len(trasDef) == 0 {
 		err := fmt.Errorf("cannot find template %s definition", templateRef)
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	return trasDef, nil
+}
+
+func loadKazaamXForm(refs DataReferences, xform transform.TransformReference) ([]byte, error) {
+	const semLogContext = "transform-activity-definition::load-kazaam-xform"
+	trasDef, _ := refs.Find(xform.DefinitionRef)
+	if len(trasDef) == 0 {
+		err := fmt.Errorf("cannot find transformation %s definition from %s", xform.Id, xform.DefinitionRef)
 		log.Error().Err(err).Msg(semLogContext)
 		return nil, err
 	}

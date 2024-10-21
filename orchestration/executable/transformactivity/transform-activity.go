@@ -135,6 +135,24 @@ func (a *TransformActivity) executeKazaamTransformation(kazaamId string, data []
 	return transform.GetRegistry().Transform(kazaamId, data)
 }
 
+func (a *TransformActivity) resolveAndExecuteKazaamTransformation(wfc *wfcase.WfCase, xForm *transform.TransformReference, resolver *wfexpressions.Evaluator) ([]byte, error) {
+	const semLogContext = "transform-activity::resolve-and-execute-kazaam-transformation"
+
+	resolvedTransformation, err := resolver.EvaluateTemplate(string(xForm.Data), wfc.TemplateFunctions())
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	data, err := resolver.BodyAsByteArray()
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	return transform.ApplyKazaamTransformation(resolvedTransformation, data)
+}
+
 func (a *TransformActivity) executeJsonExt2JsonTransformation(data []byte) ([]byte, error) {
 	b, err := util.JsonExtended2JsonConv(data)
 	return b, err
@@ -183,6 +201,8 @@ func (a *TransformActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.HarE
 		switch xform.Typ {
 		case config.XFormTemplate:
 			b, err = a.executeTemplateTransformation(wfc, xform.Data, resolver)
+		case config.XFormKazaamDynamic:
+			b, err = a.resolveAndExecuteKazaamTransformation(wfc, &xform, resolver)
 		case config.XFormKazaam:
 			b, err = resolver.BodyAsByteArray()
 			b, err = a.executeKazaamTransformation(xform.Id, b)

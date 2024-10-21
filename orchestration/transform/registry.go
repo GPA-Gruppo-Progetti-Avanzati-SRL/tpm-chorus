@@ -130,6 +130,7 @@ func (r Registry) Get(id string) (Transformation, error) {
 
 func (r Registry) Transform(id string, data []byte) ([]byte, error) {
 	const semLogContext = "transform-registry::transform"
+
 	log.Debug().Str("id", id).Msg(semLogContext)
 	t, err := r.Get(id)
 	if err != nil {
@@ -145,6 +146,37 @@ func (r Registry) Transform(id string, data []byte) ([]byte, error) {
 			log.Error().Err(err).Str("id", t.Cfg.Id).Msg(semLogContext)
 		} else {
 			log.Trace().Str("id", t.Cfg.Id).Str("output", string(data)).Msg(semLogContext)
+		}
+	}
+
+	return dataOut, err
+}
+
+func ApplyKazaamTransformation(transformationJson []byte, data []byte) ([]byte, error) {
+	const semLogContext = "transform-registry::apply-kazaan-transformation"
+
+	transformationConfig := Config{}
+	err := yaml.Unmarshal(transformationJson, &transformationConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	rule, err := transformationConfig.ToJSONRule()
+	if err != nil {
+		return nil, err
+	}
+
+	k, err := kazaam.New(rule, kc)
+
+	if transformationConfig.Verbose {
+		log.Trace().Str("id", transformationConfig.Id).Str("input", string(data)).Msg(semLogContext)
+	}
+	dataOut, err := k.TransformJSONString(string(data))
+	if transformationConfig.Verbose {
+		if err != nil {
+			log.Error().Err(err).Str("id", transformationConfig.Id).Msg(semLogContext)
+		} else {
+			log.Trace().Str("id", transformationConfig.Id).Str("output", string(data)).Msg(semLogContext)
 		}
 	}
 
