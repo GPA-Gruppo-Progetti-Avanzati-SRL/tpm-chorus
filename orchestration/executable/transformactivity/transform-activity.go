@@ -102,7 +102,7 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
 	}
 
-	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(harResponse.Status, a.Name(), a.Name(), wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, wfc, a.definition.OnResponseActions, false)
+	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(harResponse.Status, a.Name(), a.Name(), wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, wfc, a.definition.OnResponseActions, true)
 	if remappedStatusCode > 0 {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 	}
@@ -136,7 +136,8 @@ func (a *TransformActivity) executeKazaamTransformation(kazaamId string, data []
 }
 
 func (a *TransformActivity) executeJsonExt2JsonTransformation(data []byte) ([]byte, error) {
-	return util.JsonExtended2JsonConv(data)
+	b, err := util.JsonExtended2JsonConv(data)
+	return b, err
 }
 
 func (a *TransformActivity) executeMergeTransformation(wfc *wfcase.WfCase, mergeXForm []byte, currentData []byte) ([]byte, error) {
