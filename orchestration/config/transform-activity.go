@@ -35,6 +35,15 @@ func (c *TransformActivity) WithExpressionContext(n string) *TransformActivity {
 	return c
 }
 
+func (c *TransformActivity) Dup(newName string) *TransformActivity {
+	actNew := TransformActivity{
+		Activity: c.Activity.Dup(newName),
+		PII:      c.PII,
+	}
+
+	return &actNew
+}
+
 func NewTransformActivity() *TransformActivity {
 	s := TransformActivity{}
 	s.Tp = TransformActivityType

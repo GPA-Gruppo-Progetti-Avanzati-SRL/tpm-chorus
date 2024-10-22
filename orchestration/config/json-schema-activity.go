@@ -37,6 +37,15 @@ func (c *JsonSchemaActivity) WithRefDefinition(n string) *JsonSchemaActivity {
 	return c
 }
 
+func (c *JsonSchemaActivity) Dup(newName string) *JsonSchemaActivity {
+
+	actNew := JsonSchemaActivity{
+		Activity: c.Activity.Dup(newName),
+	}
+
+	return &actNew
+}
+
 func NewJsonSchemaActivity() *JsonSchemaActivity {
 	s := JsonSchemaActivity{}
 	s.Tp = JsonSchemaActivityType

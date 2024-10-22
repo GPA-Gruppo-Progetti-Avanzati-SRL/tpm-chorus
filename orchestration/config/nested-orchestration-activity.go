@@ -29,6 +29,14 @@ func (c *NestedOrchestrationActivity) WithRefDefinition(n string) *NestedOrchest
 	return c
 }
 
+func (c *NestedOrchestrationActivity) Dup(newName string) *NestedOrchestrationActivity {
+	actNew := NestedOrchestrationActivity{
+		Activity: c.Activity.Dup(newName),
+	}
+
+	return &actNew
+}
+
 func NewNestedOrchestrationActivity() *NestedOrchestrationActivity {
 	s := NestedOrchestrationActivity{}
 	s.Tp = NestedOrchestrationActivityType

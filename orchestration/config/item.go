@@ -130,6 +130,31 @@ type Activity struct {
 	ExprContextName string                          `yaml:"input-source,omitempty" mapstructure:"input-source,omitempty" json:"input-source,omitempty"`
 }
 
+func (c *Activity) Dup(newName string) Activity {
+
+	var pv []ProcessVar
+	if len(c.ProcessVars) > 0 {
+		pv = make([]ProcessVar, len(c.ProcessVars))
+		_ = copy(pv, c.ProcessVars)
+	}
+
+	actNew := Activity{
+		Nm:              c.Nm,
+		Tp:              c.Tp,
+		Cm:              c.Cm,
+		Actr:            c.Actr,
+		BndryName:       c.BndryName,
+		BndryFlag:       c.BndryFlag,
+		ProcessVars:     pv,
+		En:              c.En,
+		MetricsCfg:      c.MetricsCfg,
+		Definition:      c.Definition,
+		ExprContextName: c.ExprContextName,
+	}
+
+	return actNew
+}
+
 func (c *Activity) WithName(n string) *Activity {
 	c.Nm = n
 	return c

@@ -48,6 +48,22 @@ func (c *KafkaActivity) WithExpressionContext(n string) *KafkaActivity {
 	return c
 }
 
+func (c *KafkaActivity) Dup(newName string) *KafkaActivity {
+
+	var prods []Producer
+	if len(c.Producers) > 0 {
+		_ = copy(prods, c.Producers)
+	}
+
+	actNew := KafkaActivity{
+		Activity:   c.Activity.Dup(newName),
+		BrokerName: c.BrokerName,
+		Producers:  prods,
+	}
+
+	return &actNew
+}
+
 func NewKafkaActivity() *KafkaActivity {
 	s := KafkaActivity{}
 	s.Tp = KafkaActivityType

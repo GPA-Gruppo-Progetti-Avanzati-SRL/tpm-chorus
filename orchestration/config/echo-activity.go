@@ -35,6 +35,15 @@ func (c *EchoActivity) WithRefDefinition(n string) *EchoActivity {
 	return c
 }
 
+func (c *EchoActivity) Dup(newName string) *EchoActivity {
+	actNew := EchoActivity{
+		Activity: c.Activity.Dup(newName),
+		Message:  c.Message,
+	}
+
+	return &actNew
+}
+
 func NewEchoActivity() *EchoActivity {
 	s := EchoActivity{}
 	s.Tp = EchoActivityType

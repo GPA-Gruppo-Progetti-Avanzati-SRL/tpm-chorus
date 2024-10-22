@@ -37,6 +37,14 @@ func (c *ScriptActivity) WithRefDefinition(n string) *ScriptActivity {
 	return c
 }
 
+func (c *ScriptActivity) Dup(newName string) *ScriptActivity {
+	actNew := ScriptActivity{
+		Activity: c.Activity.Dup(newName),
+	}
+
+	return &actNew
+}
+
 func NewScriptActivity() *ScriptActivity {
 	s := ScriptActivity{}
 	s.Tp = ScriptActivityType

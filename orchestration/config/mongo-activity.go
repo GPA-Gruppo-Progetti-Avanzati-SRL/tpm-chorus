@@ -42,6 +42,16 @@ func (c *MongoActivity) WithExpressionContext(n string) *MongoActivity {
 	return c
 }
 
+func (c *MongoActivity) Dup(newName string) *MongoActivity {
+	actNew := MongoActivity{
+		Activity: c.Activity.Dup(newName),
+		OpType:   c.OpType,
+		PII:      c.PII,
+	}
+
+	return &actNew
+}
+
 func NewMongoActivity() *MongoActivity {
 	s := MongoActivity{}
 	s.Tp = MongoActivityType

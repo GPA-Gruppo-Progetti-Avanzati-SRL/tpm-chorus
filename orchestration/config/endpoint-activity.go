@@ -59,6 +59,21 @@ func (c *EndpointActivity) WithExpressionContext(n string) *EndpointActivity {
 	return c
 }
 
+func (c *EndpointActivity) Dup(newName string) *EndpointActivity {
+
+	var eps []Endpoint
+	if len(c.Endpoints) > 0 {
+		_ = copy(eps, c.Endpoints)
+	}
+
+	actNew := EndpointActivity{
+		Activity:  c.Activity.Dup(newName),
+		Endpoints: eps,
+	}
+
+	return &actNew
+}
+
 func NewEndpointActivity() *EndpointActivity {
 	s := EndpointActivity{}
 	s.Tp = EndpointActivityType

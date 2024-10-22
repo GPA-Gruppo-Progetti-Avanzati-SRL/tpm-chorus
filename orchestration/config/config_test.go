@@ -1,6 +1,7 @@
 package config_test
 
 import (
+	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/stretchr/testify/require"
@@ -400,4 +401,44 @@ func TestNewDictionary(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log(d)
+}
+
+func TestCopyArray(t *testing.T) {
+	// array of elements
+	nums := [5]int{1, 2, 3, 4, 5}
+
+	// copy the `nums` array elements to the
+	// `numsCopy` using the `=` operator (assignment)
+	numsCopy := nums
+
+	// log to the elements of the
+	// `numsCopy` variable to the console
+	fmt.Println(numsCopy) // [1 2 3 4 5]
+
+	// mutate the contents in the `numsCopy` array
+	// to check to see if the contents in
+	// the original array `nums` changes
+	numsCopy[0] = 11
+
+	// log both the `numsCopy` and `nums` array
+	fmt.Println(numsCopy, nums) // [11 2 3 4 5] [1 2 3 4 5]
+}
+
+func changeSlice(s []int) {
+	if len(s) > 0 {
+		s[0] = 5
+	}
+}
+
+func TestCopyArray2(t *testing.T) {
+	s1 := []int{1, 2, 3, 4, 5}
+	s2 := s1
+
+	fmt.Println(s1, s2) // [1 2 3 4 5] [1 2 3 4 5]
+
+	s2[1] = 10          // this change is reflected in both s1 and s2
+	fmt.Println(s1, s2) // [1 10 3 4 5] [1 10 3 4 5]
+
+	changeSlice(s1)
+	fmt.Println(s1, s2) // [5 10 3 4 5] [5 10 3 4 5]
 }
