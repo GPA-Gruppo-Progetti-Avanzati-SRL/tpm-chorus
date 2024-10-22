@@ -209,7 +209,7 @@ func Block(stmts ...Statement) BlockStatement {
 
 func Case(cond string, stmt Statement) CaseStatement {
 	return CaseStatement{
-		Cond: "cond",
+		Cond: cond,
 		Stmt: stmt,
 	}
 }
