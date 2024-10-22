@@ -17,6 +17,11 @@ func (c *JsonSchemaActivity) WithName(n string) *JsonSchemaActivity {
 	return c
 }
 
+func (c *JsonSchemaActivity) WithActor(n string) *JsonSchemaActivity {
+	c.Actr = n
+	return c
+}
+
 func (c *JsonSchemaActivity) WithDescription(n string) *JsonSchemaActivity {
 	c.Cm = n
 	return c

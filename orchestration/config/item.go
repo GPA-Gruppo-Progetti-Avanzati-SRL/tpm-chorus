@@ -53,6 +53,8 @@ type Configurable interface {
 	Name() string
 	Type() Type
 	Enabled() string
+	ActorWithDefault(defActor string) string
+	Actor() string
 	Boundary() string
 	IsBoundary() bool
 	Description() string
@@ -118,6 +120,7 @@ type Activity struct {
 	Nm              string                          `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
 	Tp              Type                            `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
 	Cm              string                          `yaml:"description,omitempty" mapstructure:"description,omitempty" json:"description,omitempty"`
+	Actr            string                          `yaml:"actor,omitempty" mapstructure:"actor,omitempty" json:"actor,omitempty"`
 	BndryName       string                          `yaml:"boundary-name,omitempty" mapstructure:"boundary-name,omitempty" json:"boundary-name,omitempty"`
 	BndryFlag       bool                            `yaml:"is-boundary,omitempty" mapstructure:"is-boundary,omitempty" json:"is-boundary,omitempty"`
 	ProcessVars     []ProcessVar                    `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
@@ -139,6 +142,18 @@ func (c *Activity) WithDescription(n string) *Activity {
 
 func (c *Activity) Name() string {
 	return c.Nm
+}
+
+func (c *Activity) ActorWithDefault(defActor string) string {
+	if c.Actr == "" {
+		return defActor
+	}
+
+	return c.Actr
+}
+
+func (c *Activity) Actor() string {
+	return c.Actr
 }
 
 func (c *Activity) Type() Type {

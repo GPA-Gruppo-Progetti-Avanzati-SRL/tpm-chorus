@@ -41,6 +41,11 @@ func (c *ResponseActivity) WithName(n string) *ResponseActivity {
 	return c
 }
 
+func (c *ResponseActivity) WithActor(n string) *ResponseActivity {
+	c.Actr = n
+	return c
+}
+
 func (c *ResponseActivity) WithDescription(n string) *ResponseActivity {
 	c.Cm = n
 	return c

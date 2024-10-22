@@ -17,6 +17,11 @@ func (c *ScriptActivity) WithName(n string) *ScriptActivity {
 	return c
 }
 
+func (c *ScriptActivity) WithActor(n string) *ScriptActivity {
+	c.Actr = n
+	return c
+}
+
 func (c *ScriptActivity) WithDescription(n string) *ScriptActivity {
 	c.Cm = n
 	return c

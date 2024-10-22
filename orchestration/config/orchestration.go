@@ -419,3 +419,21 @@ func (o *Orchestration) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 	return nil
 }
+
+func (o *Orchestration) Actors(n string) []string {
+	var actorNames []string
+	actors := make(map[string]struct{})
+	actors[n] = struct{}{}
+	actorNames = append(actorNames, n)
+
+	for _, a := range o.Activities {
+		if a.Actor() != "" {
+			if _, ok := actors[a.Actor()]; !ok {
+				actors[a.Actor()] = struct{}{}
+				actorNames = append(actorNames, a.Actor())
+			}
+		}
+	}
+
+	return actorNames
+}

@@ -44,6 +44,11 @@ func (c *EndpointActivity) WithName(n string) *EndpointActivity {
 	return c
 }
 
+func (c *EndpointActivity) WithActor(n string) *EndpointActivity {
+	c.Actr = n
+	return c
+}
+
 func (c *EndpointActivity) WithDescription(n string) *EndpointActivity {
 	c.Cm = n
 	return c

@@ -33,6 +33,11 @@ func (c *KafkaActivity) WithName(n string) *KafkaActivity {
 	return c
 }
 
+func (c *KafkaActivity) WithActor(n string) *KafkaActivity {
+	c.Actr = n
+	return c
+}
+
 func (c *KafkaActivity) WithDescription(n string) *KafkaActivity {
 	c.Cm = n
 	return c

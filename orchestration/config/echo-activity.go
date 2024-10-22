@@ -15,6 +15,11 @@ func (c *EchoActivity) WithName(n string) *EchoActivity {
 	return c
 }
 
+func (c *EchoActivity) WithActor(n string) *EchoActivity {
+	c.Actr = n
+	return c
+}
+
 func (c *EchoActivity) WithDescription(n string) *EchoActivity {
 	c.Cm = n
 	return c

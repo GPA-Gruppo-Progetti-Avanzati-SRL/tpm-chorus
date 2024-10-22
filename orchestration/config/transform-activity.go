@@ -15,6 +15,11 @@ func (c *TransformActivity) WithName(n string) *TransformActivity {
 	return c
 }
 
+func (c *TransformActivity) WithActor(n string) *TransformActivity {
+	c.Actr = n
+	return c
+}
+
 func (c *TransformActivity) WithDescription(n string) *TransformActivity {
 	c.Cm = n
 	return c

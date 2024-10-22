@@ -17,6 +17,11 @@ func (c *MongoActivity) WithName(n string) *MongoActivity {
 	return c
 }
 
+func (c *MongoActivity) WithActor(n string) *MongoActivity {
+	c.Actr = n
+	return c
+}
+
 func (c *MongoActivity) WithDescription(n string) *MongoActivity {
 	c.Cm = n
 	return c

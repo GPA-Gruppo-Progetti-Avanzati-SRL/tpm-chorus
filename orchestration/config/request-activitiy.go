@@ -24,6 +24,11 @@ func (c *RequestActivity) WithName(n string) *RequestActivity {
 	return c
 }
 
+func (c *RequestActivity) WithActor(n string) *RequestActivity {
+	c.Actr = n
+	return c
+}
+
 func (c *RequestActivity) WithDescription(n string) *RequestActivity {
 	c.Cm = n
 	return c
