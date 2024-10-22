@@ -139,7 +139,7 @@ func (c *Activity) Dup(newName string) Activity {
 	}
 
 	actNew := Activity{
-		Nm:              c.Nm,
+		Nm:              newName,
 		Tp:              c.Tp,
 		Cm:              c.Cm,
 		Actr:            c.Actr,
