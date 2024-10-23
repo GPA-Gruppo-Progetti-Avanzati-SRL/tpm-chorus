@@ -10,6 +10,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/jsonschemaactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/kafkactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/mongoactivity"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/nopactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/requestactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/responseactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/scriptactivity"
@@ -52,6 +53,8 @@ func NewOrchestration(cfg *config.Orchestration) (Orchestration, error) {
 			ex, err = requestactivity.NewRequestActivity(cfgItem, cfg.References)
 		case config.EchoActivityType:
 			ex, err = echoactivity.NewEchoActivity(cfgItem, cfg.References)
+		case config.NopActivityType:
+			ex, err = nopactivity.NewNopActivity(cfgItem, cfg.References)
 		case config.ResponseActivityType:
 			ex, err = responseactivity.NewResponseActivity(cfgItem, cfg.References)
 		case config.EndpointActivityType:

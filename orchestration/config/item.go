@@ -15,6 +15,7 @@ type Type string
 
 const (
 	RequestActivityType             Type = "request-activity"
+	NopActivityType                 Type = "nop-activity"
 	EchoActivityType                Type = "echo-activity"
 	EndpointActivityType            Type = "rest-activity"
 	ResponseActivityType            Type = "response-activity"
@@ -36,6 +37,7 @@ var activityTypeRegistry = map[Type]ActivityTypeRegistryEntry{
 	RequestActivityType:             {Tp: RequestActivityType, UnmarshallFromJSON: NewRequestActivityFromJSON, UnmarshalFromYAML: NewRequestActivityFromYAML},
 	ResponseActivityType:            {Tp: ResponseActivityType, UnmarshallFromJSON: NewResponseActivityFromJSON, UnmarshalFromYAML: NewResponseActivityFromYAML},
 	EchoActivityType:                {Tp: EchoActivityType, UnmarshallFromJSON: NewEchoActivityFromJSON, UnmarshalFromYAML: NewEchoActivityFromYAML},
+	NopActivityType:                 {Tp: NopActivityType, UnmarshallFromJSON: NewNopActivityFromJSON, UnmarshalFromYAML: NewNopActivityFromYAML},
 	EndpointActivityType:            {Tp: EndpointActivityType, UnmarshallFromJSON: NewEndpointActivityFromJSON, UnmarshalFromYAML: NewEndpointActivityFromYAML},
 	KafkaActivityType:               {Tp: KafkaActivityType, UnmarshallFromJSON: NewKafkaActivityFromJSON, UnmarshalFromYAML: NewKafkaActivityFromYAML},
 	NestedOrchestrationActivityType: {Tp: NestedOrchestrationActivityType, UnmarshallFromJSON: NewNestedOrchestrationActivityFromJSON, UnmarshalFromYAML: NewNestedOrchestrationActivityFromYAML},
