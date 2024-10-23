@@ -252,6 +252,13 @@ func (o *Orchestration) AddActivity(a Configurable) error {
 	return nil
 }
 
+func (o *Orchestration) AddNopActivity(description string) *NopActivity {
+	n := NewNopActivity().WithDescription(description)
+	o.Activities = append(o.Activities, n)
+
+	return n
+}
+
 func (o *Orchestration) AddPath(source, target, constraint string) error {
 
 	if source == "" || target == "" {
