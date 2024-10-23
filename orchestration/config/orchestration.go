@@ -224,7 +224,9 @@ func (o *Orchestration) GetProperty(n string, defaultValue any) any {
 }
 
 func (o *Orchestration) GetPropertyAsString(n string, defaultValue string) string {
+	const semLogContext = "config::orchestration-get-property"
 	if v, ok := o.Properties[n]; ok {
+		log.Info().Interface(n, v).Msg(semLogContext)
 		return fmt.Sprint(v)
 	}
 
@@ -395,6 +397,7 @@ func (o *Orchestration) UnmarshalYAML(unmarshal func(interface{}) error) error {
 		Boundaries  []ExecBoundary                    `yaml:"boundaries,omitempty" mapstructure:"boundaries,omitempty" json:"boundaries,omitempty"`
 		Activities  []map[string]interface{}          `json:"activities" yaml:"activities"`
 		PII         PersonallyIdentifiableInformation `yaml:"pii,omitempty" mapstructure:"pii,omitempty" json:"pii,omitempty"`
+		Properties  map[string]interface{}            `yaml:"properties,omitempty" mapstructure:"properties,omitempty" json:"properties,omitempty"`
 	}
 	m.Activities = make([]map[string]interface{}, 0)
 	err := unmarshal(&m)
@@ -407,6 +410,7 @@ func (o *Orchestration) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	o.Description = m.Description
 	o.Boundaries = m.Boundaries
 	o.PII = m.PII
+	o.Properties = m.Properties
 	for _, a := range m.Activities {
 
 		/*
