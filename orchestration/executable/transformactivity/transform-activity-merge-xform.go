@@ -8,8 +8,8 @@ import (
 )
 
 type MergeXFormSource struct {
-	ActivityName       string `yaml:"activity,omitempty"  json:"activity,omitempty" mapstructure:"activity,omitempty"`
-	MergedRootProperty string `yaml:"to-property,omitempty" json:"merged-root-property,omitempty" mapstructure:"merged-root-property,omitempty"`
+	ActivityName string `yaml:"activity,omitempty"  json:"activity,omitempty" mapstructure:"activity,omitempty"`
+	Dest         string `yaml:"dest,omitempty" json:"dest,omitempty" mapstructure:"dest,omitempty"`
 }
 
 type MergeXForm struct {
@@ -52,13 +52,13 @@ func (xform MergeXForm) Execute(wfc *wfcase.WfCase, data []byte) ([]byte, error)
 			return nil, err
 		}
 
-		if src.MergedRootProperty == "" {
+		if src.Dest == "" {
 			err = json.Unmarshal(b, &m)
 		} else {
 			var temp map[string]interface{}
-			err = json.Unmarshal(b, &m)
+			err = json.Unmarshal(b, &temp)
 			if err == nil {
-				m[src.MergedRootProperty] = temp
+				m[src.Dest] = temp
 			}
 		}
 
