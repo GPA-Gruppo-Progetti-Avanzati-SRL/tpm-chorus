@@ -7,8 +7,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type MergeXFormSource struct {
+	ActivityName       string `yaml:"activity,omitempty"  json:"activity,omitempty" mapstructure:"activity,omitempty"`
+	MergedRootProperty string `yaml:"merged-root-property,omitempty" json:"merged-root-property,omitempty" mapstructure:"merged-root-property,omitempty"`
+}
+
 type MergeXForm struct {
-	Sources []string `yaml:"sources,omitempty"  json:"sources,omitempty" mapstructure:"sources,omitempty"`
+	Sources []MergeXFormSource `yaml:"sources,omitempty"  json:"sources,omitempty" mapstructure:"sources,omitempty"`
 }
 
 func NewTransformActivityMergeXForm(definition []byte) (MergeXForm, error) {
@@ -33,7 +38,7 @@ func (xform MergeXForm) Execute(wfc *wfcase.WfCase, data []byte) ([]byte, error)
 
 	for _, src := range xform.Sources {
 		var expressionCtx wfcase.HarEntryReference
-		expressionCtx, err = wfc.ResolveHarEntryReferenceByName(src)
+		expressionCtx, err = wfc.ResolveHarEntryReferenceByName(src.ActivityName)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return nil, err
@@ -47,7 +52,16 @@ func (xform MergeXForm) Execute(wfc *wfcase.WfCase, data []byte) ([]byte, error)
 			return nil, err
 		}
 
-		err = json.Unmarshal(b, &m)
+		if src.MergedRootProperty == "" {
+			err = json.Unmarshal(b, &m)
+		} else {
+			var temp map[string]interface{}
+			err = json.Unmarshal(b, &m)
+			if err == nil {
+				m[src.MergedRootProperty] = temp
+			}
+		}
+
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return nil, err
