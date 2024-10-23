@@ -169,7 +169,7 @@ func (vs ProcessVars) EvalToString(v string) (string, error) {
 	return "", nil
 }
 
-func (vs ProcessVars) IndexOfTrueExpression(varExpressions []string) (int, error) {
+func (vs ProcessVars) IndexOfTheOnlyOneTrueExpression(varExpressions []string) (int, error) {
 	return vs.evalExpressionSetToBool(varExpressions, config.ExactlyOne)
 }
 

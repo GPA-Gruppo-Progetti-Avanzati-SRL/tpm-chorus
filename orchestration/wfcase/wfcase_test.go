@@ -77,7 +77,7 @@ func TestNewProcessVarResolver(t *testing.T) {
 
 	t.Log(pvs)
 
-	ndx, err := pvs.IndexOfTrueExpression([]string{`beneficiario_natura == "DT"`, `beneficiario_numero == "8188602"`})
+	ndx, err := pvs.IndexOfTheOnlyOneTrueExpression([]string{`beneficiario_natura == "DT"`, `beneficiario_numero == "8188602"`})
 	require.NoError(t, err)
 	require.Equal(t, ndx, 1)
 
@@ -85,7 +85,7 @@ func TestNewProcessVarResolver(t *testing.T) {
 		return strings.Join(s, " ")
 	}
 
-	ndx, err = pvs.IndexOfTrueExpression([]string{`map("hello", "world!") == "hello world!"`})
+	ndx, err = pvs.IndexOfTheOnlyOneTrueExpression([]string{`map("hello", "world!") == "hello world!"`})
 	require.NoError(t, err)
 	require.Equal(t, ndx, 0)
 }
