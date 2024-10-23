@@ -91,7 +91,11 @@ func (wfc *WfCase) BooleanEvalProcessVars(varExpressions []string, policy string
 }
 
 func (wfc *WfCase) EvalExpression(varExpression string) bool {
+	const semLogContext = "wfcase::eval-expression"
 	_, err := wfc.Vars.IndexOfTheOnlyOneTrueExpression([]string{varExpression})
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+	}
 	return err == nil
 }
 
