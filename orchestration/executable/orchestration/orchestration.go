@@ -157,7 +157,9 @@ func (o *Orchestration) IsValid() bool {
 func (o *Orchestration) Execute(wfc *wfcase.WfCase) (executable.Executable, error) {
 
 	const semLogContext = "orchestration::execute"
-	log.Info().Str("id", o.Cfg.Id).Msg(semLogContext + " start")
+
+	pathSelectionPolicy := o.Cfg.GetPropertyAsString(config.OrchestrationPropertyPathSelectionPolicy, config.ExactlyOne)
+	log.Info().Str("id", o.Cfg.Id).Str("path-selection-policy", pathSelectionPolicy).Msg(semLogContext + " start")
 	defer log.Info().Str("id", o.Cfg.Id).Msg(semLogContext + " end")
 
 	na := o.Cfg.StartActivity
@@ -185,7 +187,7 @@ func (o *Orchestration) Execute(wfc *wfcase.WfCase) (executable.Executable, erro
 			return a, err
 		}
 
-		na, err = a.Next(wfc)
+		na, err = a.Next(wfc, pathSelectionPolicy)
 		if err != nil {
 			return a, err
 		}

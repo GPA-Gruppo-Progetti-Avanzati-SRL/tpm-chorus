@@ -15,7 +15,7 @@ import (
 
 type Executable interface {
 	Execute(wfc *wfcase.WfCase) error
-	Next(wfc *wfcase.WfCase) (string, error)
+	Next(wfc *wfcase.WfCase, policy string) (string, error)
 	AddInput(p Path) error
 	AddOutput(p Path) error
 	IsValid() bool
@@ -111,7 +111,7 @@ func (a *Activity) IsValid() bool {
 	return rc
 }
 
-func (a *Activity) Next(wfc *wfcase.WfCase) (string, error) {
+func (a *Activity) Next(wfc *wfcase.WfCase, policy string) (string, error) {
 
 	na := ""
 	if len(a.Outputs) > 0 {
@@ -119,7 +119,7 @@ func (a *Activity) Next(wfc *wfcase.WfCase) (string, error) {
 		for _, v := range a.Outputs {
 			outputVect = append(outputVect, v.Cfg.Constraint)
 		}
-		selectedPath, err := wfc.BooleanEvalProcessVars(outputVect)
+		selectedPath, err := wfc.BooleanEvalProcessVars(outputVect, policy)
 		if err != nil {
 			return "", smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}

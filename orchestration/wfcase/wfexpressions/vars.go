@@ -2,6 +2,7 @@ package wfexpressions
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
 	"github.com/PaesslerAG/gval"
 	"github.com/rs/zerolog/log"
@@ -110,11 +111,6 @@ func (vs ProcessVars) Set(n string, value interface{}, globalScope bool, ttl tim
 
 type EvaluationMode string
 
-const (
-	ExactlyOne = "exactly-one"
-	AtLeastOne = "at-least-one"
-)
-
 func (vs ProcessVars) Eval(v string) (interface{}, error) {
 	return gval.Evaluate(v, vs)
 }
@@ -174,11 +170,11 @@ func (vs ProcessVars) EvalToString(v string) (string, error) {
 }
 
 func (vs ProcessVars) IndexOfTrueExpression(varExpressions []string) (int, error) {
-	return vs.evalExpressionSetToBool(varExpressions, ExactlyOne)
+	return vs.evalExpressionSetToBool(varExpressions, config.ExactlyOne)
 }
 
 func (vs ProcessVars) IndexOfFirstTrueExpression(varExpressions []string) (int, error) {
-	return vs.evalExpressionSetToBool(varExpressions, AtLeastOne)
+	return vs.evalExpressionSetToBool(varExpressions, config.AtLeastOne)
 }
 
 func (vs ProcessVars) evalExpressionSetToBool(varExpressions []string, mode EvaluationMode) (int, error) {
@@ -216,7 +212,7 @@ func (vs ProcessVars) evalExpressionSetToBool(varExpressions []string, mode Eval
 }
 
 func onTrueEvaluateModeConstraint(isFound bool, isEmpty bool, mode EvaluationMode) (bool, error) {
-	if isFound && mode == ExactlyOne {
+	if isFound && mode == config.ExactlyOne {
 		return false, fmt.Errorf("expression violate the %s mode", mode)
 	}
 

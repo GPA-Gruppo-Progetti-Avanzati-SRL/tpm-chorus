@@ -116,6 +116,12 @@ type ExecBoundary struct {
 /*
  * Orchestration
  */
+const (
+	OrchestrationPropertyPathSelectionPolicy = "selection-path-policy"
+
+	ExactlyOne = "exactly-one"
+	AtLeastOne = "at-least-one"
+)
 
 type Orchestration struct {
 	Id                   string                            `yaml:"id,omitempty" mapstructure:"id,omitempty" json:"id,omitempty"`
@@ -131,6 +137,7 @@ type Orchestration struct {
 	Dictionaries         Dictionaries                      `yaml:"-" mapstructure:"-" json:"-"`
 	PII                  PersonallyIdentifiableInformation `yaml:"pii,omitempty" mapstructure:"pii,omitempty" json:"pii,omitempty"`
 	NestedOrchestrations []Orchestration                   `yaml:"nested-orchestrations,omitempty" mapstructure:"nested-orchestrations,omitempty" json:"nested-orchestrations,omitempty"`
+	Properties           map[string]interface{}            `yaml:"properties,omitempty" mapstructure:"properties,omitempty" json:"properties,omitempty"`
 }
 
 func NewOrchestrationDefinitionFromFolder(orchestration1Folder string) (Orchestration, error) {
@@ -206,6 +213,22 @@ func NewOrchestrationFromYAML(data []byte) (Orchestration, error) {
 
 	o.PII.Initialize()
 	return o, err
+}
+
+func (o *Orchestration) GetProperty(n string, defaultValue any) any {
+	if v, ok := o.Properties[n]; ok {
+		return v
+	}
+
+	return defaultValue
+}
+
+func (o *Orchestration) GetPropertyAsString(n string, defaultValue string) string {
+	if v, ok := o.Properties[n]; ok {
+		return fmt.Sprint(v)
+	}
+
+	return defaultValue
 }
 
 func (o *Orchestration) ToJSON() ([]byte, error) {

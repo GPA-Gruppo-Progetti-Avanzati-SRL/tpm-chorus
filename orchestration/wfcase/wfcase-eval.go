@@ -82,7 +82,11 @@ func (wfc *WfCase) getEvaluatorForHarEntryResponse(evalName string, endpointData
 	return resolver, nil
 }
 
-func (wfc *WfCase) BooleanEvalProcessVars(varExpressions []string) (int, error) {
+func (wfc *WfCase) BooleanEvalProcessVars(varExpressions []string, policy string) (int, error) {
+	if policy == config.AtLeastOne {
+		return wfc.Vars.IndexOfTrueExpression(varExpressions)
+	}
+
 	return wfc.Vars.IndexOfTrueExpression(varExpressions)
 }
 
