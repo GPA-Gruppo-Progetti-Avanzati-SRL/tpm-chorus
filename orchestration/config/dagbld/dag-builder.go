@@ -194,7 +194,7 @@ func (stmt SwitchStatement) Paths() []config.Path {
 	return dag
 }*/
 
-func IfStmt(cond string, thenStmt Statement, elseStmt Statement) Statement {
+func If(cond string, thenStmt Statement, elseStmt Statement) Statement {
 	return &IfStatement{Cond: cond, Then: thenStmt, Else: elseStmt}
 }
 
