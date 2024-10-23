@@ -9,7 +9,7 @@ import (
 
 type MergeXFormSource struct {
 	ActivityName       string `yaml:"activity,omitempty"  json:"activity,omitempty" mapstructure:"activity,omitempty"`
-	MergedRootProperty string `yaml:"merged-root-property,omitempty" json:"merged-root-property,omitempty" mapstructure:"merged-root-property,omitempty"`
+	MergedRootProperty string `yaml:"to-property,omitempty" json:"merged-root-property,omitempty" mapstructure:"merged-root-property,omitempty"`
 }
 
 type MergeXForm struct {
