@@ -256,6 +256,7 @@ type ErrorInfo struct {
 	Step        string `yaml:"step,omitempty" mapstructure:"step,omitempty" json:"step,omitempty"`
 	Description string `yaml:"description,omitempty" mapstructure:"description,omitempty" json:"description,omitempty"`
 	Guard       string `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
+	ErrorLevel  string `yaml:"error-level,omitempty" mapstructure:"error-level,omitempty" json:"error-level,omitempty"`
 }
 
 func (ei ErrorInfo) IsZero() bool {

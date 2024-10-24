@@ -21,6 +21,12 @@ const (
 
 type Option func(executableError *SymphonyError)
 
+const (
+	OnErrorLevelFatal  = "fatal"
+	OnErrorLevelSystem = "system"
+	OnErrorLevelError  = "error"
+)
+
 type SymphonyError struct {
 	StatusCode  int    `yaml:"-" mapstructure:"-" json:"-"`
 	Ambit       string `yaml:"ambit,omitempty" mapstructure:"ambit,omitempty" json:"ambit,omitempty"`
@@ -29,6 +35,7 @@ type SymphonyError struct {
 	Message     string `yaml:"message,omitempty" mapstructure:"message,omitempty" json:"message,omitempty"`
 	Description string `yaml:"description,omitempty" mapstructure:"description,omitempty" json:"description,omitempty"`
 	Ts          string `yaml:"timestamp,omitempty" mapstructure:"timestamp,omitempty" json:"timestamp,omitempty"`
+	Level       string `yaml:"-" mapstructure:"-" json:"-"`
 }
 
 func WithErrorStatusCode(c int) Option {
@@ -64,6 +71,16 @@ func WithErrorMessage(m string) Option {
 func WithDescription(m string) Option {
 	return func(e *SymphonyError) {
 		e.Description = m
+	}
+}
+
+func WithLevel(m string) Option {
+	return func(e *SymphonyError) {
+		if m == "" || (m != OnErrorLevelFatal && m != OnErrorLevelSystem && m != OnErrorLevelError) {
+			m = OnErrorLevelFatal
+		}
+
+		e.Level = m
 	}
 }
 

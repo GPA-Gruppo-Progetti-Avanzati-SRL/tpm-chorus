@@ -77,8 +77,10 @@ func (kr *KafkaReporter) doWorkLoop() {
 
 		metricLabels := kr.MetricsLabels()
 
-		wfc.ShowBreadcrumb()
-		wfc.Vars.ShowVars(false)
+		/*
+			wfc.ShowBreadcrumb()
+			wfc.Vars.ShowVars(false)
+		*/
 
 		var b []byte
 		var err error
@@ -95,7 +97,7 @@ func (kr *KafkaReporter) doWorkLoop() {
 
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
-			wfc.ShowBreadcrumb()
+			// wfc.ShowBreadcrumb()
 			metricLabels[MetricIdStatusCode] = "500"
 			_ = kr.SetMetrics(metricLabels)
 		} else {
