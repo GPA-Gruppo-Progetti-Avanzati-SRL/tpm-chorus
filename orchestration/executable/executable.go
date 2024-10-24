@@ -60,7 +60,7 @@ func (a *Activity) IsEnabled(wfc *wfcase.WfCase) bool {
 		return true
 	}
 
-	return wfc.EvalExpression(a.Cfg.Enabled())
+	return wfc.EvalBoolExpression(a.Cfg.Enabled())
 }
 
 func (a *Activity) IsValid() bool {
@@ -119,7 +119,7 @@ func (a *Activity) Next(wfc *wfcase.WfCase, policy string) (string, error) {
 		for _, v := range a.Outputs {
 			outputVect = append(outputVect, v.Cfg.Constraint)
 		}
-		selectedPath, err := wfc.BooleanEvalProcessVars(outputVect, policy)
+		selectedPath, err := wfc.EvalBoolExpressionSet(outputVect, policy)
 		if err != nil {
 			return "", smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}
@@ -246,7 +246,7 @@ func (a *Activity) ChooseTransformation(wfc *wfcase.WfCase, trs []transform.Tran
 
 		b := true
 		if t.Guard != "" {
-			b = wfc.EvalExpression(t.Guard)
+			b = wfc.EvalBoolExpression(t.Guard)
 		}
 
 		if b {
@@ -263,7 +263,7 @@ func (a *Activity) ChooseError(wfc *wfcase.WfCase, errors []config.ErrorInfo) in
 			return i
 		}
 
-		if wfc.EvalExpression(e.Guard) {
+		if wfc.EvalBoolExpression(e.Guard) {
 			return i
 		}
 	}

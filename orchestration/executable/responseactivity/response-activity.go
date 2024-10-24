@@ -306,7 +306,7 @@ func (a *ResponseActivity) selectResponse(cfg *config.ResponseActivity, wfc *wfc
 			log.Trace().Str(semLogResponseId, r.Id).Msg(semLogContext + " response selected, guard is empty")
 			return i
 		} else {
-			if wfc.EvalExpression(r.Guard) {
+			if wfc.EvalBoolExpression(r.Guard) {
 				log.Trace().Str(semLogResponseId, r.Id).Str("guard", r.Guard).Msg(semLogContext + " response selected, guard is true")
 				return i
 			} else {

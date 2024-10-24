@@ -82,7 +82,7 @@ func (wfc *WfCase) getEvaluatorForHarEntryResponse(evalName string, endpointData
 	return resolver, nil
 }
 
-func (wfc *WfCase) BooleanEvalProcessVars(varExpressions []string, policy string) (int, error) {
+func (wfc *WfCase) EvalBoolExpressionSet(varExpressions []string, policy string) (int, error) {
 	if policy == config.AtLeastOne {
 		return wfc.Vars.IndexOfFirstTrueExpression(varExpressions)
 	}
@@ -90,13 +90,14 @@ func (wfc *WfCase) BooleanEvalProcessVars(varExpressions []string, policy string
 	return wfc.Vars.IndexOfTheOnlyOneTrueExpression(varExpressions)
 }
 
-func (wfc *WfCase) EvalExpression(varExpression string) bool {
+func (wfc *WfCase) EvalBoolExpression(varExpression string) bool {
 	const semLogContext = "wfcase::eval-expression"
-	_, err := wfc.Vars.IndexOfTheOnlyOneTrueExpression([]string{varExpression})
+	ok, err := wfc.Vars.EvalToBool(varExpression)
+	// _, err := wfc.Vars.IndexOfTheOnlyOneTrueExpression([]string{varExpression})
 	if err != nil {
 		log.Error().Err(err).Str("expr", varExpression).Msg(semLogContext)
 	}
-	return err == nil
+	return ok
 }
 
 func (wfc *WfCase) ResolveStrings(resolverContext HarEntryReference, expr []string, transformationId string, ignoreNonApplicationJsonResponseContent bool) ([]string, error) {

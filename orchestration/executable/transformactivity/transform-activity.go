@@ -359,7 +359,7 @@ func chooseTransformation(wfc *wfcase.WfCase, trs []transform.TransformReference
 
 		b := true
 		if t.Guard != "" {
-			b = wfc.EvalExpression(t.Guard)
+			b = wfc.EvalBoolExpression(t.Guard)
 		}
 
 		if b {
@@ -376,7 +376,7 @@ func chooseError(wfc *wfcase.WfCase, errors []config.ErrorInfo) int {
 			return i
 		}
 
-		if wfc.EvalExpression(e.Guard) {
+		if wfc.EvalBoolExpression(e.Guard) {
 			return i
 		}
 	}
