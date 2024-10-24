@@ -94,7 +94,7 @@ func (wfc *WfCase) EvalExpression(varExpression string) bool {
 	const semLogContext = "wfcase::eval-expression"
 	_, err := wfc.Vars.IndexOfTheOnlyOneTrueExpression([]string{varExpression})
 	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
+		log.Error().Err(err).Str("expr", varExpression).Msg(semLogContext)
 	}
 	return err == nil
 }
