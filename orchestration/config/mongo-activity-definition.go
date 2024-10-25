@@ -2,9 +2,13 @@ package config
 
 import (
 	"errors"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/jsonops"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -74,6 +78,26 @@ func UnmarshalMongoActivityDefinition(opType jsonops.MongoJsonOperationType, def
 	}
 
 	return maDef, nil
+}
+
+func (def *MongoActivityDefinition) WriteToFile(folderName string, fileName string) error {
+	const semLogContext = "mongo-activity-definition::write-to-file"
+	fn := filepath.Join(folderName, fileName)
+	log.Info().Str("file-name", fn).Msg(semLogContext)
+	b, err := yaml.Marshal(def)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	outFileName, _ := util.ResolvePath(fn)
+	err = os.WriteFile(outFileName, b, fs.ModePerm)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	return nil
 }
 
 func (def *MongoActivityDefinition) LoadStatementConfig(refs DataReferences) (map[jsonops.MongoJsonOperationStatementPart][]byte, error) {

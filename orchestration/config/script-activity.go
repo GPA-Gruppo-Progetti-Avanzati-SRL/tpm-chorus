@@ -3,8 +3,12 @@ package config
 import (
 	"encoding/json"
 	"errors"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+	"io/fs"
+	"os"
+	"path/filepath"
 )
 
 type ScriptActivity struct {
@@ -88,6 +92,26 @@ type ScriptActivityDefinition struct {
 
 func (def *ScriptActivityDefinition) IsZero() bool {
 	return def.Engine == ""
+}
+
+func (def *ScriptActivityDefinition) WriteToFile(folderName string, fileName string) error {
+	const semLogContext = "script-activity-definition::write-to-file"
+	fn := filepath.Join(folderName, fileName)
+	log.Info().Str("file-name", fn).Msg(semLogContext)
+	b, err := yaml.Marshal(def)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	outFileName, _ := util.ResolvePath(fn)
+	err = os.WriteFile(outFileName, b, fs.ModePerm)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	return nil
 }
 
 func UnmarshalScriptActivityDefinition(def string, refs DataReferences) (ScriptActivityDefinition, error) {

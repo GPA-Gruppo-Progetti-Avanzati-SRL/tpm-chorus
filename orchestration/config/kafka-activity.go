@@ -2,7 +2,12 @@ package config
 
 import (
 	"encoding/json"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+	"io/fs"
+	"os"
+	"path/filepath"
 )
 
 type ProducerDefinition struct {
@@ -12,6 +17,26 @@ type ProducerDefinition struct {
 	Key               string             `yaml:"key,omitempty" json:"key,omitempty" mapstructure:"key,omitempty"`
 	Body              PostData           `yaml:"body,omitempty" json:"body,omitempty" mapstructure:"body,omitempty"`
 	OnResponseActions []OnResponseAction `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
+}
+
+func (def *ProducerDefinition) WriteToFile(folderName string, fileName string) error {
+	const semLogContext = "kafka-producer-definition::write-to-file"
+	fn := filepath.Join(folderName, fileName)
+	log.Info().Str("file-name", fn).Msg(semLogContext)
+	b, err := yaml.Marshal(def)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	outFileName, _ := util.ResolvePath(fn)
+	err = os.WriteFile(outFileName, b, fs.ModePerm)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	return nil
 }
 
 type Producer struct {

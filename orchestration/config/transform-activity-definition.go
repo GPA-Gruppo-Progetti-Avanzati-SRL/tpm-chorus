@@ -4,13 +4,37 @@ import (
 	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+	"io/fs"
+	"os"
+	"path/filepath"
 )
 
 type TransformActivityDefinition struct {
 	Transforms        []transform.TransformReference `yaml:"transforms,omitempty"  json:"transforms,omitempty" mapstructure:"transforms,omitempty"`
 	OnResponseActions []OnResponseAction             `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
+}
+
+func (def *TransformActivityDefinition) WriteToFile(folderName string, fileName string) error {
+	const semLogContext = "transform-activity-definition::write-to-file"
+	fn := filepath.Join(folderName, fileName)
+	log.Info().Str("file-name", fn).Msg(semLogContext)
+	b, err := yaml.Marshal(def)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	outFileName, _ := util.ResolvePath(fn)
+	err = os.WriteFile(outFileName, b, fs.ModePerm)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	return nil
 }
 
 func UnmarshalTransformActivityDefinition(def string, refs DataReferences) (TransformActivityDefinition, error) {

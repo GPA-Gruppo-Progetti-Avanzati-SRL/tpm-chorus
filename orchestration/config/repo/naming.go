@@ -13,6 +13,7 @@ const (
 	VERSIONFileName              = "VERSION"
 	DictionaryFileNamePattern    = "^dict-([a-zA-Z_-]+)\\.(?:yaml|yml)$"
 	OrchestrationFileNamePattern = "^(tpm-symphony-orchestration|tpm-orchestration)\\.(yml|yaml)$"
+	OrchestrationFileName        = "tpm-orchestration.yml"
 )
 
 const (

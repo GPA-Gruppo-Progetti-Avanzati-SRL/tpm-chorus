@@ -4,8 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/jsonschemaregistry"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+	"io/fs"
+	"os"
+	"path/filepath"
 )
 
 type JsonSchemaActivity struct {
@@ -79,6 +83,26 @@ type JsonSchemaActivityDefinition struct {
 
 func (def *JsonSchemaActivityDefinition) IsZero() bool {
 	return def.SchemaRef == ""
+}
+
+func (def *JsonSchemaActivityDefinition) WriteToFile(folderName string, fileName string) error {
+	const semLogContext = "json-schema-definition::write-to-file"
+	fn := filepath.Join(folderName, fileName)
+	log.Info().Str("file-name", fn).Msg(semLogContext)
+	b, err := yaml.Marshal(def)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	outFileName, _ := util.ResolvePath(fn)
+	err = os.WriteFile(outFileName, b, fs.ModePerm)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	return nil
 }
 
 func UnmarshalJsonSchemaActivityDefinition(schemaNamespace, def string, refs DataReferences) (JsonSchemaActivityDefinition, error) {

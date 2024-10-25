@@ -1,7 +1,12 @@
 package config
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v3"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"strconv"
 	"time"
 )
@@ -44,6 +49,26 @@ type EndpointDefinition struct {
 	IgnoreNonApplicationJsonResponseContent bool               `yaml:"ignore-non-json-response-body,omitempty" json:"ignore-non-json-response-body,omitempty" mapstructure:"ignore-non-json-response-body,omitempty"`
 	HttpClientOptions                       *HttpClientOptions `yaml:"http-client-opts,omitempty" json:"http-client-opts,omitempty" mapstructure:"http-client-opts,omitempty"`
 	CacheConfig                             CacheConfig        `yaml:"with-cache,omitempty" json:"with-cache,omitempty" mapstructure:"with-cache,omitempty"`
+}
+
+func (epd *EndpointDefinition) WriteToFile(folderName string, fileName string) error {
+	const semLogContext = "endpoint-definition::write-to-file"
+	fn := filepath.Join(folderName, fileName)
+	log.Info().Str("file-name", fn).Msg(semLogContext)
+	b, err := yaml.Marshal(epd)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	outFileName, _ := util.ResolvePath(fn)
+	err = os.WriteFile(outFileName, b, fs.ModePerm)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	return nil
 }
 
 func (epd *EndpointDefinition) PortAsInt() int {

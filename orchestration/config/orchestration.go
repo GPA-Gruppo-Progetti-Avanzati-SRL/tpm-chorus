@@ -4,8 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config/repo"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
+	"io/fs"
+	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -138,6 +142,32 @@ type Orchestration struct {
 	PII                  PersonallyIdentifiableInformation `yaml:"pii,omitempty" mapstructure:"pii,omitempty" json:"pii,omitempty"`
 	NestedOrchestrations []Orchestration                   `yaml:"nested-orchestrations,omitempty" mapstructure:"nested-orchestrations,omitempty" json:"nested-orchestrations,omitempty"`
 	Properties           map[string]interface{}            `yaml:"properties,omitempty" mapstructure:"properties,omitempty" json:"properties,omitempty"`
+}
+
+func (o *Orchestration) WriteToFolder(folderName string) error {
+	const semLogContext = "orchestration-definition::write-to-folder"
+	fn := repo.OrchestrationFileName
+	return o.WriteToFile(folderName, fn)
+}
+
+func (o *Orchestration) WriteToFile(folderName string, fn string) error {
+	const semLogContext = "orchestration-definition::write-to-folder"
+	fn = filepath.Join(folderName, fn)
+	log.Info().Str("file-name", fn).Msg(semLogContext)
+	b, err := yaml.Marshal(o)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	outFileName, _ := util.ResolvePath(fn)
+	err = os.WriteFile(outFileName, b, fs.ModePerm)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	return nil
 }
 
 func NewOrchestrationDefinitionFromFolder(orchestration1Folder string) (Orchestration, error) {
