@@ -450,7 +450,12 @@ func (a *EndpointActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Endpoint)
 
 func (a *EndpointActivity) newRequestDefinitionBody(wfc *wfcase.WfCase, ep Endpoint, resolver *wfexpressions.Evaluator) (har.RequestOption, error) {
 
-	bodyContent, _ := a.Refs.Find(ep.Definition.Body.ExternalValue)
+	var bodyContent []byte
+	if ep.Definition.Body.ExternalValue != "" {
+		bodyContent, _ = a.Refs.Find(ep.Definition.Body.ExternalValue)
+	} else {
+		bodyContent = []byte(ep.Definition.Body.Value)
+	}
 	s, _, err := varResolver.ResolveVariables(string(bodyContent), varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
 		return nil, err

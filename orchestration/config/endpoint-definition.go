@@ -20,11 +20,12 @@ type PostData struct {
 	Name          string `yaml:"name,omitempty" json:"name,omitempty" mapstructure:"name,omitempty"`
 	Type          string `yaml:"type,omitempty" json:"type,omitempty" mapstructure:"type,omitempty"`
 	ExternalValue string `yaml:"external-value,omitempty" json:"external-value,omitempty" mapstructure:"external-value,omitempty"`
-	Data          []byte `yaml:"data,omitempty" json:"data,omitempty" mapstructure:"data,omitempty"`
+	Value         string `yaml:"value,omitempty" json:"value,omitempty" mapstructure:"value,omitempty"`
+	//Data          []byte `yaml:"data,omitempty" json:"data,omitempty" mapstructure:"data,omitempty"`
 }
 
 func (pd PostData) IsZero() bool {
-	return len(pd.Data) == 0 && pd.ExternalValue == ""
+	return /* len(pd.Data) == 0 && */ pd.ExternalValue == "" && pd.Value == ""
 }
 
 type HttpClientOptions struct {

@@ -71,6 +71,12 @@ func TestMain(m *testing.M) {
 	err = registry.Add3(trsf4)
 	handleErrorTestMain(err)
 
+	trsf5 := transform.Config{}
+	err = yaml.Unmarshal(case005RuleYml, &trsf5)
+	handleErrorTestMain(err)
+	err = registry.Add3(trsf5)
+	handleErrorTestMain(err)
+
 	exitVal := m.Run()
 	os.Exit(exitVal)
 }
@@ -82,6 +88,15 @@ func TestOperators(t *testing.T) {
 	var trsf transform.Transformation
 	var err error
 	var dataOut []byte
+
+	trsf, err = registry.Get("case005")
+	require.NoError(t, err)
+	t.Log(trsf.Cfg.ToYaml())
+	dataOut, err = registry.Transform("case005", []byte(case005Input))
+	require.NoError(t, err)
+	err = os.WriteFile("case-005-output.json", dataOut, fs.ModePerm)
+	require.NoError(t, err)
+
 	trsf, err = registry.Get("case003")
 	require.NoError(t, err)
 	t.Log(trsf.Cfg.ToYaml())

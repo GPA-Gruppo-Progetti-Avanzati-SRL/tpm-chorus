@@ -35,6 +35,15 @@ func GetReporter(n string) (Reporter, error) {
 func NewReporter(n string, cfg *Config, wg *sync.WaitGroup) (Reporter, error) {
 
 	const semLogContext = "reporter::new-reporter"
+	var rep Reporter
+
+	if cfg.ReporterType == "devnull" {
+		w := &DevNullReporter{}
+		rep = w
+		registry[strings.ToLower(n)] = rep
+		return rep, nil
+	}
+
 	log.Info().Int("reporter-queue-size", cfg.QueueSize).Msg(semLogContext)
 
 	wq := make(chan *wfcase.WfCase, cfg.QueueSize)
@@ -71,16 +80,15 @@ func NewReporter(n string, cfg *Config, wg *sync.WaitGroup) (Reporter, error) {
 		log.Info().Msg(semLogContext + " using referenced metrics configuration")
 	}
 
-	var rep Reporter
 	switch cfg.ReporterType {
 	case "dummy":
 		w := &DummyReporter{cfg: cfg, wg: wg, workQueue: wq, metricsRegistry: mr}
 		w.jsonMask = jm
 		rep = w
 
-	case "devnull":
-		w := &DevNullReporter{cfg: cfg, wg: wg, workQueue: wq}
-		rep = w
+	//case "devnull":
+	//	w := &DevNullReporter{ /*cfg: cfg, wg: wg, workQueue: wq*/ }
+	//	rep = w
 
 	case "kafka":
 		w := &KafkaReporter{cfg: cfg, wg: wg, workQueue: wq, metricsRegistry: mr}
