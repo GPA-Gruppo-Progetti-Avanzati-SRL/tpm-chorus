@@ -41,7 +41,7 @@ func (wfc *WfCase) getEvaluatorForHarEntryRequest(evalName string, endpointData 
 	var err error
 	var resolver *wfexpressions.Evaluator
 
-	opts := []wfexpressions.EvaluatorOption{wfexpressions.WithHeaders(endpointData.Request.Headers)}
+	opts := []wfexpressions.EvaluatorOption{wfexpressions.WithHeaders(endpointData.Request.Headers), wfexpressions.WithQueryParams(endpointData.Request.QueryString)}
 	if endpointData.Request.PostData != nil {
 		opts = append(opts, wfexpressions.WithBody(endpointData.Request.PostData.MimeType, endpointData.Request.PostData.Data, withTransformationId), wfexpressions.WithParams(endpointData.Request.PostData.Params))
 	}

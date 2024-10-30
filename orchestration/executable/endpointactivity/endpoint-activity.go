@@ -45,7 +45,11 @@ type Endpoint struct {
 }
 
 func (ep Endpoint) FullId(activityName string) string {
-	return fmt.Sprintf("%s@%s", activityName, ep.Id)
+	return EndpointFullId(activityName, ep.Id)
+}
+
+func EndpointFullId(activityName, endpointId string) string {
+	return fmt.Sprintf("%s@%s", activityName, endpointId)
 }
 
 type EndpointActivity struct {
@@ -423,6 +427,16 @@ func (a *EndpointActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Endpoint)
 			return nil, err
 		}
 		opts = append(opts, har.WithHeader(har.NameValuePair{Name: h.Name, Value: r}))
+	}
+
+	for _, qs := range ep.Definition.QueryString {
+		if wfc.EvalBoolExpression(qs.Guard) {
+			r, _, err := varResolver.ResolveVariables(qs.Value, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
+			if err != nil {
+				return nil, err
+			}
+			opts = append(opts, har.WithQueryParam(har.NameValuePair{Name: qs.Name, Value: r}))
+		}
 	}
 
 	if !ep.Definition.Body.IsZero() {

@@ -25,10 +25,11 @@ type EvaluatorOption func(r *Evaluator) error
 type Evaluator struct {
 	Name string
 
-	vars    ProcessVars
-	body    interface{}
-	headers har.NameValuePairs
-	params  har.Params
+	vars        ProcessVars
+	body        interface{}
+	headers     har.NameValuePairs
+	queryParams har.NameValuePairs
+	params      har.Params
 
 	tempVarsw []string
 }
@@ -189,6 +190,13 @@ func WithBody(ct string, aBody []byte, transformationId string) EvaluatorOption 
 func WithHeaders(h []har.NameValuePair) EvaluatorOption {
 	return func(r *Evaluator) error {
 		r.headers = h
+		return nil
+	}
+}
+
+func WithQueryParams(h []har.NameValuePair) EvaluatorOption {
+	return func(r *Evaluator) error {
+		r.queryParams = h
 		return nil
 	}
 }
@@ -372,6 +380,12 @@ func (pvr *Evaluator) VarResolverFunc(_, s string) (string, bool) {
 		if varValue.(string) != "" {
 			ok = true
 		}
+
+	case "q:":
+		varValue = pvr.queryParams.GetFirst(variable.Name).Value
+		if varValue.(string) != "" {
+			ok = true
+		}
 		// return pvr.JSONEscape(s, doEscape), false
 
 	case "p:":
@@ -424,7 +438,7 @@ func (pvr *Evaluator) VarResolverFunc(_, s string) (string, bool) {
 	}
 
 	if variable.IsTagPresent(varResolver.FormatOptWithTempVar) {
-		newName := fmt.Sprintf("%s_%s", "TMP_", uuid.New().String())
+		newName := fmt.Sprintf("%s_%s", "TMP", strings.Replace(uuid.New().String(), "-", "_", -1))
 		if pvr.vars == nil {
 			pvr.vars = make(map[string]interface{})
 		}

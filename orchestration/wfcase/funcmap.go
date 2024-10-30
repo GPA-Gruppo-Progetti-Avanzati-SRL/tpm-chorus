@@ -94,6 +94,8 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins["regexMatch"] = purefuncs.RegexMatch
 	builtins["regexExtractFirst"] = purefuncs.RegexExtractFirst
 	builtins["globalVar"] = globals.GetGlobalVar
+	builtins["lenJsonArray"] = purefuncs.LenJsonArray
+	builtins["isJsonArray"] = purefuncs.IsJsonArray
 	return builtins
 }
 

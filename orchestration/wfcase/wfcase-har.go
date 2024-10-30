@@ -236,7 +236,8 @@ func (wfc *WfCase) NewHarRequestFromHarEntryReference(ctxName HarEntryReference,
 		httpHeaders[h.Name] = []string{h.Value}
 	}
 
-	req, err := har.NewRequest(method, url, body, httpHeaders, nil)
+	queryParams := wfc.GetQueryParamsInHarEntry(ctxName.Name)
+	req, err := har.NewRequest(method, url, body, httpHeaders, queryParams, nil)
 	return req, err
 }
 
@@ -261,6 +262,16 @@ func (wfc *WfCase) GetHeadersInHarEntry(ctxName string) har.NameValuePairs {
 			return endpointData.Request.Headers
 		} else {
 			return endpointData.Response.Headers
+		}
+	}
+
+	return nil
+}
+
+func (wfc *WfCase) GetQueryParamsInHarEntry(ctxName string) har.NameValuePairs {
+	if endpointData, ok := wfc.Entries[ctxName]; ok {
+		if ctxName == InitialRequestHarEntryId {
+			return endpointData.Request.QueryString
 		}
 	}
 

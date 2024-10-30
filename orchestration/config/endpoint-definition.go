@@ -14,6 +14,7 @@ import (
 type NameValuePair struct {
 	Name  string `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
 	Value string `yaml:"value,omitempty" mapstructure:"value,omitempty" json:"value,omitempty"`
+	Guard string `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
 }
 
 type PostData struct {
