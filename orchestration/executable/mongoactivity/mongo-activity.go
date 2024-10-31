@@ -173,7 +173,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 
 	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(
-		harResponse.Status, a.Name(), a.Name(), wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, wfc, a.definition.OnResponseActions, false)
+		harResponse.Status, a.Name(), a.Name(), wfc, nil, wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, a.definition.OnResponseActions, false)
 	if remappedStatusCode > 0 {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 	}

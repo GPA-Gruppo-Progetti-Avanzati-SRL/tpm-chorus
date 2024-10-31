@@ -102,7 +102,7 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
 	}
 
-	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(harResponse.Status, a.Name(), a.Name(), wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, wfc, a.definition.OnResponseActions, true)
+	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(harResponse.Status, a.Name(), a.Name(), wfc, nil, wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, a.definition.OnResponseActions, true)
 	if remappedStatusCode > 0 {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 	}

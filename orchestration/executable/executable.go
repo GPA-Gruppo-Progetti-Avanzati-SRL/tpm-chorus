@@ -185,8 +185,9 @@ func (a *Activity) GetEvaluator(wfc *wfcase.WfCase) (*wfexpressions.Evaluator, e
 func (a *Activity) ProcessResponseActionByStatusCode(
 	st int,
 	ambitName, stepName string,
+	destWfc *wfcase.WfCase,
+	srcWfc *wfcase.WfCase,
 	contextReference wfcase.HarEntryReference,
-	wfc *wfcase.WfCase,
 	actions config.OnResponseActions,
 	ignoreNonJSONResponseContent bool) (int, error) {
 
@@ -195,24 +196,28 @@ func (a *Activity) ProcessResponseActionByStatusCode(
 		return -1, nil
 	}
 
+	if srcWfc == nil {
+		srcWfc = destWfc
+	}
+
 	act := actions[actNdx]
-	transformId, err := a.ChooseTransformation(wfc, act.Transforms)
+	transformId, err := a.ChooseTransformation(srcWfc, act.Transforms)
 	if err != nil {
-		log.Error().Err(err).Str("ctx", stepName).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in selecting transformation")
+		log.Error().Err(err).Str("ctx", stepName).Str("request-id", srcWfc.GetRequestId()).Msg("processResponseAction: error in selecting transformation")
 		return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambitName), smperror.WithStep(stepName), smperror.WithCode("500"), smperror.WithErrorMessage("error selecting transformation"), smperror.WithDescription(err.Error()))
 	}
 
 	//contextReference := wfcase.ResolverContextReference{Name: a.Name(), UseResponse: true}
 
 	if len(act.ProcessVars) > 0 {
-		err := wfc.SetVars(contextReference, act.ProcessVars, transformId, ignoreNonJSONResponseContent)
+		err = destWfc.SetVarsFromCase(srcWfc, contextReference, act.ProcessVars, transformId, ignoreNonJSONResponseContent)
 		if err != nil {
-			log.Error().Err(err).Str("ctx", stepName).Str("request-id", wfc.GetRequestId()).Msg("processResponseAction: error in setting variables")
+			log.Error().Err(err).Str("ctx", stepName).Str("request-id", srcWfc.GetRequestId()).Msg("processResponseAction: error in setting variables")
 			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambitName), smperror.WithStep(stepName), smperror.WithCode("500"), smperror.WithErrorMessage("error processing response body"), smperror.WithDescription(err.Error()))
 		}
 	}
 
-	if ndx := a.ChooseError(wfc, act.Errors); ndx >= 0 {
+	if ndx := a.ChooseError(srcWfc, act.Errors); ndx >= 0 {
 
 		e := act.Errors[ndx]
 		ambit := e.Ambit
@@ -230,7 +235,7 @@ func (a *Activity) ProcessResponseActionByStatusCode(
 			statusCode = e.StatusCode
 		}
 
-		m, err := wfc.ResolveStrings(contextReference, []string{e.Code, e.Message, e.Description, step}, "", ignoreNonJSONResponseContent)
+		m, err := srcWfc.ResolveStrings(contextReference, []string{e.Code, e.Message, e.Description, step}, "", ignoreNonJSONResponseContent)
 		if err != nil {
 			log.Error().Err(err).Msgf("error resolving values %s, %s and %s", e.Code, e.Message, e.Description)
 			return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambit), smperror.WithStep(step), smperror.WithCode(e.Code), smperror.WithErrorMessage(e.Message), smperror.WithDescription(err.Error()))

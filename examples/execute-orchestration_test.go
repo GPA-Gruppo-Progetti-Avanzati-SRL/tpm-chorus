@@ -68,6 +68,7 @@ func TestExecuteMoviesOrchestration(t *testing.T) {
 			"Accept":         []string{"*/*"},
 			"Content-Length": []string{"251"},
 		},
+		nil,
 		[]har.Param{{Name: "pathId", Value: "test"}},
 	)
 	require.NoError(t, err)

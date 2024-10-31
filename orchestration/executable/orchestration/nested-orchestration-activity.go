@@ -139,7 +139,7 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		st = http.StatusInternalServerError
 	}
 
-	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(st, a.Name(), a.Name(), wfcase.HarEntryReference{Name: "request", UseResponse: true}, wfcChild, a.definition.OnResponseActions, false)
+	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(st, a.Name(), a.Name(), wfc, wfcChild, wfcase.HarEntryReference{Name: "request", UseResponse: true}, a.definition.OnResponseActions, false)
 	if remappedStatusCode > 0 {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 	}

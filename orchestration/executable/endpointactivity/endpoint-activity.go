@@ -234,7 +234,7 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 
 		remappedStatusCode, err := a.ProcessResponseActionByStatusCode(
-			harResponse.Status, a.Name(), util.StringCoalesce(ep.Id, ep.Name), wfcase.HarEntryReference{Name: ep.FullId(a.Name()), UseResponse: true}, wfc, ep.Definition.OnResponseActions, ep.Definition.IgnoreNonApplicationJsonResponseContent)
+			harResponse.Status, a.Name(), util.StringCoalesce(ep.Id, ep.Name), wfc, nil, wfcase.HarEntryReference{Name: ep.FullId(a.Name()), UseResponse: true}, ep.Definition.OnResponseActions, ep.Definition.IgnoreNonApplicationJsonResponseContent)
 		if remappedStatusCode > 0 {
 			metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 		}

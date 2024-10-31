@@ -188,7 +188,7 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(resp.Status)
 
 		remappedStatusCode, err := a.ProcessResponseActionByStatusCode(
-			resp.Status, a.Name(), util.StringCoalesce(ep.Id, ep.Name), wfcase.HarEntryReference{Name: ep.Id, UseResponse: true}, wfc, ep.Definition.OnResponseActions, false)
+			resp.Status, a.Name(), util.StringCoalesce(ep.Id, ep.Name), wfc, nil, wfcase.HarEntryReference{Name: ep.Id, UseResponse: true}, ep.Definition.OnResponseActions, false)
 		if remappedStatusCode > 0 {
 			metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 		}

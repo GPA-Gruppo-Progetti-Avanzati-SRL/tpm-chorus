@@ -100,7 +100,7 @@ func TestNewOrchestration(t *testing.T) {
 	wfc, err := wfcase.NewWorkflowCase(orc.Cfg.Id, "1.0", "sha-number", orc.Cfg.Description, nil, nil, nil, nil)
 	require.NoError(t, err)
 
-	req, _ := har.NewRequest(http.MethodGet, "/my/path", nil, hs, nil)
+	req, _ := har.NewRequest(http.MethodGet, "/my/path", nil, hs, nil, nil)
 	err = wfc.SetHarEntryRequest(wfcase.InitialRequestHarEntryId, req, config.PersonallyIdentifiableInformation{Domain: "common", AppliesTo: "req,resp"})
 	require.NoError(t, err)
 
