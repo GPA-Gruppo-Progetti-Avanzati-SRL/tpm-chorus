@@ -12,6 +12,7 @@ import (
 type MergeXFormSource struct {
 	ActivityName string `yaml:"activity,omitempty"  json:"activity,omitempty" mapstructure:"activity,omitempty"`
 	Dest         string `yaml:"dest,omitempty" json:"dest,omitempty" mapstructure:"dest,omitempty"`
+	Guard        string `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
 }
 
 type MergeXForm struct {
@@ -39,6 +40,12 @@ func (xform MergeXForm) Execute(wfc *wfcase.WfCase, data []byte) ([]byte, error)
 	}
 
 	for _, src := range xform.Sources {
+
+		// Skip a merge transformation if there is a guard condition.
+		if !wfc.EvalBoolExpression(src.Guard) {
+			continue
+		}
+
 		var expressionCtx wfcase.HarEntryReference
 		expressionCtx, err = wfc.ResolveHarEntryReferenceByName(src.ActivityName)
 		if err != nil {

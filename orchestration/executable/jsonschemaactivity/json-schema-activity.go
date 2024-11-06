@@ -105,7 +105,8 @@ func (a *JsonSchemaActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 	if err != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+		_ = a.SetMetrics(beginOf, metricsLabels)
+		return err
 	}
 
 	// _ = a.SetMetrics(beginOf, metricsLabels)
@@ -127,7 +128,7 @@ func (a *JsonSchemaActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.Har
 
 	err = jsonschemaregistry.Validate(a.Name(), a.definition.SchemaRef, data)
 	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
+		log.Info().Err(err).Msg(semLogContext)
 		r := har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
 		return r, err
 	}
