@@ -307,11 +307,18 @@ func (o *Orchestration) AddActivity(a Configurable) error {
 	return nil
 }
 
-func (o *Orchestration) AddNopActivity(description string) *NopActivity {
+/*func (o *Orchestration) AddNopActivity2(description string) *NopActivity {
 	n := NewNopActivity().WithDescription(description)
 	o.Activities = append(o.Activities, n)
 
 	return n
+}*/
+
+func (o *Orchestration) AddNopActivity(description string) string {
+	n := NewNopActivity().WithDescription(description)
+	o.Activities = append(o.Activities, n)
+
+	return n.Nm
 }
 
 func (o *Orchestration) AddPath(source, target, constraint string) error {

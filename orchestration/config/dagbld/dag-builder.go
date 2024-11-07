@@ -1,17 +1,29 @@
 package dagbld
 
-import "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
+import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
+	"strings"
+)
 
 type Input struct {
 	Name string
 	Cond string
 }
 
+const (
+	StatementTypeSimple = "simple"
+	StatementTypeIf     = "if"
+	StatementTypeSwitch = "switch"
+	StatementTypeCase   = "case"
+	StatementTypeBlock  = "block"
+)
+
 type Statement interface {
 	Name() string
-	In() []Input
-	Out() []string
+	In() Input
+	Out() string
 	Paths() []config.Path
+	Type() string
 }
 
 type SimpleStatement struct {
@@ -22,12 +34,16 @@ func (stmt SimpleStatement) Name() string {
 	return stmt.Nm
 }
 
-func (stmt SimpleStatement) In() []Input {
-	return []Input{{stmt.Nm, ""}}
+func (stmt SimpleStatement) Type() string {
+	return StatementTypeSimple
 }
 
-func (stmt SimpleStatement) Out() []string {
-	return []string{stmt.Nm}
+func (stmt SimpleStatement) In() Input {
+	return Input{stmt.Nm, ""}
+}
+
+func (stmt SimpleStatement) Out() string {
+	return stmt.Nm
 }
 
 func (stmt SimpleStatement) Paths() []config.Path {
@@ -44,29 +60,30 @@ func (stmt BlockStatement) Name() string {
 	return stmt[0].Name()
 }
 
-func (stmt BlockStatement) In() []Input {
-	return stmt[0].In()
+func (stmt BlockStatement) Type() string {
+	return StatementTypeBlock
 }
 
-func (stmt BlockStatement) Out() []string {
-	return stmt[len(stmt)-1].Out()
+func (stmt BlockStatement) In() Input {
+	v := stmt[0].In()
+	return v
+}
+
+func (stmt BlockStatement) Out() string {
+	v := stmt[len(stmt)-1].Out()
+	return v
 }
 
 func (stmt BlockStatement) Paths() []config.Path {
-
 	var paths []config.Path
 	current := stmt[0].Out()
 	for i := 1; i < len(stmt); i++ {
-		for _, out := range current {
-			for _, in := range stmt[i].In() {
-				p := config.Path{
-					SourceName: out,
-					TargetName: in.Name,
-					Constraint: in.Cond,
-				}
-				paths = append(paths, p)
-			}
+		p := config.Path{
+			SourceName: current,
+			TargetName: stmt[i].In().Name,
+			Constraint: stmt[i].In().Cond,
 		}
+		paths = append(paths, p)
 		paths = append(paths, stmt[i].Paths()...)
 		current = stmt[i].Out()
 	}
@@ -74,46 +91,69 @@ func (stmt BlockStatement) Paths() []config.Path {
 }
 
 type IfStatement struct {
-	Cond string
-	Then Statement
-	Else Statement
+	Cond    string
+	Ingress Statement
+	Then    Statement
+	Else    Statement
+	Egress  Statement
 }
 
 func (stmt IfStatement) Name() string {
 	return stmt.Cond
 }
 
-func (stmt IfStatement) In() []Input {
-
-	var in []Input
-	for _, i := range stmt.Then.In() {
-		in = append(in, Input{i.Name, stmt.Cond})
-	}
-
-	if stmt.Else != nil {
-		in = append(in, stmt.Else.In()...)
-	}
-	return in
+func (stmt IfStatement) Type() string {
+	return StatementTypeIf
 }
 
-func (stmt IfStatement) Out() []string {
-	out := stmt.Then.Out()
-	if stmt.Else != nil {
-		out = append(out, stmt.Else.Out()...)
-	}
+func (stmt IfStatement) In() Input {
+	return stmt.Ingress.In()
+}
 
-	return out
+func (stmt IfStatement) Out() string {
+	return stmt.Egress.Name()
 }
 
 func (stmt IfStatement) Paths() []config.Path {
 
 	var paths []config.Path
 
+	current := stmt.Ingress.Out()
+
+	p := config.Path{
+		SourceName: current,
+		TargetName: stmt.Then.In().Name,
+		Constraint: stmt.Cond,
+	}
+	paths = append(paths, p)
+
+	p = config.Path{
+		SourceName: stmt.Then.Out(),
+		TargetName: stmt.Egress.In().Name,
+		Constraint: "",
+	}
+	paths = append(paths, p)
+
 	thenPath := stmt.Then.Paths()
 	if thenPath != nil {
 		paths = append(paths, thenPath...)
 	}
+
 	if stmt.Else != nil {
+		p := config.Path{
+			SourceName: current,
+			TargetName: stmt.Else.In().Name,
+			Constraint: "",
+		}
+		paths = append(paths, p)
+
+		p = config.Path{
+			SourceName: stmt.Else.Out(),
+			TargetName: stmt.Egress.In().Name,
+			Constraint: "",
+		}
+		paths = append(paths, p)
+
 		elsePath := stmt.Else.Paths()
 		if elsePath != nil {
 			paths = append(paths, elsePath...)
@@ -132,54 +172,63 @@ func (c CaseStatement) Name() string {
 	return c.Cond
 }
 
-func (c CaseStatement) In() []Input {
-
-	var in []Input
-	for _, i := range c.Stmt.In() {
-		in = append(in, Input{i.Name, c.Cond})
-	}
-	return in
+func (stmt CaseStatement) Type() string {
+	return StatementTypeCase
 }
 
-func (c CaseStatement) Out() []string {
-	return c.Stmt.Out()
+func (c CaseStatement) In() Input {
+	return c.Stmt.In()
+}
+
+func (c CaseStatement) Out() string {
+	v := c.Stmt.Out()
+	return v
 }
 
 func (c CaseStatement) Paths() []config.Path {
 	return c.Stmt.Paths()
 }
 
-type SwitchStatement []CaseStatement
+type SwitchStatement struct {
+	Ingress Statement
+	Cases   []CaseStatement
+	Egress  Statement
+}
 
 func (stmt SwitchStatement) Name() string {
 	return ""
 }
 
-func (stmt SwitchStatement) In() []Input {
-	var in []Input
-
-	for _, c := range stmt {
-		in = append(in, c.In()...)
-	}
-
-	return in
+func (stmt SwitchStatement) Type() string {
+	return StatementTypeSwitch
 }
 
-func (stmt SwitchStatement) Out() []string {
-	var out []string
+func (stmt SwitchStatement) In() Input {
+	return stmt.Ingress.In()
+}
 
-	for _, c := range stmt {
-		out = append(out, c.Out()...)
-	}
-
-	return out
+func (stmt SwitchStatement) Out() string {
+	return stmt.Egress.Name()
 }
 
 func (stmt SwitchStatement) Paths() []config.Path {
 
 	var paths []config.Path
+	for _, c := range stmt.Cases {
+		p := config.Path{
+			SourceName: stmt.Ingress.Out(),
+			TargetName: c.In().Name,
+			Constraint: c.Cond,
+		}
+		paths = append(paths, p)
 
-	for _, c := range stmt {
+		p = config.Path{
+			SourceName: c.Out(),
+			TargetName: stmt.Egress.Name(),
+			Constraint: "",
+		}
+		paths = append(paths, p)
+
 		paths = append(paths, c.Paths()...)
 	}
 
@@ -193,6 +242,10 @@ func (stmt SwitchStatement) Paths() []config.Path {
 
 	return dag
 }*/
+
+/*func S(n string) Statement {
+	return &SimpleStatement{Nm: n}
+}
 
 func If(cond string, thenStmt Statement, elseStmt Statement) Statement {
 	return &IfStatement{Cond: cond, Then: thenStmt, Else: elseStmt}
@@ -216,8 +269,96 @@ func Case(cond string, stmt Statement) CaseStatement {
 
 func Switch(cas ...CaseStatement) Statement {
 	stmt := SwitchStatement{}
-	stmt = append(stmt, cas...)
+	stmt.Cases = append(stmt.Cases, cas...)
 	return &stmt
+}*/
+
+type DAGBuilder struct {
+	f    DagModel
+	stmt BlockStatement
+}
+
+func (dag *DAGBuilder) With(s ...Statement) {
+	dag.stmt = append(dag.stmt, s...)
+}
+
+func (dag *DAGBuilder) S(n string) Statement {
+	return &SimpleStatement{Nm: n}
+}
+
+func (dag *DAGBuilder) Switch(cas ...CaseStatement) Statement {
+	stmt := SwitchStatement{
+		Ingress: SimpleStatement{Nm: dag.f.AddNopActivity("nop-activity")},
+		Egress:  SimpleStatement{Nm: dag.f.AddNopActivity("nop-activity")},
+	}
+	stmt.Cases = append(stmt.Cases, cas...)
+	return &stmt
+}
+
+func (dag *DAGBuilder) Case(cond string, stmt Statement) CaseStatement {
+	return CaseStatement{
+		Cond: cond,
+		Stmt: stmt,
+	}
+}
+
+func (dag *DAGBuilder) Block(stmts ...Statement) BlockStatement {
+	cs := BlockStatement{}
+	for _, s := range stmts {
+		cs = append(cs, s)
+	}
+
+	return cs
+}
+
+func (dag *DAGBuilder) If(cond string, thenStmt Statement, elseStmt Statement) Statement {
+	stmt := IfStatement{
+		Ingress: SimpleStatement{Nm: dag.f.AddNopActivity("nop-activity")},
+		Egress:  SimpleStatement{Nm: dag.f.AddNopActivity("nop-activity")},
+		Cond:    cond,
+		Then:    thenStmt,
+		Else:    elseStmt,
+	}
+
+	return &stmt
+}
+
+func (dag *DAGBuilder) Build() error {
+
+	dagPaths := dag.stmt.Paths()
+	dagPaths = removeDups(dagPaths)
+
+	for _, p := range dagPaths {
+		err := dag.f.AddPath(p.SourceName, p.TargetName, p.Constraint)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func removeDups(paths []config.Path) []config.Path {
+	m := make(map[string]struct{})
+	var uniquePaths []config.Path
+	for _, p := range paths {
+		n := strings.Join([]string{p.SourceName, p.TargetName, p.Constraint}, "#")
+		if _, ok := m[n]; !ok {
+			m[n] = struct{}{}
+			uniquePaths = append(uniquePaths, p)
+		}
+	}
+
+	return uniquePaths
+}
+
+type DagModel interface {
+	AddNopActivity(d string) string
+	AddPath(src, target, condition string) error
+}
+
+func NewDAGPathBuilder(f DagModel) *DAGBuilder {
+	return &DAGBuilder{f: f}
 }
 
 //func DAGBuilder() B {

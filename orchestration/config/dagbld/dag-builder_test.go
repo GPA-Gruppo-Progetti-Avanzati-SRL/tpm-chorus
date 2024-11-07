@@ -3,109 +3,59 @@ package dagbld_test
 import (
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config/dagbld"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"github.com/stretchr/testify/require"
+	"os"
 	"testing"
 )
 
-func TestDagBuilder(t *testing.T) {
-	DAGBuilder()
+type TestModel struct {
 }
 
-func DAGBuilder() dagbld.BlockStatement {
-	var acts []dagbld.Statement
-	acts = append(acts, dagbld.SimpleStatement{Nm: "start-activity"})
-	for i := 1; i < 21; i++ {
-		acts = append(acts, dagbld.SimpleStatement{Nm: fmt.Sprintf("echo-activity-%d", i)})
-	}
+func (t TestModel) NopNode() string {
+	return util.NewUUID()
+}
 
-	dag := dagbld.Block(
-		acts[0],
-		dagbld.Switch(
-			dagbld.Case("case1", acts[1]),
-			dagbld.Case("case2", acts[2]),
+func (t TestModel) AddPath(src, target, condition string) error {
+	log.Info().Str("src", src).Str("to", target).Str("if", condition).Msg("add-path")
+	return nil
+}
+
+func TestDagBuilder(t *testing.T) {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	dag := dagbld.NewDAGPathBuilder(&TestModel{})
+	dag.With(
+		dag.S("start-activity"),
+		dag.Switch(
+			dag.Case("case1", dag.S(fmt.Sprintf("echo-activity-%d", 1))),
+			dag.Case("case2", dag.S(fmt.Sprintf("echo-activity-%d", 2))),
 		),
-		dagbld.If("condition",
-			acts[3],
-			dagbld.Block(
-				acts[4],
-				acts[5],
-				dagbld.If("pippo",
-					acts[6],
-					dagbld.Block(acts[7], dagbld.If("caio",
-						acts[8],
-						acts[9]),
+		dag.If("cond1",
+			dag.S(fmt.Sprintf("echo-activity-%d", 3)),
+			dag.Block(
+				dag.S(fmt.Sprintf("echo-activity-%d", 4)),
+				dag.S(fmt.Sprintf("echo-activity-%d", 5)),
+				dag.If("cond2",
+					dag.S(fmt.Sprintf("echo-activity-%d", 6)),
+					dag.Block(dag.S(fmt.Sprintf("echo-activity-%d", 7)),
+						dag.If("cond3",
+							dag.S(fmt.Sprintf("echo-activity-%d", 8)),
+							dag.S(fmt.Sprintf("echo-activity-%d", 8)),
+						),
 					),
 				),
 			),
 		),
-		dagbld.Block(acts[10], acts[11]),
-		acts[12],
+		dag.Block(
+			dag.S(fmt.Sprintf("echo-activity-%d", 10)),
+			dag.S(fmt.Sprintf("echo-activity-%d", 11)),
+		),
+		dag.S(fmt.Sprintf("echo-activity-%d", 11)),
 	)
 
-	dagPaths := dag.Paths()
-	for _, p := range dagPaths {
-		fmt.Printf("[1] Path: %v\n", p)
-	}
-
-	dag1 := dagbld.BlockStatement{
-		acts[0],
-		&dagbld.SwitchStatement{
-			{
-				Cond: "case1",
-				Stmt: acts[1],
-			},
-			{
-				Cond: "case2",
-				Stmt: acts[2],
-			},
-		},
-		&dagbld.IfStatement{
-			Cond: "condition",
-			Then: acts[3],
-			Else: dagbld.BlockStatement{
-				acts[4],
-				acts[5],
-				dagbld.IfStatement{
-					Cond: "pippo",
-					Then: acts[6],
-					Else: dagbld.BlockStatement{
-						acts[7],
-						dagbld.IfStatement{
-							Cond: "caio",
-							Then: acts[8],
-							Else: acts[9],
-						},
-					},
-				},
-			},
-		},
-		dagbld.BlockStatement{acts[10], acts[11]},
-		acts[12],
-	}
-
-	pths := dag1.Paths()
-	for _, p := range pths {
-		fmt.Printf("[2] Path: %v\n", p)
-	}
-
-	/*	current := dag1[0].Out()
-		for i := 1; i < len(dag1); i++ {
-			for _, out := range current {
-				for _, in := range dag1[i].In() {
-					p := config.Path{
-						SourceName: out,
-						TargetName: in,
-						Constraint: "",
-					}
-					fmt.Printf("Path: %v\n", p)
-				}
-			}
-
-			paths := dag1[i].Paths()
-			for _, p := range paths {
-				fmt.Printf("Path: %v\n", p)
-			}
-			current = dag1[i].Out()
-		}
-		fmt.Println(dag1)*/
-	return dag1
+	err := dag.Build()
+	require.NoError(t, err)
 }
