@@ -89,7 +89,7 @@ func Validate(namespace, refSchema string, data []byte) error {
 	}
 
 	if err = schema.ValidateInterface(obj); err != nil {
-		log.Error().Err(err).Msg(semLogContext)
+		log.Info().Err(err).Msg(semLogContext)
 		return err
 	}
 

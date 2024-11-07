@@ -10,3 +10,29 @@ func NewPath(source string, target string, constraint string) *Path {
 	p := Path{SourceName: source, TargetName: target, Constraint: constraint}
 	return &p
 }
+
+type Paths []Path
+
+func (ps Paths) FindOutgoingPaths(activity string) Paths {
+
+	var outPaths Paths
+	for _, p := range ps {
+		if p.SourceName == activity {
+			outPaths = append(outPaths, p)
+		}
+	}
+
+	return outPaths
+}
+
+func (ps Paths) FindIncomingPaths(activity string) Paths {
+
+	var inPaths Paths
+	for _, p := range ps {
+		if p.TargetName == activity {
+			inPaths = append(inPaths, p)
+		}
+	}
+
+	return inPaths
+}

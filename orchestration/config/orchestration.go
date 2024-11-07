@@ -133,7 +133,7 @@ type Orchestration struct {
 	Version              string                            `yaml:"version,omitempty" mapstructure:"version,omitempty" json:"version,omitempty"`
 	SHA                  string                            `yaml:"sha,omitempty" mapstructure:"sha,omitempty" json:"sha,omitempty"`
 	StartActivity        string                            `json:"-" yaml:"-"`
-	Paths                []Path                            `yaml:"paths,omitempty" mapstructure:"paths,omitempty" json:"paths,omitempty"`
+	Paths                Paths                             `yaml:"paths,omitempty" mapstructure:"paths,omitempty" json:"paths,omitempty"`
 	Activities           []Configurable                    `json:"-" yaml:"activities"`
 	Boundaries           []ExecBoundary                    `yaml:"boundaries,omitempty" mapstructure:"boundaries,omitempty" json:"boundaries,omitempty"`
 	RawActivities        []json.RawMessage                 `json:"activities" yaml:"-"`
@@ -330,6 +330,11 @@ func (o *Orchestration) AddPath(source, target, constraint string) error {
 
 	o.Paths = append(o.Paths, Path{SourceName: source, TargetName: target, Constraint: constraint})
 	return nil
+}
+
+func (o *Orchestration) NumberOfOutgoingPaths(a string) int {
+	out := o.Paths.FindOutgoingPaths(a)
+	return len(out)
 }
 
 func (o *Orchestration) UnmarshalJSON(b []byte) error {
