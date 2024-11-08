@@ -120,6 +120,7 @@ func NewOrchestration(cfg *config.Orchestration) (Orchestration, error) {
 }
 
 func (o *Orchestration) IsValid() bool {
+	const semLogContext = "orchestration::is-valid"
 
 	if len(o.Executables) == 0 {
 		log.Trace().Msg("empty orchestration found")
@@ -130,6 +131,7 @@ func (o *Orchestration) IsValid() bool {
 	sa := ""
 	for _, ex := range o.Executables {
 		if !ex.IsValid() {
+			log.Error().Str("executable-name", ex.Name()).Msg(semLogContext)
 			rc = false
 		}
 

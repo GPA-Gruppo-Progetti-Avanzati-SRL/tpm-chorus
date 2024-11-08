@@ -165,6 +165,7 @@ func (a *EndpointActivity) Execute(wfc *wfcase.WfCase) error {
 		log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext)
 		err = wfc.SetVars(expressionCtx, cfg.ProcessVars, "", false)
 		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}

@@ -109,6 +109,7 @@ func (a *ResponseActivity) Execute(wfc *wfcase.WfCase) error {
 	//if len(cfg.ProcessVars) > 0 {
 	err = wfc.SetVars(expressionCtx, cfg.ProcessVars, "", false)
 	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 	//}

@@ -14,7 +14,7 @@ import (
 type TestModel struct {
 }
 
-func (t TestModel) NopNode() string {
+func (t TestModel) AddNopActivity(d string) string {
 	return util.NewUUID()
 }
 

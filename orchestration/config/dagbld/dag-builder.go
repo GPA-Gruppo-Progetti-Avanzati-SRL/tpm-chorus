@@ -5,13 +5,23 @@ import (
 	"strings"
 )
 
-type Input struct {
-	Name string
-	Cond string
+type InputOutput struct {
+	Name     string
+	Cond     string
+	StmtType string
+}
+
+func (i InputOutput) IsNilish() bool {
+	return i.Name == ""
+}
+
+func (i InputOutput) Type() string {
+	return i.StmtType
 }
 
 const (
 	StatementTypeSimple = "simple"
+	StatementTypeGoto   = "goto"
 	StatementTypeIf     = "if"
 	StatementTypeSwitch = "switch"
 	StatementTypeCase   = "case"
@@ -20,8 +30,8 @@ const (
 
 type Statement interface {
 	Name() string
-	In() Input
-	Out() string
+	In() InputOutput
+	Out() InputOutput
 	Paths() []config.Path
 	Type() string
 }
@@ -38,15 +48,39 @@ func (stmt SimpleStatement) Type() string {
 	return StatementTypeSimple
 }
 
-func (stmt SimpleStatement) In() Input {
-	return Input{stmt.Nm, ""}
+func (stmt SimpleStatement) In() InputOutput {
+	return InputOutput{stmt.Nm, "", StatementTypeSimple}
 }
 
-func (stmt SimpleStatement) Out() string {
-	return stmt.Nm
+func (stmt SimpleStatement) Out() InputOutput {
+	return InputOutput{stmt.Nm, "", StatementTypeSimple}
 }
 
 func (stmt SimpleStatement) Paths() []config.Path {
+	return nil
+}
+
+type GotoStatement struct {
+	Nm string
+}
+
+func (stmt GotoStatement) Name() string {
+	return stmt.Nm
+}
+
+func (stmt GotoStatement) Type() string {
+	return StatementTypeGoto
+}
+
+func (stmt GotoStatement) In() InputOutput {
+	return InputOutput{StmtType: StatementTypeGoto}
+}
+
+func (stmt GotoStatement) Out() InputOutput {
+	return InputOutput{stmt.Nm, "", StatementTypeGoto}
+}
+
+func (stmt GotoStatement) Paths() []config.Path {
 	return nil
 }
 
@@ -64,12 +98,12 @@ func (stmt BlockStatement) Type() string {
 	return StatementTypeBlock
 }
 
-func (stmt BlockStatement) In() Input {
+func (stmt BlockStatement) In() InputOutput {
 	v := stmt[0].In()
 	return v
 }
 
-func (stmt BlockStatement) Out() string {
+func (stmt BlockStatement) Out() InputOutput {
 	v := stmt[len(stmt)-1].Out()
 	return v
 }
@@ -78,14 +112,24 @@ func (stmt BlockStatement) Paths() []config.Path {
 	var paths []config.Path
 	current := stmt[0].Out()
 	for i := 1; i < len(stmt); i++ {
-		p := config.Path{
-			SourceName: current,
-			TargetName: stmt[i].In().Name,
-			Constraint: stmt[i].In().Cond,
+		if stmt[i].Type() != StatementTypeGoto {
+			p := config.Path{
+				SourceName: current.Name,
+				TargetName: stmt[i].In().Name,
+				Constraint: stmt[i].In().Cond,
+			}
+			paths = append(paths, p)
+			paths = append(paths, stmt[i].Paths()...)
+			current = stmt[i].Out()
+		} else {
+			p := config.Path{
+				SourceName: current.Name,
+				TargetName: stmt[i].Out().Name,
+				Constraint: "",
+			}
+			paths = append(paths, p)
+			break
 		}
-		paths = append(paths, p)
-		paths = append(paths, stmt[i].Paths()...)
-		current = stmt[i].Out()
 	}
 	return paths
 }
@@ -106,12 +150,12 @@ func (stmt IfStatement) Type() string {
 	return StatementTypeIf
 }
 
-func (stmt IfStatement) In() Input {
+func (stmt IfStatement) In() InputOutput {
 	return stmt.Ingress.In()
 }
 
-func (stmt IfStatement) Out() string {
-	return stmt.Egress.Name()
+func (stmt IfStatement) Out() InputOutput {
+	return stmt.Egress.Out()
 }
 
 func (stmt IfStatement) Paths() []config.Path {
@@ -120,43 +164,65 @@ func (stmt IfStatement) Paths() []config.Path {
 
 	current := stmt.Ingress.Out()
 
-	p := config.Path{
-		SourceName: current,
-		TargetName: stmt.Then.In().Name,
-		Constraint: stmt.Cond,
-	}
-	paths = append(paths, p)
+	if stmt.Then.In().Type() != StatementTypeGoto {
+		p := config.Path{
+			SourceName: current.Name,
+			TargetName: stmt.Then.In().Name,
+			Constraint: stmt.Cond,
+		}
+		paths = append(paths, p)
 
-	p = config.Path{
-		SourceName: stmt.Then.Out(),
-		TargetName: stmt.Egress.In().Name,
-		Constraint: "",
-	}
-	paths = append(paths, p)
+		if stmt.Then.Out().Type() != StatementTypeGoto {
+			p = config.Path{
+				SourceName: stmt.Then.Out().Name,
+				TargetName: stmt.Egress.In().Name,
+				Constraint: "",
+			}
+			paths = append(paths, p)
+		}
 
-	thenPath := stmt.Then.Paths()
-	if thenPath != nil {
-		paths = append(paths, thenPath...)
+		thenPath := stmt.Then.Paths()
+		if thenPath != nil {
+			paths = append(paths, thenPath...)
+		}
+	} else {
+		p := config.Path{
+			SourceName: current.Name,
+			TargetName: stmt.Then.Out().Name,
+			Constraint: stmt.Cond,
+		}
+		paths = append(paths, p)
 	}
 
 	if stmt.Else != nil {
-		p := config.Path{
-			SourceName: current,
-			TargetName: stmt.Else.In().Name,
-			Constraint: "",
-		}
-		paths = append(paths, p)
+		if stmt.Else.Type() != StatementTypeGoto {
+			p := config.Path{
+				SourceName: current.Name,
+				TargetName: stmt.Else.In().Name,
+				Constraint: "",
+			}
+			paths = append(paths, p)
 
-		p = config.Path{
-			SourceName: stmt.Else.Out(),
-			TargetName: stmt.Egress.In().Name,
-			Constraint: "",
-		}
-		paths = append(paths, p)
+			if stmt.Else.Out().Type() != StatementTypeGoto {
+				p = config.Path{
+					SourceName: stmt.Else.Out().Name,
+					TargetName: stmt.Egress.In().Name,
+					Constraint: "",
+				}
+				paths = append(paths, p)
+			}
 
-		elsePath := stmt.Else.Paths()
-		if elsePath != nil {
-			paths = append(paths, elsePath...)
+			elsePath := stmt.Else.Paths()
+			if elsePath != nil {
+				paths = append(paths, elsePath...)
+			}
+		} else {
+			p := config.Path{
+				SourceName: current.Name,
+				TargetName: stmt.Else.Out().Name,
+				Constraint: "",
+			}
+			paths = append(paths, p)
 		}
 	}
 
@@ -176,11 +242,11 @@ func (stmt CaseStatement) Type() string {
 	return StatementTypeCase
 }
 
-func (c CaseStatement) In() Input {
+func (c CaseStatement) In() InputOutput {
 	return c.Stmt.In()
 }
 
-func (c CaseStatement) Out() string {
+func (c CaseStatement) Out() InputOutput {
 	v := c.Stmt.Out()
 	return v
 }
@@ -203,12 +269,12 @@ func (stmt SwitchStatement) Type() string {
 	return StatementTypeSwitch
 }
 
-func (stmt SwitchStatement) In() Input {
+func (stmt SwitchStatement) In() InputOutput {
 	return stmt.Ingress.In()
 }
 
-func (stmt SwitchStatement) Out() string {
-	return stmt.Egress.Name()
+func (stmt SwitchStatement) Out() InputOutput {
+	return stmt.Egress.Out()
 }
 
 func (stmt SwitchStatement) Paths() []config.Path {
@@ -216,14 +282,14 @@ func (stmt SwitchStatement) Paths() []config.Path {
 	var paths []config.Path
 	for _, c := range stmt.Cases {
 		p := config.Path{
-			SourceName: stmt.Ingress.Out(),
+			SourceName: stmt.Ingress.Out().Name,
 			TargetName: c.In().Name,
 			Constraint: c.Cond,
 		}
 		paths = append(paths, p)
 
 		p = config.Path{
-			SourceName: c.Out(),
+			SourceName: c.Out().Name,
 			TargetName: stmt.Egress.Name(),
 			Constraint: "",
 		}
@@ -286,10 +352,14 @@ func (dag *DAGBuilder) S(n string) Statement {
 	return &SimpleStatement{Nm: n}
 }
 
+func (dag *DAGBuilder) Goto(n string) Statement {
+	return &GotoStatement{Nm: n}
+}
+
 func (dag *DAGBuilder) Switch(cas ...CaseStatement) Statement {
 	stmt := SwitchStatement{
-		Ingress: SimpleStatement{Nm: dag.f.AddNopActivity("nop-activity")},
-		Egress:  SimpleStatement{Nm: dag.f.AddNopActivity("nop-activity")},
+		Ingress: SimpleStatement{Nm: dag.f.AddNopActivity("bof-switch")},
+		Egress:  SimpleStatement{Nm: dag.f.AddNopActivity("eof-switch")},
 	}
 	stmt.Cases = append(stmt.Cases, cas...)
 	return &stmt
@@ -300,6 +370,10 @@ func (dag *DAGBuilder) Case(cond string, stmt Statement) CaseStatement {
 		Cond: cond,
 		Stmt: stmt,
 	}
+}
+
+func (dag *DAGBuilder) Nop(description string) Statement {
+	return SimpleStatement{Nm: dag.f.AddNopActivity(description)}
 }
 
 func (dag *DAGBuilder) Block(stmts ...Statement) BlockStatement {
@@ -313,8 +387,8 @@ func (dag *DAGBuilder) Block(stmts ...Statement) BlockStatement {
 
 func (dag *DAGBuilder) If(cond string, thenStmt Statement, elseStmt Statement) Statement {
 	stmt := IfStatement{
-		Ingress: SimpleStatement{Nm: dag.f.AddNopActivity("nop-activity")},
-		Egress:  SimpleStatement{Nm: dag.f.AddNopActivity("nop-activity")},
+		Ingress: SimpleStatement{Nm: dag.f.AddNopActivity("bof-if")},
+		Egress:  SimpleStatement{Nm: dag.f.AddNopActivity("eof-if")},
 		Cond:    cond,
 		Then:    thenStmt,
 		Else:    elseStmt,

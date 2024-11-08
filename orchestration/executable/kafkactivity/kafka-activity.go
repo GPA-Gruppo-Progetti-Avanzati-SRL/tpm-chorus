@@ -140,6 +140,7 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 	//if len(cfg.ProcessVars) > 0 {
 	err = wfc.SetVars(expressionCtx, cfg.ProcessVars, "", false)
 	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}

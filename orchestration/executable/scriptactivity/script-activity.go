@@ -121,6 +121,7 @@ func (a *ScriptActivity) Execute(wfc *wfcase.WfCase) error {
 	if len(tcfg.ProcessVars) > 0 {
 		err := wfc.SetVars(expressionCtx, tcfg.ProcessVars, "", false)
 		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}
