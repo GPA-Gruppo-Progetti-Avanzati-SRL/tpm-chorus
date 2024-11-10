@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 	"io/fs"
@@ -63,7 +63,7 @@ func (epd *EndpointDefinition) WriteToFile(folderName string, fileName string) e
 		return err
 	}
 
-	outFileName, _ := util.ResolvePath(fn)
+	outFileName, _ := fileutil.ResolvePath(fn)
 	err = os.WriteFile(outFileName, b, fs.ModePerm)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)

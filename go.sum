@@ -8,8 +8,8 @@ github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 h1:UQHMgLO+TxOEl
 github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.21 h1:Qo9efWEzCzmt3ondf6Mb8Hoqq67JBOnN0/xMbtbbWKs=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.21/go.mod h1:0i47SzC3u7NihJqR2t0udko7/GRpPPVqCQCatKVrbmA=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.60 h1:TWAlzkDryEt1RJKQZNjcIYuz5+/YbiOTkps2auvN4Mc=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.60/go.mod h1:vnI1W77dpctWxMspokeoSVbGAOaU66mKfnCOyyoEYWQ=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.62 h1:kSiygZuk50vAvvKQ9VxDiOL61eTNFCTwtL/hoZMNJIY=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.62/go.mod h1:vnI1W77dpctWxMspokeoSVbGAOaU66mKfnCOyyoEYWQ=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.10 h1:6mcqj1kErHCxAc3x3c2NN4jxcOwY/sX4Tp0CoIuMIAg=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.10/go.mod h1:jxnxei6AQYBwwvm6Gl5cguxQjs/4RHyfYMuTrGGWPoU=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.10 h1:JO++Vimigcw1N6aHSFfyZf1M96sTUTGupNGV9ztmiKQ=

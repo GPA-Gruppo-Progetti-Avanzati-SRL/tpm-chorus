@@ -3,6 +3,7 @@ package repo
 import (
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"path/filepath"
 )
@@ -14,7 +15,7 @@ func NewOrchestrationBundleFromFolder(dir string) (OrchestrationBundle, error) {
 		Path: dir,
 	}
 
-	files, err := util.FindFiles(dir, util.WithFindFileType(util.FileTypeFile), util.WithFindOptionIgnoreList(DefaultIgnoreList))
+	files, err := fileutil.FindFiles(dir, fileutil.WithFindFileType(fileutil.FileTypeFile), fileutil.WithFindOptionIgnoreList(DefaultIgnoreList))
 	if err != nil {
 		return bundle, err
 	}
@@ -49,8 +50,8 @@ func NewOrchestrationBundleFromFolder(dir string) (OrchestrationBundle, error) {
 
 	// Load dicts also from dicts subfolder....
 	dictsSubFolder := filepath.Join(dir, "dicts")
-	if util.FileExists(dictsSubFolder) {
-		files, err = util.FindFiles(filepath.Join(dir, "dicts"), util.WithFindFileType(util.FileTypeFile), util.WithFindOptionIgnoreList(DefaultIgnoreList))
+	if fileutil.FileExists(dictsSubFolder) {
+		files, err = fileutil.FindFiles(filepath.Join(dir, "dicts"), fileutil.WithFindFileType(fileutil.FileTypeFile), fileutil.WithFindOptionIgnoreList(DefaultIgnoreList))
 		if err != nil {
 			return bundle, err
 		}
@@ -161,7 +162,7 @@ func findAssetIndexByPath(assets []Asset, p string) int {
 func FindNestedOrchestrations(dir string) ([]string, error) {
 	const semLogContext = "find-nested-orchestrations"
 
-	folders, err := util.FindFiles(dir, util.WithFindFileType(util.FileTypeDir), util.WithFindOptionFoldersIgnoreList([]string{"dicts"}))
+	folders, err := fileutil.FindFiles(dir, fileutil.WithFindFileType(fileutil.FileTypeDir), fileutil.WithFindOptionFoldersIgnoreList([]string{"dicts"}))
 	if err != nil {
 		return nil, err
 	}
@@ -169,7 +170,7 @@ func FindNestedOrchestrations(dir string) ([]string, error) {
 	var resp []string
 	for _, f := range folders {
 		n := filepath.Join(f, "tpm-orchestration.yml")
-		if util.FileExists(n) {
+		if fileutil.FileExists(n) {
 			resp = append(resp, f)
 		}
 	}

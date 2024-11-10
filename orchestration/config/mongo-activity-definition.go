@@ -2,7 +2,7 @@ package config
 
 import (
 	"errors"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/jsonops"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -90,7 +90,7 @@ func (def *MongoActivityDefinition) WriteToFile(folderName string, fileName stri
 		return err
 	}
 
-	outFileName, _ := util.ResolvePath(fn)
+	outFileName, _ := fileutil.ResolvePath(fn)
 	err = os.WriteFile(outFileName, b, fs.ModePerm)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
