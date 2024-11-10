@@ -358,8 +358,8 @@ func (dag *DAGBuilder) Goto(n string) Statement {
 
 func (dag *DAGBuilder) Switch(cas ...CaseStatement) Statement {
 	stmt := SwitchStatement{
-		Ingress: SimpleStatement{Nm: dag.f.AddNopActivity("bof-switch")},
-		Egress:  SimpleStatement{Nm: dag.f.AddNopActivity("eof-switch")},
+		Ingress: SimpleStatement{Nm: dag.f.AddNopActivity("Switch")},
+		Egress:  SimpleStatement{Nm: dag.f.AddNopActivity("End")},
 	}
 	stmt.Cases = append(stmt.Cases, cas...)
 	return &stmt
@@ -387,8 +387,8 @@ func (dag *DAGBuilder) Block(stmts ...Statement) BlockStatement {
 
 func (dag *DAGBuilder) If(cond string, thenStmt Statement, elseStmt Statement) Statement {
 	stmt := IfStatement{
-		Ingress: SimpleStatement{Nm: dag.f.AddNopActivity("bof-if")},
-		Egress:  SimpleStatement{Nm: dag.f.AddNopActivity("eof-if")},
+		Ingress: SimpleStatement{Nm: dag.f.AddNopActivity("If")},
+		Egress:  SimpleStatement{Nm: dag.f.AddNopActivity("End")},
 		Cond:    cond,
 		Then:    thenStmt,
 		Else:    elseStmt,
@@ -409,7 +409,7 @@ func (dag *DAGBuilder) Build() error {
 		}
 	}
 
-	return nil
+	return dag.f.Optimize()
 }
 
 func removeDups(paths []config.Path) []config.Path {
@@ -427,6 +427,7 @@ func removeDups(paths []config.Path) []config.Path {
 }
 
 type DagModel interface {
+	Optimize() error
 	AddNopActivity(d string) string
 	AddPath(src, target, condition string) error
 }

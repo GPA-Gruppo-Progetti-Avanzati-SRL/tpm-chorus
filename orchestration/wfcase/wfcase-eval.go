@@ -1,7 +1,6 @@
 package wfcase
 
 import (
-	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
@@ -21,14 +20,15 @@ func (wfc *WfCase) GetEvaluatorByHarEntryReference(resolverContext HarEntryRefer
 	}
 
 	var err error
-	if entry, ok := wfc.Entries[resolverContext.Name]; ok {
-		if resolverContext.UseResponse {
-			resolver, err = wfc.getEvaluatorForHarEntryResponse(resolverContext.String(), entry, withVars, withTransformationId, ignoreNonApplicationJsonResponseContent)
-		} else {
-			resolver, err = wfc.getEvaluatorForHarEntryRequest(resolverContext.String(), entry, withVars, withTransformationId)
-		}
+	entry, err := wfc.GetHarEntry(resolverContext.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	if resolverContext.UseResponse {
+		resolver, err = wfc.getEvaluatorForHarEntryResponse(resolverContext.String(), entry, withVars, withTransformationId, ignoreNonApplicationJsonResponseContent)
 	} else {
-		return nil, fmt.Errorf("cannot find ctxName %s in case", resolverContext.Name)
+		resolver, err = wfc.getEvaluatorForHarEntryRequest(resolverContext.String(), entry, withVars, withTransformationId)
 	}
 
 	log.Trace().Str("name", resolverContext.Name).Msg(semLogContext + " new resolver created")

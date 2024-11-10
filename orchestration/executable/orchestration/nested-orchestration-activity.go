@@ -14,6 +14,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -124,11 +125,12 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 	err = a.executeNestedOrchestration(wfcChild)
 	harData := wfcChild.GetHarData(wfcase.ReportLogHAR, nil)
 	if harData != nil {
+		entryId := wfc.ComputeFirstAvailableIndexedHarEntryId(a.Name())
 		for _, e := range harData.Log.Entries {
-			if e.Comment == "request" {
-				e.Comment = fmt.Sprintf("%s", a.Name())
+			if strings.HasPrefix(e.Comment, "request") {
+				e.Comment = fmt.Sprintf("%s", entryId)
 			} else {
-				e.Comment = fmt.Sprintf("%s#%s", a.Name(), e.Comment)
+				e.Comment = fmt.Sprintf("%s@%s", entryId, e.Comment)
 			}
 			wfc.Entries[e.Comment] = e
 		}

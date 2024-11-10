@@ -14,6 +14,10 @@ import (
 type TestModel struct {
 }
 
+func (t TestModel) Optimize() error {
+	return nil
+}
+
 func (t TestModel) AddNopActivity(d string) string {
 	return util.NewUUID()
 }

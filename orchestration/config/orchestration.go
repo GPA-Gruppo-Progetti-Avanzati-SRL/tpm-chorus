@@ -513,3 +513,17 @@ func (o *Orchestration) Actors(n string) []string {
 
 	return actorNames
 }
+
+func (o *Orchestration) Optimize() error {
+	for ndx, a := range o.Activities {
+		if a.Type() == NopActivityType {
+			if len(o.Paths.FindIncomingPaths(a.Name())) == 0 {
+				o.Paths = o.Paths.RemoveActivityOutgoingPaths(a.Name())
+				o.Activities[ndx] = o.Activities[len(o.Activities)-1]
+				o.Activities = o.Activities[:len(o.Activities)-1]
+			}
+		}
+	}
+
+	return nil
+}

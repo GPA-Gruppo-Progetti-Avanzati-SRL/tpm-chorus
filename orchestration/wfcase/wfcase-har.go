@@ -56,10 +56,76 @@ func (wfc *WfCase) ResolveHarEntryReferenceByName(n string) (HarEntryReference, 
 }
 
 func (wfc *WfCase) GetHarEntry(entryId string) (*har.Entry, error) {
+	if HarEntryIdIsIndexed(entryId) {
+		return wfc.GetHarEntry4IndexedEntryId(entryId)
+	}
+
+	return wfc.GetHarEntry4NotIndexedEntryId(entryId)
+}
+
+func HarEntryIdIsIndexed(entryId string) bool {
+	ndx := strings.Index(entryId, "#")
+	return ndx >= 0
+}
+
+func (wfc *WfCase) GetHarEntry4NotIndexedEntryId(entryId string) (*har.Entry, error) {
+	instanceId, err := wfc.ComputeLastUsedIndexedHarEntryId(entryId)
+	if err != nil {
+		return nil, err
+	}
+
+	return wfc.Entries[instanceId], nil
+}
+
+func (wfc *WfCase) GetHarEntry4IndexedEntryId(entryId string) (*har.Entry, error) {
 	if endpointData, ok := wfc.Entries[entryId]; ok {
 		return endpointData, nil
 	}
 	return nil, fmt.Errorf("cannot find ctxName %s in case", entryId)
+}
+
+func (wfc *WfCase) ComputeFirstAvailableIndexedHarEntryId(entryId string) string {
+
+	// Search first available id.
+	if HarEntryIdIsIndexed(entryId) {
+		entryId = entryId[:strings.Index(entryId, "#")]
+	}
+
+	instanceNumber := 0
+	instanceId := fmt.Sprintf("%s#%d", entryId, instanceNumber)
+	_, ok := wfc.Entries[instanceId]
+	for ok {
+		instanceNumber += 1
+		instanceId = fmt.Sprintf("%s#%d", entryId, instanceNumber)
+		_, ok = wfc.Entries[instanceId]
+	}
+
+	return instanceId
+}
+
+func (wfc *WfCase) ComputeLastUsedIndexedHarEntryId(entryId string) (string, error) {
+	var lastInstanceId string
+
+	if HarEntryIdIsIndexed(entryId) {
+		entryId = entryId[:strings.Index(entryId, "#")]
+	}
+
+	instanceNumber := 0
+	instanceId := fmt.Sprintf("%s#%d", entryId, instanceNumber)
+	_, ok := wfc.Entries[instanceId]
+	for ok {
+		lastInstanceId = instanceId
+
+		instanceNumber += 1
+		instanceId = fmt.Sprintf("%s#%d", entryId, instanceNumber)
+		_, ok = wfc.Entries[instanceId]
+	}
+
+	if lastInstanceId == "" {
+		return "", fmt.Errorf("cannot find ctxName %s in case", entryId)
+	}
+
+	return lastInstanceId, nil
 }
 
 type ReportLogDetail string
@@ -94,7 +160,7 @@ func (wfc *WfCase) GetHarData(detail ReportLogDetail, jm *jsonmask.JsonMask) *ha
 	for n, e := range wfc.Entries {
 
 		incl := true
-		if detail == ReportLogHARRequest && e.Comment != InitialRequestHarEntryId {
+		if detail == ReportLogHARRequest && !strings.HasPrefix(e.Comment, InitialRequestHarEntryId) {
 			incl = false
 		}
 
@@ -121,18 +187,20 @@ func (wfc *WfCase) GetHarData(detail ReportLogDetail, jm *jsonmask.JsonMask) *ha
 }
 
 func (wfc *WfCase) SetHarEntry(id string, entry *har.Entry) error {
-	wfc.Entries[id] = entry
+	instanceId := wfc.ComputeFirstAvailableIndexedHarEntryId(id)
+	wfc.Entries[instanceId] = entry
 	return nil
 }
 
 func (wfc *WfCase) SetHarEntryRequest(id string, req *har.Request, pii config.PersonallyIdentifiableInformation) error {
 	const semLogContext = "wf-case::set-har-entry-request"
 
-	e, ok := wfc.Entries[id]
+	instanceId := wfc.ComputeFirstAvailableIndexedHarEntryId(id)
+	e, ok := wfc.Entries[instanceId]
 	if !ok {
 		now := time.Now()
 		e = &har.Entry{
-			Comment:         id,
+			Comment:         instanceId,
 			StartedDateTime: now.Format("2006-01-02T15:04:05.999999999Z07:00"),
 			StartDateTimeTm: now,
 		}
@@ -142,7 +210,7 @@ func (wfc *WfCase) SetHarEntryRequest(id string, req *har.Request, pii config.Pe
 		Domain:    pii.Domain,
 		AppliesTo: pii.AppliesTo,
 	}
-	wfc.Entries[id] = e
+	wfc.Entries[instanceId] = e
 	return nil
 }
 
@@ -150,9 +218,15 @@ func (wfc *WfCase) SetHarEntryResponse(id string, resp *har.Response, pii config
 
 	const semLogContext = "wf-case::set-har-entry-response"
 
+	instanceId, err := wfc.ComputeLastUsedIndexedHarEntryId(id)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
 	// epData := EndpointData{Id: id, Body: body, Headers: headers, Params: params}
 	// wfc.EpInfo[epData.Id] = epData
-	e, ok := wfc.Entries[id]
+	e, ok := wfc.Entries[instanceId]
 	if !ok {
 		now := time.Now()
 		e = &har.Entry{
@@ -183,7 +257,7 @@ func (wfc *WfCase) SetHarEntryResponse(id string, resp *har.Response, pii config
 		AppliesTo: pii.AppliesTo,
 	}
 
-	wfc.Entries[id] = e
+	wfc.Entries[instanceId] = e
 
 	/*
 		var hs []har.NameValuePair
@@ -242,37 +316,48 @@ func (wfc *WfCase) NewHarRequestFromHarEntryReference(ctxName HarEntryReference,
 }
 
 func (wfc *WfCase) GetHeaderInHarEntry(ctxName string, hn string) string {
-	if endpointData, ok := wfc.Entries[ctxName]; ok {
-		v := ""
-		if ctxName == InitialRequestHarEntryId {
-			v = endpointData.Request.Headers.GetFirst(hn).Value
-		} else {
-			v = endpointData.Response.Headers.GetFirst(hn).Value
-		}
 
-		return v
+	herEntry, err := wfc.GetHarEntry(ctxName)
+	if err != nil {
+		return ""
 	}
 
-	return ""
+	v := ""
+	if strings.HasPrefix(ctxName, InitialRequestHarEntryId) {
+		v = herEntry.Request.Headers.GetFirst(hn).Value
+	} else {
+		v = herEntry.Response.Headers.GetFirst(hn).Value
+	}
+
+	return v
+
 }
 
 func (wfc *WfCase) GetHeadersInHarEntry(ctxName string) har.NameValuePairs {
-	if endpointData, ok := wfc.Entries[ctxName]; ok {
-		if ctxName == InitialRequestHarEntryId {
-			return endpointData.Request.Headers
-		} else {
-			return endpointData.Response.Headers
-		}
+
+	herEntry, err := wfc.GetHarEntry(ctxName)
+	if err != nil {
+		return nil
+	}
+
+	if strings.HasPrefix(ctxName, InitialRequestHarEntryId) {
+		return herEntry.Request.Headers
+	} else {
+		return herEntry.Response.Headers
 	}
 
 	return nil
 }
 
 func (wfc *WfCase) GetQueryParamsInHarEntry(ctxName string) har.NameValuePairs {
-	if endpointData, ok := wfc.Entries[ctxName]; ok {
-		if ctxName == InitialRequestHarEntryId {
-			return endpointData.Request.QueryString
-		}
+
+	herEntry, err := wfc.GetHarEntry(ctxName)
+	if err != nil {
+		return nil
+	}
+
+	if strings.HasPrefix(ctxName, InitialRequestHarEntryId) {
+		return herEntry.Request.QueryString
 	}
 
 	return nil
@@ -281,34 +366,36 @@ func (wfc *WfCase) GetQueryParamsInHarEntry(ctxName string) har.NameValuePairs {
 func (wfc *WfCase) GetBodyInHarEntry(resolverContext HarEntryReference, ignoreNonApplicationJsonResponseContent bool) ([]byte, error) {
 	var b []byte
 	var err error
-	if entry, ok := wfc.Entries[resolverContext.Name]; ok {
-		if resolverContext.UseResponse {
-			if entry.Response.Content != nil {
-				if strings.HasPrefix(entry.Response.Content.MimeType, constants.ContentTypeApplicationJson) {
-					b = entry.Response.Content.Data
-				} else {
-					if ignoreNonApplicationJsonResponseContent {
-						return nil, nil
-					}
 
-					return nil, errors.New("content type is not application/json")
-				}
-			}
-		} else {
-			if entry.Request.PostData != nil {
-				if strings.HasPrefix(entry.Request.PostData.MimeType, constants.ContentTypeApplicationJson) {
-					b = entry.Request.PostData.Data
-				} else {
-					if ignoreNonApplicationJsonResponseContent {
-						return nil, nil
-					}
+	entry, err := wfc.GetHarEntry(resolverContext.Name)
+	if err != nil {
+		return nil, err
+	}
 
-					return nil, errors.New("content type is not application/json")
+	if resolverContext.UseResponse {
+		if entry.Response.Content != nil {
+			if strings.HasPrefix(entry.Response.Content.MimeType, constants.ContentTypeApplicationJson) {
+				b = entry.Response.Content.Data
+			} else {
+				if ignoreNonApplicationJsonResponseContent {
+					return nil, nil
 				}
+
+				return nil, errors.New("content type is not application/json")
 			}
 		}
 	} else {
-		return nil, fmt.Errorf("cannot find ctxName %s in case", resolverContext.Name)
+		if entry.Request.PostData != nil {
+			if strings.HasPrefix(entry.Request.PostData.MimeType, constants.ContentTypeApplicationJson) {
+				b = entry.Request.PostData.Data
+			} else {
+				if ignoreNonApplicationJsonResponseContent {
+					return nil, nil
+				}
+
+				return nil, errors.New("content type is not application/json")
+			}
+		}
 	}
 
 	return b, err

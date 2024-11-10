@@ -36,3 +36,15 @@ func (ps Paths) FindIncomingPaths(activity string) Paths {
 
 	return inPaths
 }
+
+func (ps Paths) RemoveActivityOutgoingPaths(activity string) Paths {
+
+	var paths Paths
+	for _, p := range ps {
+		if p.SourceName != activity {
+			paths = append(paths, p)
+		}
+	}
+
+	return paths
+}
