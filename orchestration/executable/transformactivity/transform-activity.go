@@ -265,7 +265,7 @@ func (a *TransformActivity) newRequestDefinition(wfc *wfcase.WfCase, expressionC
 	opts = append(opts, har.WithMethod("POST"))
 	opts = append(opts, har.WithUrl(ub.Url()))
 
-	b, err := wfc.GetBodyInHarEntry(expressionCtx, true)
+	b, _, err := wfc.GetBodyInHarEntry(expressionCtx, true)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 	}

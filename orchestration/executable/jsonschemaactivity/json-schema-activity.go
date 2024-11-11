@@ -120,7 +120,7 @@ func (a *JsonSchemaActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.Har
 
 	const semLogContext = "json-schema-activity::invoke"
 	var err error
-	data, err := wfc.GetBodyInHarEntry(expressionCtx, true)
+	data, _, err := wfc.GetBodyInHarEntry(expressionCtx, true)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		r := har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
@@ -168,7 +168,7 @@ func (a *JsonSchemaActivity) newRequestDefinition(wfc *wfcase.WfCase, expression
 	opts = append(opts, har.WithMethod("POST"))
 	opts = append(opts, har.WithUrl(ub.Url()))
 
-	b, err := wfc.GetBodyInHarEntry(expressionCtx, true)
+	b, _, err := wfc.GetBodyInHarEntry(expressionCtx, true)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 	}

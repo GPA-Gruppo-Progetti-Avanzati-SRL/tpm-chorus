@@ -114,6 +114,7 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		a.orchestration.Cfg.Dictionaries,
 		a.orchestration.Cfg.References,
 		tcfg.ProcessVars,
+		nil,
 		nil)
 
 	if err != nil {
@@ -183,7 +184,7 @@ func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfC
 
 	if orchestrationErr != nil {
 		log.Error().Err(orchestrationErr).Msg(semLogContext)
-		sc, ct, resp := produceErrorResponse(orchestrationErr)
+		sc, ct, resp := produceNestedActivityErrorResponse(orchestrationErr)
 		harResponse = har.NewResponse(
 			sc, "execution error",
 			constants.ContentTypeApplicationJson, resp,
@@ -210,7 +211,7 @@ func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfC
 	return orchestrationErr
 }
 
-func produceErrorResponse(err error) (int, string, []byte) {
+func produceNestedActivityErrorResponse(err error) (int, string, []byte) {
 	var exeErr *smperror.SymphonyError
 	ok := errors.As(err, &exeErr)
 

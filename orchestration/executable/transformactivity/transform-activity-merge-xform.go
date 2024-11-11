@@ -55,7 +55,7 @@ func (xform MergeXForm) Execute(wfc *wfcase.WfCase, data []byte) ([]byte, error)
 		log.Trace().Str("expr-scope", expressionCtx.Name).Msg(semLogContext)
 
 		var b []byte
-		b, err = wfc.GetBodyInHarEntry(expressionCtx, true)
+		b, _, err = wfc.GetBodyInHarEntry(expressionCtx, true)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return nil, err

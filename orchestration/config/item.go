@@ -25,6 +25,7 @@ const (
 	TransformActivityType           Type = "transform-activity"
 	ScriptActivityType              Type = "script-activity"
 	JsonSchemaActivityType          Type = "json-schema-activity"
+	LoopActivityType                Type = "loop-activity"
 )
 
 type ActivityTypeRegistryEntry struct {
@@ -45,6 +46,7 @@ var activityTypeRegistry = map[Type]ActivityTypeRegistryEntry{
 	TransformActivityType:           {Tp: TransformActivityType, UnmarshallFromJSON: NewTransformActivityFromJSON, UnmarshalFromYAML: NewTransformActivityFromYAML},
 	ScriptActivityType:              {Tp: ScriptActivityType, UnmarshallFromJSON: NewScriptActivityFromJSON, UnmarshalFromYAML: NewScriptActivityFromYAML},
 	JsonSchemaActivityType:          {Tp: JsonSchemaActivityType, UnmarshallFromJSON: NewJsonSchemaActivityFromJSON, UnmarshalFromYAML: NewJsonSchemaActivityFromYAML},
+	LoopActivityType:                {Tp: LoopActivityType, UnmarshallFromJSON: NewLoopActivityFromJSON, UnmarshalFromYAML: NewLoopActivityFromYAML},
 }
 
 type Guarded interface {

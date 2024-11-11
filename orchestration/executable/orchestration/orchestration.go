@@ -71,6 +71,8 @@ func NewOrchestration(cfg *config.Orchestration) (Orchestration, error) {
 			ex, err = scriptactivity.NewScriptActivity(cfgItem, cfg.References)
 		case config.JsonSchemaActivityType:
 			ex, err = jsonschemaactivity.NewJsonSchemaActivity(cfgItem, cfg.References)
+		case config.LoopActivityType:
+			ex, err = NewLoopActivity(cfgItem, cfg.References, mapOfNestedOrcs)
 		default:
 			panic(fmt.Errorf("this should not happen %s, unrecognized sctivity type", cfgItem.Type()))
 		}

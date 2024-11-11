@@ -101,7 +101,7 @@ func NewWorkflowCase(id string, version, sha string, descr string, dicts config.
 	return c, nil
 }
 
-func (wfc *WfCase) NewChild(expressionCtx HarEntryReference, id string, version, sha string, descr string, dicts config.Dictionaries, refs config.DataReferences, vars []config.ProcessVar, span opentracing.Span) (*WfCase, error) {
+func (wfc *WfCase) NewChild(expressionCtx HarEntryReference, id string, version, sha string, descr string, dicts config.Dictionaries, refs config.DataReferences, vars []config.ProcessVar, body []byte, span opentracing.Span) (*WfCase, error) {
 	const semLogContext = "wf-case::new-child"
 	childWfc, err := NewWorkflowCase(id, version, sha, descr, dicts, refs, nil, span)
 	if err != nil {
@@ -115,7 +115,7 @@ func (wfc *WfCase) NewChild(expressionCtx HarEntryReference, id string, version,
 		return nil, err
 	}
 
-	req, err := wfc.NewHarRequestFromHarEntryReference(expressionCtx, "POST", fmt.Sprintf("activity://localhost/%s/%s", config.NestedOrchestrationActivityType, id))
+	req, err := wfc.NewHarRequestFromHarEntryReference(expressionCtx, "POST", fmt.Sprintf("activity://localhost/%s/%s", config.NestedOrchestrationActivityType, id), body)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return childWfc, err

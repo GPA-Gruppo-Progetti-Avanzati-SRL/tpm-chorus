@@ -196,6 +196,10 @@ func (a *Activity) ProcessResponseActionByStatusCode(
 		return -1, nil
 	}
 
+	if !ignoreNonJSONResponseContent {
+		ignoreNonJSONResponseContent = actions[actNdx].IgnoreNonApplicationJsonResponseContent
+	}
+
 	if srcWfc == nil {
 		srcWfc = destWfc
 	}

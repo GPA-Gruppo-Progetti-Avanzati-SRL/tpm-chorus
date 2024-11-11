@@ -293,22 +293,32 @@ func (wfc *WfCase) SetHarEntryResponse(id string, resp *har.Response, pii config
 	return nil
 }
 
-func (wfc *WfCase) NewHarRequestFromHarEntryReference(ctxName HarEntryReference, method, url string) (*har.Request, error) {
+// NewHarRequestFromHarEntryReference the body parameter overrides the body that can  be taken from previous activity response. Used in the loop activity.
+func (wfc *WfCase) NewHarRequestFromHarEntryReference(ctxName HarEntryReference, method, url string, body []byte) (*har.Request, error) {
 	const semLogContext = "wf-case::get-request-from-context"
-	body, err := wfc.GetBodyInHarEntry(ctxName, true)
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return nil, err
+	var err error
+
+	ct := constants.ContentTypeApplicationJson
+	if len(body) == 0 {
+		body, ct, err = wfc.GetBodyInHarEntry(ctxName, true)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return nil, err
+		}
 	}
 
 	headers := wfc.GetHeadersInHarEntry(ctxName.Name)
-	var httpHeaders http.Header
+	httpHeaders := make(http.Header)
 	for _, h := range headers {
-		if httpHeaders == nil {
-			httpHeaders = make(http.Header)
+		if h.Name == "Content-Type" {
+			ct = h.Value
+			continue
 		}
+
 		httpHeaders[h.Name] = []string{h.Value}
 	}
+
+	httpHeaders[constants.ContentTypeHeader] = []string{ct}
 
 	queryParams := wfc.GetQueryParamsInHarEntry(ctxName.Name)
 	req, err := har.NewRequest(method, url, body, httpHeaders, queryParams, nil)
@@ -363,25 +373,26 @@ func (wfc *WfCase) GetQueryParamsInHarEntry(ctxName string) har.NameValuePairs {
 	return nil
 }
 
-func (wfc *WfCase) GetBodyInHarEntry(resolverContext HarEntryReference, ignoreNonApplicationJsonResponseContent bool) ([]byte, error) {
+func (wfc *WfCase) GetBodyInHarEntry(resolverContext HarEntryReference, ignoreNonApplicationJsonResponseContent bool) ([]byte, string, error) {
 	var b []byte
 	var err error
 
 	entry, err := wfc.GetHarEntry(resolverContext.Name)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
+	ct := constants.ContentTypeApplicationJson
 	if resolverContext.UseResponse {
 		if entry.Response.Content != nil {
 			if strings.HasPrefix(entry.Response.Content.MimeType, constants.ContentTypeApplicationJson) {
 				b = entry.Response.Content.Data
 			} else {
 				if ignoreNonApplicationJsonResponseContent {
-					return nil, nil
+					return nil, "", nil
 				}
 
-				return nil, errors.New("content type is not application/json")
+				return nil, "", errors.New("content type is not application/json")
 			}
 		}
 	} else {
@@ -390,13 +401,13 @@ func (wfc *WfCase) GetBodyInHarEntry(resolverContext HarEntryReference, ignoreNo
 				b = entry.Request.PostData.Data
 			} else {
 				if ignoreNonApplicationJsonResponseContent {
-					return nil, nil
+					return nil, "", nil
 				}
 
-				return nil, errors.New("content type is not application/json")
+				return nil, "", errors.New("content type is not application/json")
 			}
 		}
 	}
 
-	return b, err
+	return b, ct, err
 }
