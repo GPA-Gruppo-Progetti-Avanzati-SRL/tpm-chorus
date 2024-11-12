@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
+	"github.com/google/uuid"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 	"strings"
@@ -61,13 +62,29 @@ func (xform MergeXForm) Execute(wfc *wfcase.WfCase, data []byte) ([]byte, error)
 			return nil, err
 		}
 
-		if src.Dest == "" {
-			err = json.Unmarshal(b, &m)
-		} else {
-			var temp map[string]interface{}
+		switch jsonStructure(string(b)) {
+		case jsonStructureMap:
+			if src.Dest == "" {
+				err = json.Unmarshal(b, &m)
+			} else {
+				var temp map[string]interface{}
+				err = json.Unmarshal(b, &temp)
+				if err == nil {
+					m, err = SetMapProperty(m, src.Dest, temp)
+					if err != nil {
+						log.Error().Err(err).Msg(semLogContext)
+					}
+				}
+			}
+		case jsonStructureArray:
+			var temp []interface{}
+			destProperty := src.Dest
+			if src.Dest == "" {
+				destProperty = uuid.New().String()
+			}
 			err = json.Unmarshal(b, &temp)
 			if err == nil {
-				m, err = SetMapProperty(m, src.Dest, temp)
+				m, err = SetMapProperty(m, destProperty, temp)
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext)
 				}
@@ -83,10 +100,39 @@ func (xform MergeXForm) Execute(wfc *wfcase.WfCase, data []byte) ([]byte, error)
 	return json.Marshal(m)
 }
 
-func SetMapProperty(targetMap map[string]interface{}, key string, sourceMap map[string]interface{}) (map[string]interface{}, error) {
+// TODO: switch to tpm-common util.JSONStructure
+const (
+	jsonStructureMap    = "map"
+	jsonStructureArray  = "array"
+	jsonStructureString = "string"
+	jsonStructureEmpty  = "empty"
+)
+
+func jsonStructure(json string) string {
+	json = strings.TrimSpace(json)
+	if len(json) == 0 {
+		return jsonStructureEmpty
+	}
+
+	var res string
+	switch json[0] {
+	case '{':
+		res = jsonStructureMap
+	case '[':
+		res = jsonStructureArray
+	default:
+		res = jsonStructureString
+	}
+
+	return res
+}
+
+//
+
+func SetMapProperty(targetMap map[string]interface{}, key string, source interface{}) (map[string]interface{}, error) {
 	destPath := strings.Split(key, ".")
 	if len(destPath) == 1 {
-		targetMap[key] = sourceMap
+		targetMap[key] = source
 		return targetMap, nil
 	}
 
@@ -105,6 +151,6 @@ func SetMapProperty(targetMap map[string]interface{}, key string, sourceMap map[
 		}
 	}
 
-	runningMap[destPath[len(destPath)-1]] = sourceMap
+	runningMap[destPath[len(destPath)-1]] = source
 	return targetMap, nil
 }
