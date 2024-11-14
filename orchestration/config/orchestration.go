@@ -7,7 +7,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -144,13 +143,13 @@ type Orchestration struct {
 	Properties           map[string]interface{}            `yaml:"properties,omitempty" mapstructure:"properties,omitempty" json:"properties,omitempty"`
 }
 
-func (o *Orchestration) WriteToFolder(folderName string) error {
+func (o *Orchestration) WriteToFolder(folderName string, writeOpts ...fileutil.WriteOption) error {
 	const semLogContext = "orchestration-definition::write-to-folder"
 	fn := repo.OrchestrationFileName
-	return o.WriteToFile(folderName, fn)
+	return o.WriteToFile(folderName, fn, writeOpts...)
 }
 
-func (o *Orchestration) WriteToFile(folderName string, fn string) error {
+func (o *Orchestration) WriteToFile(folderName string, fn string, writeOpts ...fileutil.WriteOption) error {
 	const semLogContext = "orchestration-definition::write-to-folder"
 	fn = filepath.Join(folderName, fn)
 	log.Info().Str("file-name", fn).Msg(semLogContext)
@@ -160,8 +159,9 @@ func (o *Orchestration) WriteToFile(folderName string, fn string) error {
 		return err
 	}
 
-	outFileName, _ := fileutil.ResolvePath(fn)
-	err = os.WriteFile(outFileName, b, fs.ModePerm)
+	err = fileutil.WriteFile(fn, b, os.ModePerm, writeOpts...)
+	//outFileName, _ := fileutil.ResolvePath(fn)
+	//err = os.WriteFile(outFileName, b, fs.ModePerm)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return err

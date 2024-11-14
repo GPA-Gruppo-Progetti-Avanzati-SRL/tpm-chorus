@@ -4,7 +4,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -53,7 +52,7 @@ type EndpointDefinition struct {
 	CacheConfig                             CacheConfig        `yaml:"with-cache,omitempty" json:"with-cache,omitempty" mapstructure:"with-cache,omitempty"`
 }
 
-func (epd *EndpointDefinition) WriteToFile(folderName string, fileName string) error {
+func (epd *EndpointDefinition) WriteToFile(folderName string, fileName string, writeOpts ...fileutil.WriteOption) error {
 	const semLogContext = "endpoint-definition::write-to-file"
 	fn := filepath.Join(folderName, fileName)
 	log.Info().Str("file-name", fn).Msg(semLogContext)
@@ -63,8 +62,9 @@ func (epd *EndpointDefinition) WriteToFile(folderName string, fileName string) e
 		return err
 	}
 
-	outFileName, _ := fileutil.ResolvePath(fn)
-	err = os.WriteFile(outFileName, b, fs.ModePerm)
+	err = fileutil.WriteFile(fn, b, os.ModePerm, writeOpts...)
+	//outFileName, _ := fileutil.ResolvePath(fn)
+	//err = os.WriteFile(outFileName, b, fs.ModePerm)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return err

@@ -5,7 +5,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
-	"io/fs"
 	"os"
 	"path/filepath"
 )
@@ -21,7 +20,7 @@ func (d *EchoActivityDefinition) IsZero() bool {
 	return d.Message == "" && d.IncludeInHar == false
 }
 
-func (d *EchoActivityDefinition) WriteToFile(folderName string, fileName string) error {
+func (d *EchoActivityDefinition) WriteToFile(folderName string, fileName string, writeOpts ...fileutil.WriteOption) error {
 	const semLogContext = "echo-activity-definition::write-to-file"
 	fn := filepath.Join(folderName, fileName)
 	log.Info().Str("file-name", fn).Msg(semLogContext)
@@ -31,8 +30,9 @@ func (d *EchoActivityDefinition) WriteToFile(folderName string, fileName string)
 		return err
 	}
 
-	outFileName, _ := fileutil.ResolvePath(fn)
-	err = os.WriteFile(outFileName, b, fs.ModePerm)
+	err = fileutil.WriteFile(fn, b, os.ModePerm, writeOpts...)
+	//outFileName, _ := fileutil.ResolvePath(fn)
+	//err = os.WriteFile(outFileName, b, fs.ModePerm)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return err

@@ -6,7 +6,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/jsonops"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strings"
@@ -80,7 +79,7 @@ func UnmarshalMongoActivityDefinition(opType jsonops.MongoJsonOperationType, def
 	return maDef, nil
 }
 
-func (def *MongoActivityDefinition) WriteToFile(folderName string, fileName string) error {
+func (def *MongoActivityDefinition) WriteToFile(folderName string, fileName string, writeOpts ...fileutil.WriteOption) error {
 	const semLogContext = "mongo-activity-definition::write-to-file"
 	fn := filepath.Join(folderName, fileName)
 	log.Info().Str("file-name", fn).Msg(semLogContext)
@@ -90,8 +89,9 @@ func (def *MongoActivityDefinition) WriteToFile(folderName string, fileName stri
 		return err
 	}
 
-	outFileName, _ := fileutil.ResolvePath(fn)
-	err = os.WriteFile(outFileName, b, fs.ModePerm)
+	err = fileutil.WriteFile(fn, b, os.ModePerm, writeOpts...)
+	//outFileName, _ := fileutil.ResolvePath(fn)
+	//err = os.WriteFile(outFileName, b, fs.ModePerm)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return err
