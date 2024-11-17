@@ -96,6 +96,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins["globalVar"] = globals.GetGlobalVar
 	builtins["lenJsonArray"] = purefuncs.LenJsonArray
 	builtins["isJsonArray"] = purefuncs.IsJsonArray
+	builtins["stringIn"] = purefuncs.StringIn
 	return builtins
 }
 

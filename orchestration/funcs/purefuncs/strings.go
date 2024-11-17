@@ -4,7 +4,29 @@ import (
 	"errors"
 	"fmt"
 	"github.com/rs/zerolog/log"
+	"strings"
 )
+
+func StringIn(elem interface{}, csvList string, caseInsensitive bool) bool {
+	s := fmt.Sprintf("%v", elem)
+	if caseInsensitive {
+		csvList = strings.ToLower(csvList)
+		s = strings.ToLower(s)
+	}
+
+	listSlice := strings.Split(csvList, ",")
+	if len(listSlice) == 0 {
+		return false
+	}
+
+	for _, item := range listSlice {
+		if item == s {
+			return true
+		}
+	}
+
+	return false
+}
 
 func Substr(elem interface{}, start float64, end float64) string {
 	const semLogContext = "orchestration-funcs::substr"
