@@ -45,8 +45,7 @@ type KafkaReporter struct {
 }
 
 func (dw *KafkaReporter) Start() error {
-
-	kp, err := kafkalks.NewKafkaProducer(context.Background(), "default", "") // .NewKafkaProducer(context.Background(), dw.cfg.Kafka.Topic)
+	kp, err := kafkalks.NewKafkaProducer(context.Background(), "default", "", kafka.TopicPartition{Partition: kafka.PartitionAny}) // .NewKafkaProducer(context.Background(), dw.cfg.Kafka.Topic)
 	if err != nil {
 		return err
 	}
