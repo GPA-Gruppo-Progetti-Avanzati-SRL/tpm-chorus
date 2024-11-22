@@ -181,7 +181,7 @@ func (kr *KafkaReporter) monitorProducerEvents() {
 		}
 	}
 
-	log.Info().Msg("stop monitoring producer events")
+	log.Info().Msg(semLogContext + " stop monitoring producer events")
 }
 
 func (kr *KafkaReporter) Report(req *wfcase.WfCase) error {
