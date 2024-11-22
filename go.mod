@@ -7,11 +7,11 @@ require (
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.66
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.18
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.18
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.42
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.0.91-RC1
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.19
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/PaesslerAG/jsonpath v0.1.1
-	github.com/confluentinc/confluent-kafka-go/v2 v2.6.1
+	github.com/confluentinc/confluent-kafka-go/v2 v2.4.0
 	github.com/d5/tengo/v2 v2.17.0
 	github.com/getkin/kin-openapi v0.124.0
 	github.com/google/uuid v1.6.0
