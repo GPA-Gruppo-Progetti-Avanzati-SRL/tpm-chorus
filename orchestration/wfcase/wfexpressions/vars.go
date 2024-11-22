@@ -189,6 +189,10 @@ func (vs ProcessVars) evalExpressionSetToBool(varExpressions []string, mode Eval
 		}
 
 		if boolVal {
+			if mode == config.AtLeastOne {
+				return ndx, nil
+			}
+
 			boolVal, err = onTrueEvaluateModeConstraint(foundNdx >= 0, v == "", mode)
 			if err != nil {
 				return ndx, fmt.Errorf("expression (%s) at  %d and expression (%s) at %d both evaluate and violate the %s mode",
