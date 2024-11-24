@@ -397,7 +397,7 @@ func (dag *DAGBuilder) If(cond string, thenStmt Statement, elseStmt Statement) S
 	return &stmt
 }
 
-func (dag *DAGBuilder) Build() error {
+func (dag *DAGBuilder) Build(optimize bool) error {
 
 	dagPaths := dag.stmt.Paths()
 	dagPaths = removeDups(dagPaths)
@@ -409,7 +409,10 @@ func (dag *DAGBuilder) Build() error {
 		}
 	}
 
-	return dag.f.Optimize()
+	if optimize {
+		return dag.f.Optimize()
+	}
+	return nil
 }
 
 func removeDups(paths []config.Path) []config.Path {
