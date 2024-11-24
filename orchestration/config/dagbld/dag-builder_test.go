@@ -27,7 +27,7 @@ func (t TestModel) AddPath(src, target, condition string) error {
 	return nil
 }
 
-func TestDagBuilder(t *testing.T) {
+func TestDagBuilder01(t *testing.T) {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 
 	dag := dagbld.NewDAGPathBuilder(&TestModel{})
@@ -60,6 +60,30 @@ func TestDagBuilder(t *testing.T) {
 		dag.S(fmt.Sprintf("echo-activity-%d", 11)),
 	)
 
-	err := dag.Build()
+	err := dag.Build(true)
+	require.NoError(t, err)
+}
+
+func TestDagBuilder02(t *testing.T) {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	dag := dagbld.NewDAGPathBuilder(&TestModel{})
+	dag.With(
+		dag.S("start-activity"),
+		dag.Switch(
+			dag.Case("case1",
+				dag.Block(
+					dag.Switch(
+						dag.Case("case1-1", dag.S(fmt.Sprintf("case-%d", 11))),
+						dag.Case("case2-1", dag.S(fmt.Sprintf("case-%d", 12))),
+					),
+				),
+			),
+			dag.Case("case2", dag.S(fmt.Sprintf("case-%d", 2))),
+		),
+		dag.S(fmt.Sprintf("echo-activity-%d", 11)),
+	)
+
+	err := dag.Build(true)
 	require.NoError(t, err)
 }

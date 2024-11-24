@@ -110,6 +110,7 @@ func (stmt BlockStatement) Out() InputOutput {
 
 func (stmt BlockStatement) Paths() []config.Path {
 	var paths []config.Path
+	paths = append(paths, stmt[0].Paths()...)
 	current := stmt[0].Out()
 	for i := 1; i < len(stmt); i++ {
 		if stmt[i].Type() != StatementTypeGoto {
