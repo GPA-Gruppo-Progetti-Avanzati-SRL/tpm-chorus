@@ -12,11 +12,17 @@ import (
 )
 
 const (
-	ContentTypeHeaderName                      = "content-type"
-	RhapsodyPipelineIdProcessVar               = "rhp_pipeline_id"
-	RhapsodyPipelineIdHeaderName               = "X-Rhp-Pipeline-Id"
-	RhapsodyRequestIdHeaderName                = "X-Rhp-Request-Id"
-	RhapsodyPipelineDescrProcessVar            = "rhp_pipeline_descr"
+	ContentTypeHeaderName           = "content-type"
+	RhapsodyPipelineIdProcessVar    = "rhp_pipeline_id"
+	RhapsodyPipelineIdHeaderName    = "X-Rhp-Pipeline-Id"
+	RhapsodyRequestIdHeaderName     = "X-Rhp-Request-Id"
+	RhapsodyPipelineDescrProcessVar = "rhp_pipeline_descr"
+
+	KyriePipelineIdProcessVar    = "kyr_pipeline_id"
+	KyriePipelineIdHeaderName    = "X-Kyr-Pipeline-Id"
+	KyrieRequestIdHeaderName     = "X-Kyr-Request-Id"
+	KyriePipelineDescrProcessVar = "kyr_pipeline_descr"
+
 	SymphonyOrchestrationIdProcessVar          = "smp_orchestration_id"
 	SymphonyOrchestrationDescriptionProcessVar = "smp_orchestration_descr"
 )
