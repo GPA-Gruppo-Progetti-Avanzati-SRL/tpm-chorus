@@ -30,6 +30,8 @@ type Specs map[string]interface{}
 type Rule struct {
 	Operation     string `yaml:"operation,omitempty" mapstructure:"operation,omitempty" json:"operation,omitempty"`
 	Specification Specs  `yaml:"spec,omitempty" mapstructure:"spec,omitempty" json:"spec,omitempty"`
+	InPlace       bool   `yaml:"inplace,omitempty" mapstructure:"inplace,omitempty" json:"inplace,omitempty"`
+	Require       bool   `yaml:"require,omitempty" mapstructure:"require,omitempty" json:"require,omitempty"`
 	// SubRules      []Rule `yaml:"sub-rules,omitempty" mapstructure:"sub-rules,omitempty" json:"sub-rules,omitempty"`
 }
 

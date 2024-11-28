@@ -1,0 +1,23 @@
+id: "case007"
+rules:
+  - operation: shift
+    spec:
+      # first properties changed name to show the mapping step.
+      _bid: fullDocument._bid
+      _et: fullDocument._et
+      evento: fullDocument.evento
+      infoTecniche: fullDocument.infoTecniche
+      informazioniAddizionali: fullDocument.informazioniAddizionali
+      change-stream.resumeToken: resumeToken.token
+      change-stream.documentKey: documentKey._id
+  - operation: shift
+    spec:
+      infoTecniche.resumeToken: change-stream.resumeToken
+      infoTecniche.documentKey: change-stream.documentKey
+    inplace: true
+  - operation: delete
+    spec:
+      paths: [change-stream]
+
+
+

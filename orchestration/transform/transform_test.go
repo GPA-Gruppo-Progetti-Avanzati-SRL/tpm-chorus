@@ -83,8 +83,31 @@ func TestMain(m *testing.M) {
 	err = registry.Add3(trsf6)
 	handleErrorTestMain(err)
 
+	trsf7 := transform.Config{}
+	err = yaml.Unmarshal(case007RuleYml, &trsf7)
+	handleErrorTestMain(err)
+	err = registry.Add3(trsf7)
+	handleErrorTestMain(err)
+
 	exitVal := m.Run()
 	os.Exit(exitVal)
+}
+
+func TestSingleCase(t *testing.T) {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	registry := transform.GetRegistry()
+
+	var trsf transform.Transformation
+	var err error
+	var dataOut []byte
+
+	trsf, err = registry.Get("case007")
+	require.NoError(t, err)
+	t.Log(trsf.Cfg.ToYaml())
+	dataOut, err = registry.Transform("case007", []byte(case007Input))
+	require.NoError(t, err)
+	err = os.WriteFile("case-007-output.json", dataOut, fs.ModePerm)
+	require.NoError(t, err)
 }
 
 func TestOperators(t *testing.T) {
