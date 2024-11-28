@@ -49,3 +49,9 @@ var case007Input string
 
 //go:embed case-007-rule.yml
 var case007RuleYml []byte
+
+//go:embed case-008-input.json
+var case008Input string
+
+//go:embed case-008-rule.yml
+var case008RuleYml []byte
