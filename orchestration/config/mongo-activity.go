@@ -55,6 +55,7 @@ func (c *MongoActivity) Dup(newName string) *MongoActivity {
 func NewMongoActivity() *MongoActivity {
 	s := MongoActivity{}
 	s.Tp = MongoActivityType
+	s.Actr = MongoDbActor
 	return &s
 }
 

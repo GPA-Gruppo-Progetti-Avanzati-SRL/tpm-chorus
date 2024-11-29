@@ -26,6 +26,10 @@ const (
 	ScriptActivityType              Type = "script-activity"
 	JsonSchemaActivityType          Type = "json-schema-activity"
 	LoopActivityType                Type = "loop-activity"
+
+	MongoDbActor    = "MongoDB"
+	WebServiceActor = "WebService"
+	XPAP            = "xPAP"
 )
 
 type ActivityTypeRegistryEntry struct {

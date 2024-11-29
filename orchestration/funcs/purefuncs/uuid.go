@@ -5,10 +5,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-/*
-Uuid() returns a Random (Version 4) UUID in form of xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-In case of error returns ""
-*/
+// Uuid returns a Random (Version 4) UUID in form of xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+// In case of error returns ""
 func Uuid() string {
 
 	const semLogContext = "orchestration-funcs::uuid"

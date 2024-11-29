@@ -77,6 +77,7 @@ func (c *EndpointActivity) Dup(newName string) *EndpointActivity {
 func NewEndpointActivity() *EndpointActivity {
 	s := EndpointActivity{}
 	s.Tp = EndpointActivityType
+	s.Actr = WebServiceActor
 	return &s
 }
 
