@@ -4,7 +4,7 @@ go 1.23.1
 
 require (
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.22
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.67
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.68
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.18
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.18
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.63-RC6
