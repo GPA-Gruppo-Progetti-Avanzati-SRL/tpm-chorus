@@ -22,19 +22,21 @@ const (
 )
 
 type JsonReference struct {
-	Path string
-	Keys []string
+	WithArrayISpecifierIndex int
+	Path                     string
+	Keys                     []string
 }
 
 func ToJsonReference(s string) (JsonReference, error) {
-	keys, err := SplitKeySpecifier(s)
+	keys, iSpecifierNdx, err := SplitKeySpecifier(s)
 	if err != nil {
 		return JsonReference{}, err
 	}
 
 	jr := JsonReference{
-		Path: s,
-		Keys: keys,
+		Path:                     s,
+		Keys:                     keys,
+		WithArrayISpecifierIndex: iSpecifierNdx,
 	}
 
 	return jr, nil

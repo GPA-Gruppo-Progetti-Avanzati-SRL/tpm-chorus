@@ -2,10 +2,12 @@ package operators
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam"
 	"github.com/qntfy/kazaam/transform"
 	"github.com/rs/zerolog/log"
+	"strings"
 )
 
 type ShiftArrayParams struct {
@@ -78,75 +80,202 @@ func ShiftArrayItems(kc kazaam.Config) func(spec *transform.Config, data []byte)
 			return nil, err
 		}
 
-		sourceArray, err := getJsonArray(data, params.sourceRef)
-		if err != nil {
-			log.Error().Err(err).Msg(semLogContext)
-			return nil, err
-		}
+		if params.sourceRef.WithArrayISpecifierIndex < 0 {
+			sourceArray, err := getJsonArray(data, params.sourceRef)
+			if err != nil {
+				log.Error().Err(err).Msg(semLogContext)
+				return nil, err
+			}
 
-		// copiedData := make([]byte, len(data))
-		// _ = copy(copiedData, data)
-		//var modifiedArray = []byte(`{"val": []}`)
-		arrayItemNdx := 0
-		result := []byte(`{}`)
+			// copiedData := make([]byte, len(data))
+			// _ = copy(copiedData, data)
+			//var modifiedArray = []byte(`{"val": []}`)
+			arrayItemNdx := 0
+			result := []byte(`{}`)
 
-		var loopErr error
-		_, err = jsonparser.ArrayEach(sourceArray, func(value []byte, dataType jsonparser.ValueType, offset int, errParam error) {
+			var loopErr error
+			_, err = jsonparser.ArrayEach(sourceArray, func(value []byte, dataType jsonparser.ValueType, offset int, errParam error) {
+
+				if loopErr != nil {
+					log.Error().Err(err).Msg(semLogContext + " previous error in for-each")
+					return
+				}
+
+				itemTransformed, err := itemKTransformation.TransformJSONStringToString(string(value))
+				if err != nil {
+					// Note: how to signal back an error?
+					log.Error().Err(err).Msg(semLogContext)
+					loopErr = err
+					return
+				}
+
+				log.Debug().Str("item-transformed", itemTransformed).Msg(semLogContext)
+				result, err = jsonparser.Set(result, []byte(itemTransformed), OperatorsTempReusltPropertyName, "[+]")
+				if err != nil {
+					// Note: how to signal back an error?
+					loopErr = err
+					log.Error().Err(err).Msg(semLogContext)
+					return
+				}
+
+				arrayItemNdx++
+			})
 
 			if loopErr != nil {
-				log.Error().Err(err).Msg(semLogContext + " previous error in for-each")
-				return
+				return nil, loopErr
 			}
 
-			itemTransformed, err := itemKTransformation.TransformJSONStringToString(string(value))
-			if err != nil {
-				// Note: how to signal back an error?
-				log.Error().Err(err).Msg(semLogContext)
-				loopErr = err
-				return
+			if arrayItemNdx > 0 {
+				val, dt, _, err := jsonparser.Get(result, OperatorsTempReusltPropertyName)
+				if err != nil {
+					// Note: how to signal back an error?
+					log.Error().Err(err).Msg(semLogContext)
+					return nil, err
+				}
+				log.Info().Interface("data-type", dt).Msg(semLogContext)
+
+				data, err = jsonparser.Set(data, val, params.destRef.Keys...)
+				if err != nil {
+					// Note: how to signal back an error?
+					log.Error().Err(err).Msg(semLogContext)
+					return nil, err
+				}
+			} else {
+				data, err = jsonparser.Set(data, []byte(`[]`), params.destRef.Keys...)
+				if err != nil {
+					// Note: how to signal back an error?
+					log.Error().Err(err).Msg(semLogContext)
+					return nil, err
+				}
 			}
 
-			log.Debug().Str("item-transformed", itemTransformed).Msg(semLogContext)
-			result, err = jsonparser.Set(result, []byte(itemTransformed), OperatorsTempReusltPropertyName, "[+]")
-			if err != nil {
-				// Note: how to signal back an error?
-				loopErr = err
-				log.Error().Err(err).Msg(semLogContext)
-				return
-			}
-
-			arrayItemNdx++
-		})
-
-		if loopErr != nil {
-			return nil, loopErr
-		}
-
-		if arrayItemNdx > 0 {
-			val, dt, _, err := jsonparser.Get(result, OperatorsTempReusltPropertyName)
-			if err != nil {
-				// Note: how to signal back an error?
-				log.Error().Err(err).Msg(semLogContext)
-				return nil, err
-			}
-			log.Info().Interface("data-type", dt).Msg(semLogContext)
-
-			data, err = jsonparser.Set(data, val, params.destRef.Keys...)
-			if err != nil {
-				// Note: how to signal back an error?
-				log.Error().Err(err).Msg(semLogContext)
-				return nil, err
-			}
+			return data, err
 		} else {
-			data, err = jsonparser.Set(data, []byte(`[]`), params.destRef.Keys...)
-			if err != nil {
-				// Note: how to signal back an error?
-				log.Error().Err(err).Msg(semLogContext)
-				return nil, err
-			}
+			data, err = processShiftWIthINdxSpecifier(data, params, itemKTransformation)
 		}
 
 		return data, err
 	}
 
+}
+
+func processShiftWIthINdxSpecifier(data []byte, params ShiftArrayParams, kXForm *kazaam.Kazaam) ([]byte, error) {
+	const semLogContext = "kazaam-shift-array-items::process-i-wildcard"
+
+	rootRef := JsonReference{
+		WithArrayISpecifierIndex: -1,
+		Path:                     params.sourceRef.Path[:strings.Index(params.sourceRef.Path, "[i]")],
+		Keys:                     params.sourceRef.Keys[:params.sourceRef.WithArrayISpecifierIndex],
+	}
+
+	rootArray, err := getJsonArray(data, rootRef)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	// clone the data... in place process has some glitches.
+	outData := make([]byte, len(data))
+	copy(outData, data)
+
+	var loopErr error
+	var loopIndex int
+	_, err = jsonparser.ArrayEach(rootArray, func(value []byte, dataType jsonparser.ValueType, offset int, errParam error) {
+		if loopErr != nil {
+			log.Error().Err(err).Msg(semLogContext + " previous error in for-each")
+			return
+		}
+
+		nestedRef := JsonReference{
+			WithArrayISpecifierIndex: -1,
+			Path:                     strings.ReplaceAll(params.sourceRef.Path[strings.Index(params.sourceRef.Path, "[i]"):], "[i]", fmt.Sprintf("[%d]", loopIndex)),
+			// Keys:                     make([]string, len(sourceRef.Keys)),
+		}
+
+		nestedRef.Keys = append(nestedRef.Keys, params.sourceRef.Keys[params.sourceRef.WithArrayISpecifierIndex:]...)
+		// copy(nestedRef.Keys, sourceRef.Keys)
+		nestedRef.Keys[0] = fmt.Sprintf("[%d]", loopIndex)
+		resultArray, err := processShiftArray(rootArray, nestedRef, kXForm)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			loopErr = err
+			return
+		}
+
+		var nestedTargetRefKeys []string
+		if params.destRef.WithArrayISpecifierIndex >= 0 {
+			nestedTargetRefKeys = append(nestedTargetRefKeys, params.destRef.Keys...)
+			nestedTargetRefKeys[params.destRef.WithArrayISpecifierIndex] = fmt.Sprintf("[%d]", loopIndex)
+		} else {
+			nestedTargetRefKeys = append(nestedTargetRefKeys, params.destRef.Keys...)
+		}
+		outData, err = jsonparser.Set(outData, resultArray, nestedTargetRefKeys...)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			loopErr = err
+			return
+		}
+
+		loopIndex++
+	})
+
+	return outData, loopErr
+}
+
+func processShiftArray(data []byte, sourceRef JsonReference, itemKTransformation *kazaam.Kazaam) ([]byte, error) {
+	const semLogContext = "kazaam-filter-array-items::process-array"
+
+	sourceArray, err := getJsonArray(data, sourceRef)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	// Variables to build new array
+	arrayItemNdx := 0
+	resultArray := []byte(`{}`)
+	var loopErr error
+	_, err = jsonparser.ArrayEach(sourceArray, func(value []byte, dataType jsonparser.ValueType, offset int, errParam error) {
+		if loopErr != nil {
+			log.Error().Err(err).Msg(semLogContext + " previous error in for-each")
+			return
+		}
+
+		itemTransformed, err := itemKTransformation.TransformJSONStringToString(string(value))
+		if err != nil {
+			// Note: how to signal back an error?
+			log.Error().Err(err).Msg(semLogContext)
+			loopErr = err
+			return
+		}
+
+		resultArray, err = jsonparser.Set(resultArray, []byte(itemTransformed), OperatorsTempReusltPropertyName, "[+]")
+		if err != nil {
+			loopErr = err
+			log.Error().Err(err).Msg(semLogContext)
+			return
+		}
+
+		arrayItemNdx++
+
+	})
+
+	if loopErr != nil {
+		return nil, loopErr
+	}
+
+	if arrayItemNdx > 0 {
+		var dt jsonparser.ValueType
+		resultArray, dt, _, err = jsonparser.Get(resultArray, OperatorsTempReusltPropertyName)
+		if err != nil {
+			// Note: how to signal back an error?
+			log.Error().Err(err).Msg(semLogContext)
+			return nil, err
+		}
+		log.Info().Interface("data-type", dt).Msg(semLogContext)
+	} else {
+		resultArray = []byte(`[]`)
+	}
+
+	return resultArray, nil
 }

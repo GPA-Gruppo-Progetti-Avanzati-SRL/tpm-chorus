@@ -1,6 +1,7 @@
 package operators
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 
@@ -20,9 +21,13 @@ func getJsonArray(data []byte, ref JsonReference) ([]byte, error) {
 }
 
 func getJsonString(data []byte, targetRef string, required bool) (string, error) {
-	targetRefKeys, err := SplitKeySpecifier(targetRef)
+	targetRefKeys, withI, err := SplitKeySpecifier(targetRef)
 	if err != nil {
 		return "", err
+	}
+
+	if withI >= 0 {
+		return "", errors.New("get-json-string - reference does not support [i] wildcard")
 	}
 
 	jsonValue, dataType, _, err := jsonparser.Get(data, targetRefKeys...)
@@ -46,9 +51,13 @@ func getJsonString(data []byte, targetRef string, required bool) (string, error)
 }
 
 func getJsonValue(data []byte, targetRef string) (jsonValue []byte, dataType jsonparser.ValueType, err error) {
-	targetRefKeys, err := SplitKeySpecifier(targetRef)
+	targetRefKeys, withI, err := SplitKeySpecifier(targetRef)
 	if err != nil {
 		return nil, jsonparser.NotExist, err
+	}
+
+	if withI >= 0 {
+		return nil, jsonparser.NotExist, errors.New("get-json-value - reference does not support [i] wildcard")
 	}
 
 	jsonValueRes, dataTypeRes, _, err := jsonparser.Get(data, targetRefKeys...)
@@ -63,20 +72,27 @@ func getJsonValue(data []byte, targetRef string) (jsonValue []byte, dataType jso
 	return jsonValueRes, dataTypeRes, nil
 }
 
-var KeyPatternRegexp = regexp.MustCompile("([a-zA-Z0-9-_]+|\\.|\\[\\*])")
+var KeyPatternRegexpOld = regexp.MustCompile("([a-zA-Z0-9-_]+|\\.|\\[\\*])")
+var KeyPatternRegexp = regexp.MustCompile("([a-zA-Z0-9-_]+|\\.|\\[[0-9*i]\\])")
 
-func SplitKeySpecifier(k string) ([]string, error) {
+func SplitKeySpecifier(k string) ([]string, int, error) {
 	matches := KeyPatternRegexp.FindAllSubmatch([]byte(k), -1)
 
+	withI := -1
+	elemNdx := 0
 	var res []string
 	for _, m := range matches {
 		captured := string(m[1])
 		if captured != "." {
+			if captured == "[i]" {
+				withI = elemNdx
+			}
+			elemNdx++
 			res = append(res, captured)
 		}
 	}
 
-	return res, nil
+	return res, withI, nil
 }
 
 func getJsonReferenceParam(spec *transform.Config, n string, required bool) (JsonReference, error) {
