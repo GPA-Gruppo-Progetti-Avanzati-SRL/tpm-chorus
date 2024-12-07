@@ -3,6 +3,7 @@ package operators
 import (
 	"errors"
 	"fmt"
+	"github.com/rs/zerolog/log"
 	"regexp"
 
 	"github.com/qntfy/jsonparser"
@@ -214,4 +215,21 @@ func getParamFromMap(spec interface{}, n string, required bool) (interface{}, er
 	}
 
 	return param, nil
+}
+
+func lenOfArray(data []byte, jsonRef JsonReference) (int, error) {
+	const semLogContext = "kazaam-util::len-of-array"
+
+	nestedArray, err := getJsonArray(data, jsonRef)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return -1, err
+	}
+
+	nestedLoopIndex := 0
+	_, err = jsonparser.ArrayEach(nestedArray, func(value []byte, dataType jsonparser.ValueType, offset int, errParam error) {
+		nestedLoopIndex++
+	})
+
+	return nestedLoopIndex, nil
 }

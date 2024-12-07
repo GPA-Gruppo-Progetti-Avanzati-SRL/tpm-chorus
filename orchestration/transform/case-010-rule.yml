@@ -1,0 +1,6 @@
+id: "case010"
+rules:
+  - operation: len-arrays
+    spec:
+      numeroItems: items
+      items[i].numeroServizi: items[i].servizi

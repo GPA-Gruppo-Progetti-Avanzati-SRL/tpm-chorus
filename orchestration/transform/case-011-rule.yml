@@ -1,0 +1,24 @@
+id: "case011"
+rules:
+  - operation: shift
+    spec:
+      ndgs: data.anagrafica.datiRapp
+  - operation: shift-array-items
+    spec:
+      source-ref: ndgs
+      target-ref: ndgs
+      sub-rules:
+        - operation: shift
+          spec:
+            ndg: ndgRapp
+            servizio: servizio
+            filiale: filiale
+            numero: numero
+            categoria: categoria
+            intestRidotta: intestRidotta
+  - operation: distinct-items
+    spec:
+      source-ref: ndgs
+      target-ref: ndgs
+      on: ndg
+

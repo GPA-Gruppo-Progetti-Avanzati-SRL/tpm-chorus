@@ -101,6 +101,18 @@ func TestMain(m *testing.M) {
 	err = registry.Add3(trsf9)
 	handleErrorTestMain(err)
 
+	trsf10 := transform.Config{}
+	err = yaml.Unmarshal(case010RuleYml, &trsf10)
+	handleErrorTestMain(err)
+	err = registry.Add3(trsf10)
+	handleErrorTestMain(err)
+
+	trsf11 := transform.Config{}
+	err = yaml.Unmarshal(case011RuleYml, &trsf11)
+	handleErrorTestMain(err)
+	err = registry.Add3(trsf11)
+	handleErrorTestMain(err)
+
 	exitVal := m.Run()
 	os.Exit(exitVal)
 }

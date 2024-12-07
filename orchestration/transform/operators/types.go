@@ -4,6 +4,7 @@ const (
 	SpecParamSourceReference             = "source-ref"
 	SpecParamTargetReference             = "target-ref"
 	SpecParamCriteria                    = "criteria"
+	SpecParamDistinctOn                  = "on"
 	SpecParamCriterionAttributeReference = "attribute-ref"
 	SpecParamCriterionOperator           = "operator"
 	SpecParamCriterionTerm               = "term"
@@ -25,6 +26,15 @@ type JsonReference struct {
 	WithArrayISpecifierIndex int
 	Path                     string
 	Keys                     []string
+}
+
+func MustToJsonReference(s string) JsonReference {
+	j, err := ToJsonReference(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return j
 }
 
 func ToJsonReference(s string) (JsonReference, error) {

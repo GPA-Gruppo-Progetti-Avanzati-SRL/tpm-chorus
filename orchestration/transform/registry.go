@@ -53,6 +53,16 @@ func InitializeKazaamRegistry() error {
 		return err
 	}
 
+	err = kc.RegisterTransform(OperatorLenArrays, operators.LenArrays(kc))
+	if err != nil {
+		return err
+	}
+
+	err = kc.RegisterTransform(OperatorDistinctArrayItems, operators.DistinctArrayItems(kc))
+	if err != nil {
+		return err
+	}
+
 	registry = make(map[string]Transformation)
 	return nil
 }
