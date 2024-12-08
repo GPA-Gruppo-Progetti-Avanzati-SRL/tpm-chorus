@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/templateutil"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
@@ -119,7 +119,7 @@ func (pvr *Evaluator) WithBody(ct string, aBody []byte, transformationId string)
 		if strings.HasPrefix(ct, constants.ContentTypeApplicationJson) {
 			actualBody := aBody
 			if transformationId != "" {
-				actualBody, err = transform.GetRegistry().Transform(transformationId, aBody)
+				actualBody, err = kzxform.GetRegistry().Transform(transformationId, aBody)
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext + " body transformation failed")
 					return err

@@ -5,7 +5,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
@@ -133,10 +133,10 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 }
 
 func (a *TransformActivity) executeKazaamTransformation(kazaamId string, data []byte) ([]byte, error) {
-	return transform.GetRegistry().Transform(kazaamId, data)
+	return kzxform.GetRegistry().Transform(kazaamId, data)
 }
 
-func (a *TransformActivity) resolveAndExecuteKazaamTransformation(wfc *wfcase.WfCase, xForm *transform.TransformReference, resolver *wfexpressions.Evaluator) ([]byte, error) {
+func (a *TransformActivity) resolveAndExecuteKazaamTransformation(wfc *wfcase.WfCase, xForm *kzxform.TransformReference, resolver *wfexpressions.Evaluator) ([]byte, error) {
 	const semLogContext = "transform-activity::resolve-and-execute-kazaam-transformation"
 
 	resolvedTransformation, err := resolver.EvaluateTemplate(string(xForm.Data), wfc.TemplateFunctions())
@@ -151,7 +151,7 @@ func (a *TransformActivity) resolveAndExecuteKazaamTransformation(wfc *wfcase.Wf
 		return nil, err
 	}
 
-	return transform.ApplyKazaamTransformation(resolvedTransformation, data)
+	return kzxform.ApplyKazaamTransformation(resolvedTransformation, data)
 }
 
 func (a *TransformActivity) executeJsonExt2JsonTransformation(data []byte) ([]byte, error) {
@@ -355,7 +355,7 @@ func (a *TransformActivity) processResponseAction(wfc *wfcase.WfCase, activityNa
 	return 0, nil
 }
 
-func chooseTransformation(wfc *wfcase.WfCase, trs []transform.TransformReference) (string, error) {
+func chooseTransformation(wfc *wfcase.WfCase, trs []kzxform.TransformReference) (string, error) {
 	for _, t := range trs {
 
 		b := true

@@ -286,9 +286,15 @@ func TestFuncs(t *testing.T) {
 			funcName:     "ParseAndFmtDate",
 			input:        "2024-07-11 16:55:43.747975000000",
 			fmtLayout:    "02/01/2006 15:04:05",
-			layouts:      []string{"2006-01-02T15:04:05Z07:00"},
-			wantedString: "12/04/2023 23:15:56",
+			layouts:      []string{"2006-01-02 15:04:05.000000000000"},
+			wantedString: "11/07/2024 16:55:43",
 			location:     "",
+		},
+		{
+			funcName:  "Age",
+			input:     "2023-12-09",
+			layouts:   []string{"2006-01-02"},
+			wantedInt: 0,
 		},
 		// {
 		// 	funcName:  "DateDiff",
@@ -314,6 +320,9 @@ func TestFuncs(t *testing.T) {
 		case "DateDiff":
 			i := purefuncs.DateDiff(dinput.input, dinput.value2, dinput.fmtLayout, dinput.layouts...)
 			require.Equal(t, dinput.wantedInt, i, fmt.Sprintf("error on simple.DateDiff [%d]", ndx))
+		case "Age":
+			i := purefuncs.Age(dinput.input, dinput.layouts...)
+			require.Equal(t, dinput.wantedInt, i, fmt.Sprintf("error on age [%d]", ndx))
 		}
 	}
 }

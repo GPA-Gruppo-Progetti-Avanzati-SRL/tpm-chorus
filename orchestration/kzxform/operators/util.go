@@ -10,7 +10,7 @@ import (
 	"github.com/qntfy/kazaam/transform"
 )
 
-func getJsonArray(data []byte, ref JsonReference) ([]byte, error) {
+func GetJsonArray(data []byte, ref JsonReference) ([]byte, error) {
 
 	targetArray, vt, _, _ := jsonparser.Get(data, ref.Keys...)
 	if vt != jsonparser.Array {
@@ -21,7 +21,7 @@ func getJsonArray(data []byte, ref JsonReference) ([]byte, error) {
 	return targetArray, nil
 }
 
-func getJsonString(data []byte, targetRef string, required bool) (string, error) {
+func GetJsonString(data []byte, targetRef string, required bool) (string, error) {
 	targetRefKeys, withI, err := SplitKeySpecifier(targetRef)
 	if err != nil {
 		return "", err
@@ -51,7 +51,7 @@ func getJsonString(data []byte, targetRef string, required bool) (string, error)
 	return string(jsonValue), nil
 }
 
-func getJsonValue(data []byte, targetRef string) (jsonValue []byte, dataType jsonparser.ValueType, err error) {
+func GetJsonValue(data []byte, targetRef string) (jsonValue []byte, dataType jsonparser.ValueType, err error) {
 	targetRefKeys, withI, err := SplitKeySpecifier(targetRef)
 	if err != nil {
 		return nil, jsonparser.NotExist, err
@@ -96,7 +96,7 @@ func SplitKeySpecifier(k string) ([]string, int, error) {
 	return res, withI, nil
 }
 
-func getJsonReferenceParam(spec *transform.Config, n string, required bool) (JsonReference, error) {
+func GetJsonReferenceParam(spec *transform.Config, n string, required bool) (JsonReference, error) {
 	/*
 		var err error
 		param, ok := (*spec.Spec)[n]
@@ -113,7 +113,7 @@ func getJsonReferenceParam(spec *transform.Config, n string, required bool) (Jso
 		}
 	*/
 
-	s, err := getStringParam(spec, n, required, "")
+	s, err := GetStringParam(spec, n, required, "")
 	if s == "" {
 		return JsonReference{}, err
 	}
@@ -121,7 +121,7 @@ func getJsonReferenceParam(spec *transform.Config, n string, required bool) (Jso
 	return ToJsonReference(s)
 }
 
-func getStringParam(spec *transform.Config, n string, required bool, defaultValue string) (string, error) {
+func GetStringParam(spec *transform.Config, n string, required bool, defaultValue string) (string, error) {
 	param, ok := (*spec.Spec)[n]
 	if !ok {
 		if required {
@@ -139,7 +139,7 @@ func getStringParam(spec *transform.Config, n string, required bool, defaultValu
 	return s, nil
 }
 
-func getArrayParam(spec *transform.Config, n string, required bool) ([]interface{}, error) {
+func GetArrayParam(spec *transform.Config, n string, required bool) ([]interface{}, error) {
 	param, ok := (*spec.Spec)[n]
 	if !ok {
 		if required {
@@ -157,9 +157,9 @@ func getArrayParam(spec *transform.Config, n string, required bool) ([]interface
 	return arr, nil
 }
 
-func getStringParamFromMap(spec interface{}, n string, required bool) (string, error) {
+func GetStringParamFromMap(spec interface{}, n string, required bool) (string, error) {
 
-	param, err := getParamFromMap(spec, n, required)
+	param, err := GetParamFromMap(spec, n, required)
 	if err != nil {
 		return "", nil
 	}
@@ -172,10 +172,10 @@ func getStringParamFromMap(spec interface{}, n string, required bool) (string, e
 	return s, nil
 }
 
-func getJsonReferenceParamFromMap(spec interface{}, n string, required bool) (JsonReference, error) {
+func GetJsonReferenceParamFromMap(spec interface{}, n string, required bool) (JsonReference, error) {
 	var err error
 
-	param, err := getStringParamFromMap(spec, n, required)
+	param, err := GetStringParamFromMap(spec, n, required)
 	if err != nil {
 		return JsonReference{}, nil
 	}
@@ -183,9 +183,9 @@ func getJsonReferenceParamFromMap(spec interface{}, n string, required bool) (Js
 	return ToJsonReference(param)
 }
 
-func getBoolParamFromMap(spec interface{}, n string, required bool) (bool, error) {
+func GetBoolParamFromMap(spec interface{}, n string, required bool) (bool, error) {
 
-	param, err := getParamFromMap(spec, n, required)
+	param, err := GetParamFromMap(spec, n, required)
 	if err != nil {
 		return false, nil
 	}
@@ -198,7 +198,7 @@ func getBoolParamFromMap(spec interface{}, n string, required bool) (bool, error
 	return b, nil
 }
 
-func getParamFromMap(spec interface{}, n string, required bool) (interface{}, error) {
+func GetParamFromMap(spec interface{}, n string, required bool) (interface{}, error) {
 
 	m, ok := spec.(map[string]interface{})
 	if !ok {
@@ -217,10 +217,10 @@ func getParamFromMap(spec interface{}, n string, required bool) (interface{}, er
 	return param, nil
 }
 
-func lenOfArray(data []byte, jsonRef JsonReference) (int, error) {
+func LenOfArray(data []byte, jsonRef JsonReference) (int, error) {
 	const semLogContext = "kazaam-util::len-of-array"
 
-	nestedArray, err := getJsonArray(data, jsonRef)
+	nestedArray, err := GetJsonArray(data, jsonRef)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return -1, err

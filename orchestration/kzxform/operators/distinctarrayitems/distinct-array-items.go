@@ -1,51 +1,24 @@
-package operators
+package distinctarrayitems
 
 import (
 	"bytes"
 	"errors"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam"
 	"github.com/qntfy/kazaam/transform"
 	"github.com/rs/zerolog/log"
 )
 
-type DistinctArrayItemsParams struct {
-	sourceRef JsonReference
-	destRef   JsonReference
-	On        JsonReference
-}
-
-func getDistinctArrayItemsParamsFromSpec(spec *transform.Config) (DistinctArrayItemsParams, error) {
-	const semLogContext = "kazaam-distinct-array-items::get-params-from-specs"
-	var err error
-
-	params := DistinctArrayItemsParams{}
-
-	params.sourceRef, err = getJsonReferenceParam(spec, SpecParamSourceReference, true)
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return params, err
-	}
-
-	params.destRef, err = getJsonReferenceParam(spec, SpecParamTargetReference, false)
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return params, err
-	}
-
-	params.On, err = getJsonReferenceParam(spec, SpecParamDistinctOn, true)
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return params, err
-	}
-
-	return params, nil
-}
+const (
+	OperatorDistinctArrayItems = "distinct-items"
+	OperatorSemLogContext      = OperatorDistinctArrayItems
+)
 
 func DistinctArrayItems(kc kazaam.Config) func(spec *transform.Config, data []byte) ([]byte, error) {
 	return func(spec *transform.Config, data []byte) ([]byte, error) {
 
-		const semLogContext = "kazaam-filter-array-items::execute"
+		const semLogContext = OperatorSemLogContext + "::execute"
 
 		params, err := getDistinctArrayItemsParamsFromSpec(spec)
 		if err != nil {
@@ -57,7 +30,7 @@ func DistinctArrayItems(kc kazaam.Config) func(spec *transform.Config, data []by
 		outData := make([]byte, len(data))
 		copy(outData, data)
 
-		sourceArray, err := getJsonArray(data, params.sourceRef)
+		sourceArray, err := operators.GetJsonArray(data, params.sourceRef)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return nil, err
@@ -113,7 +86,7 @@ func DistinctArrayItems(kc kazaam.Config) func(spec *transform.Config, data []by
 
 }
 
-func getDistinctMapKey(value []byte, on JsonReference) (string, error) {
+func getDistinctMapKey(value []byte, on operators.JsonReference) (string, error) {
 
 	attributeValue, dataType, _, err := jsonparser.Get(value, on.Keys...)
 	if err != nil {

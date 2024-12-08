@@ -1,0 +1,35 @@
+{
+  "items": [
+    {
+      "codice": "P1",
+      "nome": "Start",
+      "descrizione": "Il conto indicato per i clienti con esigenze finanziarie orientate ad una bassa operativita",
+      "canone": "7,00",
+      "servizi": [
+        {
+          "codice": "code1",
+          "descrizione": "Carta di Debito inclusa per I e II intestatario",
+          "mode": "free"
+        }
+      ]
+    ,"numeroServizi":1},
+    {
+      "codice": "P2",
+      "nome": "Start",
+      "descrizione": "Il conto indicato per i clienti con esigenze finanziarie orientate ad una bassa operativita",
+      "canone": "7,00",
+      "servizi": [
+        {
+          "codice": "code2-free",
+          "descrizione": "Carta di Debito inclusa per I e II intestatario",
+          "mode": "free"
+        },
+        {
+          "codice": "code2-paid",
+          "descrizione": "Carta di Debito inclusa per I e II intestatario",
+          "mode": "paid"
+        }
+      ]
+    ,"numeroServizi":2}
+  ]
+,"numeroItems":2}

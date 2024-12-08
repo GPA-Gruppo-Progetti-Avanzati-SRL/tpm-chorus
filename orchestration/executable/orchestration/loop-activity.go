@@ -8,7 +8,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/responseactivity"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
@@ -76,10 +76,10 @@ func (cf *LoopControlFlow) Next(wfc *wfcase.WfCase, evaluator *wfexpressions.Eva
 }
 
 func (a *LoopControlFlow) executeKazaamTransformation(kazaamId string, data []byte) ([]byte, error) {
-	return transform.GetRegistry().Transform(kazaamId, data)
+	return kzxform.GetRegistry().Transform(kazaamId, data)
 }
 
-func (a *LoopControlFlow) resolveAndExecuteKazaamTransformation(wfc *wfcase.WfCase, xForm *transform.TransformReference, resolver *wfexpressions.Evaluator) ([]byte, error) {
+func (a *LoopControlFlow) resolveAndExecuteKazaamTransformation(wfc *wfcase.WfCase, xForm *kzxform.TransformReference, resolver *wfexpressions.Evaluator) ([]byte, error) {
 	const semLogContext = "loop-activity::resolve-and-execute-kazaam-transformation"
 
 	// Missing template functions.
@@ -95,7 +95,7 @@ func (a *LoopControlFlow) resolveAndExecuteKazaamTransformation(wfc *wfcase.WfCa
 		return nil, err
 	}
 
-	return transform.ApplyKazaamTransformation(resolvedTransformation, data)
+	return kzxform.ApplyKazaamTransformation(resolvedTransformation, data)
 }
 
 func InitLoopControlFlow(cfg config.LoopControlFlowDefinition, evaluator *wfexpressions.Evaluator) (*LoopControlFlow, error) {

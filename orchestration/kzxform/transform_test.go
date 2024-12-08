@@ -1,8 +1,8 @@
-package transform_test
+package kzxform_test
 
 import (
 	_ "embed"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
@@ -32,82 +32,82 @@ rules:
 `)
 
 func TestMain(m *testing.M) {
-	err := transform.InitializeKazaamRegistry()
+	err := kzxform.InitializeKazaamRegistry()
 	handleErrorTestMain(err)
 
-	registry := transform.GetRegistry()
+	registry := kzxform.GetRegistry()
 
-	trsf0 := transform.Config{}
+	trsf0 := kzxform.Config{}
 	err = yaml.Unmarshal(t1, &trsf0)
 	handleErrorTestMain(err)
 
-	trsf1 := transform.Config{}
+	trsf1 := kzxform.Config{}
 	err = yaml.Unmarshal(case001RuleYml, &trsf1)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf1)
 	handleErrorTestMain(err)
 
-	trsf2 := transform.Config{}
+	trsf2 := kzxform.Config{}
 	err = yaml.Unmarshal(case002RuleYml, &trsf2)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf2)
 	handleErrorTestMain(err)
 
-	trsf3 := transform.Config{}
+	trsf3 := kzxform.Config{}
 	err = yaml.Unmarshal(case003RuleYml, &trsf3)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf3)
 	handleErrorTestMain(err)
 
-	trsf3b := transform.Config{}
+	trsf3b := kzxform.Config{}
 	err = yaml.Unmarshal(case003bRuleYml, &trsf3b)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf3b)
 	handleErrorTestMain(err)
 
-	trsf4 := transform.Config{}
+	trsf4 := kzxform.Config{}
 	err = yaml.Unmarshal(case004RuleYml, &trsf4)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf4)
 	handleErrorTestMain(err)
 
-	trsf5 := transform.Config{}
+	trsf5 := kzxform.Config{}
 	err = yaml.Unmarshal(case005RuleYml, &trsf5)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf5)
 	handleErrorTestMain(err)
 
-	trsf6 := transform.Config{}
+	trsf6 := kzxform.Config{}
 	err = yaml.Unmarshal(case006RuleYml, &trsf6)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf6)
 	handleErrorTestMain(err)
 
-	trsf7 := transform.Config{}
+	trsf7 := kzxform.Config{}
 	err = yaml.Unmarshal(case007RuleYml, &trsf7)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf7)
 	handleErrorTestMain(err)
 
-	trsf8 := transform.Config{}
+	trsf8 := kzxform.Config{}
 	err = yaml.Unmarshal(case008RuleYml, &trsf8)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf8)
 	handleErrorTestMain(err)
 
-	trsf9 := transform.Config{}
+	trsf9 := kzxform.Config{}
 	err = yaml.Unmarshal(case009RuleYml, &trsf9)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf9)
 	handleErrorTestMain(err)
 
-	trsf10 := transform.Config{}
+	trsf10 := kzxform.Config{}
 	err = yaml.Unmarshal(case010RuleYml, &trsf10)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf10)
 	handleErrorTestMain(err)
 
-	trsf11 := transform.Config{}
+	trsf11 := kzxform.Config{}
 	err = yaml.Unmarshal(case011RuleYml, &trsf11)
 	handleErrorTestMain(err)
 	err = registry.Add3(trsf11)
@@ -119,9 +119,9 @@ func TestMain(m *testing.M) {
 
 func TestSingleCase(t *testing.T) {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	registry := transform.GetRegistry()
+	registry := kzxform.GetRegistry()
 
-	var trsf transform.Transformation
+	var trsf kzxform.Transformation
 	var err error
 	var dataOut []byte
 
@@ -136,9 +136,9 @@ func TestSingleCase(t *testing.T) {
 
 func TestOperators(t *testing.T) {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	registry := transform.GetRegistry()
+	registry := kzxform.GetRegistry()
 
-	var trsf transform.Transformation
+	var trsf kzxform.Transformation
 	var err error
 	var dataOut []byte
 
@@ -202,7 +202,7 @@ func TestOperators(t *testing.T) {
 func BenchmarkOperators(b *testing.B) {
 	zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 
-	registry := transform.GetRegistry()
+	registry := kzxform.GetRegistry()
 
 	for i := 0; i < b.N; i++ {
 		_, err := registry.Get("case004")

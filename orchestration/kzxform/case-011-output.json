@@ -1,0 +1,20 @@
+{
+  "ndgs": [
+    {
+      "numero": "1008902163",
+      "servizio": "CC",
+      "categoria": "1211",
+      "filiale": "01001",
+      "intestRidotta": "FENOHKOPNU YEYOOHO",
+      "ndg": "1981821"
+    },
+    {
+      "intestRidotta": "FENOHKOPNU YEYOOHO",
+      "ndg": "1981822",
+      "numero": "1008902164",
+      "servizio": "CC",
+      "categoria": "1212",
+      "filiale": "01001"
+    }
+  ]
+}

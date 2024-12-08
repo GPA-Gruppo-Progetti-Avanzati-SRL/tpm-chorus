@@ -1,4 +1,4 @@
-package transform
+package kzxform
 
 import (
 	"encoding/json"
@@ -8,15 +8,7 @@ import (
 )
 
 const (
-	OperatorNoOp               = "no-op"
-	OperatorShiftArrayItems    = "shift-array-items"
-	OperatorShift              = "shift"
-	OperatorFormat             = "format"
-	OperatorFilterArrayItems   = "filter-array-items"
-	OperatorReduceArray        = "reduce-array"
-	OperatorSetProperties      = "set-properties"
-	OperatorLenArrays          = "len-arrays"
-	OperatorDistinctArrayItems = "distinct-items"
+	OperatorShift = "shift"
 )
 
 type TransformReference struct {

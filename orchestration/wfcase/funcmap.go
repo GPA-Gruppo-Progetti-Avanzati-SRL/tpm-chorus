@@ -74,6 +74,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	}
 
 	builtins["now"] = purefuncs.Now
+	builtins["age"] = purefuncs.Age
 	builtins["isDate"] = purefuncs.IsDate
 	builtins["parseDate"] = purefuncs.ParseDate
 	builtins["parseAndFormatDate"] = purefuncs.ParseAndFmtDate

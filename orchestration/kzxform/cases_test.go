@@ -1,4 +1,4 @@
-package transform_test
+package kzxform_test
 
 import _ "embed"
 

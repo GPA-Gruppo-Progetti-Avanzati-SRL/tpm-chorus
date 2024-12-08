@@ -1,0 +1,64 @@
+id: "case009"
+rules:
+  - operation: default
+    spec:
+      numeroPromo: "0"
+  - operation: filter-array-items
+    spec:
+      source-ref: items[i].servizi
+      target-ref: items[i].serviziPagamentoTmp
+      criteria:
+        - attribute-ref: mode
+          term: paid
+  - operation: filter-array-items
+    spec:
+      source-ref: items[i].servizi
+      target-ref: items[i].serviziGratisTmp
+      criteria:
+        - attribute-ref: mode
+          term: free
+  - operation: shift-array-items
+    spec:
+      source-ref: items[i].serviziGratisTmp
+      target-ref: items[i].serviziGratis
+      sub-rules:
+        - operation: shift
+          spec:
+            testoServiziGratis: descrizione
+  - operation: shift-array-items
+    spec:
+      source-ref: items[i].serviziPagamentoTmp
+      target-ref: items[i].serviziPagamento
+      sub-rules:
+        - operation: shift
+          spec:
+            testoServiziPagam: descrizione
+  - operation: shift-array-items
+    spec:
+      source-ref: items
+      target-ref: listini
+      sub-rules:
+        - operation: default
+          spec:
+            flagConsigliato: "NO"
+            flagNoConvenzioni: "0"
+        - operation: shift
+          spec:
+            nomeListino: nome
+            descrizioneListino: descrizione
+            descrizioneCanone: canone
+            codiceListinoAnag: codice
+            serviziGratis: serviziGratis
+            serviziPagamento: serviziPagamento
+            flagListinoConsigliato: flagConsigliato
+            numeroConvenzioni: flagNoConvenzioni
+  - operation: len-arrays
+    spec:
+      numeroListini: listini
+      listini[i].numeroServiziGratis: listini[i].serviziGratis
+      listini[i].numeroServiziPagamento: listini[i].serviziPagamento
+  - operation: shift
+    spec:
+        numeroListini: numeroListini
+        numeroPromo: numeroPromo
+        listini: listini

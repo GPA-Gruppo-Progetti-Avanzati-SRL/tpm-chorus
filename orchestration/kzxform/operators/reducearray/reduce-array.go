@@ -1,66 +1,26 @@
-package operators
+package reducearray
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
+
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam"
 	"github.com/qntfy/kazaam/transform"
 	"github.com/rs/zerolog/log"
 )
 
-type ReduceArrayParams struct {
-	sourceRef        JsonReference
-	destRef          JsonReference
-	inPlace          bool
-	propertyNameRef  JsonReference
-	propertyValueRef JsonReference
-}
-
-func getReduceParamsFromSpec(spec *transform.Config) (ReduceArrayParams, error) {
-	const semLogContext = "kazaam-reduce-array::get-params-from-specs"
-	var err error
-
-	params := ReduceArrayParams{}
-	params.sourceRef, err = getJsonReferenceParam(spec, SpecParamSourceReference, true)
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return params, err
-	}
-
-	params.destRef, err = getJsonReferenceParam(spec, SpecParamTargetReference, false)
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return params, err
-	}
-
-	params.inPlace = false
-	if params.destRef.IsZero() || params.sourceRef.Path == params.destRef.Path {
-		params.destRef = params.sourceRef
-		params.inPlace = true
-	}
-
-	params.propertyNameRef, err = getJsonReferenceParam(spec, SpecParamPropertyNameRef, true)
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return params, err
-	}
-
-	params.propertyValueRef, err = getJsonReferenceParam(spec, SpecParamPropertyValueRef, true)
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return params, err
-	}
-
-	log.Debug().Str(SpecParamSourceReference, params.sourceRef.Path).Str(SpecParamPropertyNameRef, params.propertyNameRef.Path).Str(SpecParamPropertyValueRef, params.propertyValueRef.Path).Bool("in-place", params.inPlace).Msg(semLogContext)
-	return params, nil
-}
+const (
+	OperatorReduceArray   = "reduce-array"
+	OperatorSemLogContext = OperatorReduceArray
+)
 
 func ReduceArray(kc kazaam.Config) func(spec *transform.Config, data []byte) ([]byte, error) {
 	return func(spec *transform.Config, data []byte) ([]byte, error) {
 
-		const semLogContext = "kazaam-reduce-array::execute"
+		const semLogContext = OperatorSemLogContext + "::execute"
 		var err error
 
-		params, err := getReduceParamsFromSpec(spec)
+		params, err := getParamsFromSpec(spec)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return nil, err
@@ -68,7 +28,7 @@ func ReduceArray(kc kazaam.Config) func(spec *transform.Config, data []byte) ([]
 
 		log.Debug().Str(SpecParamSourceReference, params.sourceRef.Path).Str(SpecParamPropertyNameRef, params.propertyNameRef.Path).Str(SpecParamPropertyValueRef, params.propertyValueRef.Path).Bool("in-place", params.inPlace).Msg(semLogContext)
 
-		targetArray, err := getJsonArray(data, params.sourceRef)
+		targetArray, err := operators.GetJsonArray(data, params.sourceRef)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return nil, err
@@ -85,7 +45,7 @@ func ReduceArray(kc kazaam.Config) func(spec *transform.Config, data []byte) ([]
 				return
 			}
 
-			propertyName, err := getJsonString(value, params.propertyNameRef.Path, false)
+			propertyName, err := operators.GetJsonString(value, params.propertyNameRef.Path, false)
 			if err != nil {
 				// Note: how to signal back an error?
 				loopErr = err
@@ -97,7 +57,7 @@ func ReduceArray(kc kazaam.Config) func(spec *transform.Config, data []byte) ([]
 				return
 			}
 
-			propertyValueValue, dataType, err := getJsonValue(value, params.propertyValueRef.Path)
+			propertyValueValue, dataType, err := operators.GetJsonValue(value, params.propertyValueRef.Path)
 			if err != nil {
 				// Note: how to signal back an error?
 				loopErr = err

@@ -1,9 +1,16 @@
-package transform
+package kzxform
 
 import (
 	"errors"
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform/operators"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/distinctarrayitems"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/filterarrayitems"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/format"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/lenarrays"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/reducearray"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/setproperties"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/shiftarrayitems"
 	"github.com/qntfy/kazaam"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -23,42 +30,42 @@ var registry Registry
 func InitializeKazaamRegistry() error {
 	kc = kazaam.NewDefaultConfig()
 
-	err := kc.RegisterTransform(OperatorShiftArrayItems, operators.ShiftArrayItems(kc))
+	err := kc.RegisterTransform(shiftarrayitems.OperatorShiftArrayItems, shiftarrayitems.ShiftArrayItems(kc))
 	if err != nil {
 		return err
 	}
 
-	err = kc.RegisterTransform(OperatorNoOp, operators.NoOp(kc))
+	err = kc.RegisterTransform(operators.OperatorNoOp, operators.NoOp(kc))
 	if err != nil {
 		return err
 	}
 
-	err = kc.RegisterTransform(OperatorFormat, operators.Format(kc))
+	err = kc.RegisterTransform(format.OperatorFormat, format.Format(kc))
 	if err != nil {
 		return err
 	}
 
-	err = kc.RegisterTransform(OperatorFilterArrayItems, operators.FilterArrayItems(kc))
+	err = kc.RegisterTransform(filterarrayitems.OperatorFilterArrayItems, filterarrayitems.FilterArrayItems(kc))
 	if err != nil {
 		return err
 	}
 
-	err = kc.RegisterTransform(OperatorReduceArray, operators.ReduceArray(kc))
+	err = kc.RegisterTransform(reducearray.OperatorReduceArray, reducearray.ReduceArray(kc))
 	if err != nil {
 		return err
 	}
 
-	err = kc.RegisterTransform(OperatorSetProperties, operators.SetProperties(kc))
+	err = kc.RegisterTransform(setproperties.OperatorSetProperties, setproperties.SetProperties(kc))
 	if err != nil {
 		return err
 	}
 
-	err = kc.RegisterTransform(OperatorLenArrays, operators.LenArrays(kc))
+	err = kc.RegisterTransform(lenarrays.OperatorLenArrays, lenarrays.LenArrays(kc))
 	if err != nil {
 		return err
 	}
 
-	err = kc.RegisterTransform(OperatorDistinctArrayItems, operators.DistinctArrayItems(kc))
+	err = kc.RegisterTransform(distinctarrayitems.OperatorDistinctArrayItems, distinctarrayitems.DistinctArrayItems(kc))
 	if err != nil {
 		return err
 	}

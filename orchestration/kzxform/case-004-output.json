@@ -36,4 +36,4 @@
       "segnoInteressiLordoScad": "A"
     }
   ]
-,"smp-xform":{"tabPvr":[{"dtAperturaPvr":"20230915","dtScandenzaPvr":"20240401","dtSvincoloPvr":"","idOfferta":20231107,"impoPvr":355.12,"rapporto":34041077,"statoPvr":"ATTIVA"}]}}
+,"smp-xform":{"tabPvr":[{"idOfferta":20231107,"impoPvr":355.12,"rapporto":34041077,"statoPvr":"ATTIVA","dtAperturaPvr":"20230915","dtScandenzaPvr":"20240401","dtSvincoloPvr":""}]}}

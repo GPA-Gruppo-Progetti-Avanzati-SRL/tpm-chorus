@@ -90,6 +90,33 @@ func ParseAndFmtDate(value interface{}, location string, targetLayout string, in
 	return s
 }
 
+func Age(value1 interface{}, inputLayouts ...string) int {
+	const semLogContext = "orchestration-funcs::age"
+	const SemLogDateValue1 = "date-value-1"
+	i1 := ParseDate(value1, "Local", inputLayouts...)
+	if i1 == nil {
+		log.Error().Interface(SemLogDateValue1, value1).Interface("layouts", inputLayouts).Msg(semLogContext + " un-parsable date")
+		return 0
+	}
+
+	tm1, ok1 := i1.(time.Time)
+	if !ok1 {
+		log.Error().Interface(SemLogDateValue1, value1).Interface("layouts", inputLayouts).Msg(semLogContext + " values are not time.Time")
+		return 0
+	}
+
+	now := time.Now()
+	birthYear := tm1.Year()
+	nowYear := now.Year()
+
+	age := nowYear - birthYear - 1
+	if now.Month() > tm1.Month() || (now.Month() == tm1.Month() && now.Day() >= tm1.Day()) {
+		age++
+	}
+
+	return age
+}
+
 func DateDiff(value1, value2 interface{}, outputUnit string, inputLayouts ...string) int {
 
 	const semLogContext = "orchestration-funcs::date-diff"

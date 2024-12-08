@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"strings"
 	"time"
@@ -283,12 +283,12 @@ const (
 
 // OnResponseAction TODO Verificare dove vengono utilizzate le transforms.
 type OnResponseAction struct {
-	StatusCode                              int                            `yaml:"status-code,omitempty" mapstructure:"status-code,omitempty" json:"status-code,omitempty"`
-	IgnoreNonApplicationJsonResponseContent bool                           `yaml:"ignore-non-json-response-body,omitempty" json:"ignore-non-json-response-body,omitempty" mapstructure:"ignore-non-json-response-body,omitempty"`
-	ProcessVars                             []ProcessVar                   `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
-	Errors                                  []ErrorInfo                    `yaml:"error,omitempty" mapstructure:"error,omitempty" json:"error,omitempty"`
-	Transforms                              []transform.TransformReference `yaml:"transforms,omitempty" mapstructure:"transforms,omitempty" json:"transforms,omitempty"`
-	Properties                              map[string]string              `yaml:"properties,omitempty" mapstructure:"properties,omitempty" json:"properties,omitempty"` // activity dependent properties
+	StatusCode                              int                          `yaml:"status-code,omitempty" mapstructure:"status-code,omitempty" json:"status-code,omitempty"`
+	IgnoreNonApplicationJsonResponseContent bool                         `yaml:"ignore-non-json-response-body,omitempty" json:"ignore-non-json-response-body,omitempty" mapstructure:"ignore-non-json-response-body,omitempty"`
+	ProcessVars                             []ProcessVar                 `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
+	Errors                                  []ErrorInfo                  `yaml:"error,omitempty" mapstructure:"error,omitempty" json:"error,omitempty"`
+	Transforms                              []kzxform.TransformReference `yaml:"transforms,omitempty" mapstructure:"transforms,omitempty" json:"transforms,omitempty"`
+	Properties                              map[string]string            `yaml:"properties,omitempty" mapstructure:"properties,omitempty" json:"properties,omitempty"` // activity dependent properties
 }
 
 type OnResponseActions []OnResponseAction

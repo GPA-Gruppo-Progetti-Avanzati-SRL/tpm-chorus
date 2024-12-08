@@ -9,7 +9,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
@@ -95,8 +95,8 @@ func NewEndpointActivity(item config.Configurable, refs config.DataReferences) (
 	return ea, nil
 }
 
-func registerTransformations(ts []transform.TransformReference, refs config.DataReferences) error {
-	tReg := transform.GetRegistry()
+func registerTransformations(ts []kzxform.TransformReference, refs config.DataReferences) error {
+	tReg := kzxform.GetRegistry()
 	if tReg == nil {
 		err := errors.New("transformation registry not initialized")
 		return err

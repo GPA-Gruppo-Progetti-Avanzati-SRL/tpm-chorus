@@ -6,6 +6,10 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	OperatorNoOp = "no-op"
+)
+
 func NoOp(_ kazaam.Config) func(spec *transform.Config, data []byte) ([]byte, error) {
 	return func(spec *transform.Config, data []byte) ([]byte, error) {
 

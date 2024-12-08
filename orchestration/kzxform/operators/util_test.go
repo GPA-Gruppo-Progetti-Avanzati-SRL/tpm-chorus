@@ -2,7 +2,7 @@ package operators_test
 
 import (
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform/operators"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
 	"github.com/stretchr/testify/require"
 	"testing"
 )

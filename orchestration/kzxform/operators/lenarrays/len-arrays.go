@@ -1,7 +1,9 @@
-package operators
+package lenarrays
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
+
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam"
 	"github.com/qntfy/kazaam/transform"
@@ -9,40 +11,17 @@ import (
 	"strings"
 )
 
-type LenArraysMapping struct {
-	src JsonReference
-	dst JsonReference
-}
-
-type LenArraysParams struct {
-	mapping []LenArraysMapping
-}
-
-func getLenArraysParamsFromSpec(spec *transform.Config) (LenArraysParams, error) {
-	const semLogContext = "kazaam-filter-array::get-params-from-specs"
-
-	params := LenArraysParams{}
-	for n, _ := range *spec.Spec {
-		s, err := getStringParam(spec, n, false, "")
-		if err != nil {
-			return params, err
-		}
-
-		if s != "" {
-			m := LenArraysMapping{src: MustToJsonReference(s), dst: MustToJsonReference(n)}
-			params.mapping = append(params.mapping, m)
-		}
-	}
-
-	return params, nil
-}
+const (
+	OperatorLenArrays     = "len-arrays"
+	OperatorSemLogContext = OperatorLenArrays
+)
 
 func LenArrays(kc kazaam.Config) func(spec *transform.Config, data []byte) ([]byte, error) {
 	return func(spec *transform.Config, data []byte) ([]byte, error) {
 
-		const semLogContext = "kazaam-len-arrays::execute"
+		const semLogContext = OperatorSemLogContext + "::execute"
 
-		params, err := getLenArraysParamsFromSpec(spec)
+		params, err := getParamsFromSpec(spec)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return nil, err
@@ -72,10 +51,10 @@ func LenArrays(kc kazaam.Config) func(spec *transform.Config, data []byte) ([]by
 	}
 }
 
-func computeAndSetLenOfArray(outData []byte, dst JsonReference, data []byte, src JsonReference) ([]byte, error) {
+func computeAndSetLenOfArray(outData []byte, dst operators.JsonReference, data []byte, src operators.JsonReference) ([]byte, error) {
 	const semLogContext = "kazaam-len-arrays::compute-len"
 
-	sourceArray, err := getJsonArray(data, src)
+	sourceArray, err := operators.GetJsonArray(data, src)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return outData, err
@@ -100,16 +79,16 @@ func computeAndSetLenOfArray(outData []byte, dst JsonReference, data []byte, src
 	return outData, nil
 }
 
-func computeAndSetLenOfNestedArray(outData []byte, dst JsonReference, data []byte, src JsonReference) ([]byte, error) {
+func computeAndSetLenOfNestedArray(outData []byte, dst operators.JsonReference, data []byte, src operators.JsonReference) ([]byte, error) {
 	const semLogContext = "kazaam-len-arrays::compute-nested-len"
 
-	rootRef := JsonReference{
+	rootRef := operators.JsonReference{
 		WithArrayISpecifierIndex: -1,
 		Path:                     src.Path[:strings.Index(src.Path, "[i]")],
 		Keys:                     src.Keys[:src.WithArrayISpecifierIndex],
 	}
 
-	rootArray, err := getJsonArray(data, rootRef)
+	rootArray, err := operators.GetJsonArray(data, rootRef)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return nil, err
@@ -123,7 +102,7 @@ func computeAndSetLenOfNestedArray(outData []byte, dst JsonReference, data []byt
 			return
 		}
 
-		nestedRef := JsonReference{
+		nestedRef := operators.JsonReference{
 			WithArrayISpecifierIndex: -1,
 			Path:                     strings.ReplaceAll(src.Path[strings.Index(src.Path, "[i]"):], "[i]", fmt.Sprintf("[%d]", loopIndex)),
 			// Keys:                     make([]string, len(sourceRef.Keys)),
@@ -131,7 +110,7 @@ func computeAndSetLenOfNestedArray(outData []byte, dst JsonReference, data []byt
 		nestedRef.Keys = append(nestedRef.Keys, src.Keys[src.WithArrayISpecifierIndex:]...)
 		nestedRef.Keys[0] = fmt.Sprintf("[%d]", loopIndex)
 
-		nestedLen, err := lenOfArray(rootArray, nestedRef)
+		nestedLen, err := operators.LenOfArray(rootArray, nestedRef)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			loopErr = err

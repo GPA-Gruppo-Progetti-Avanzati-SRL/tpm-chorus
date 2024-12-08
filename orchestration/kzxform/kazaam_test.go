@@ -1,10 +1,10 @@
-package transform_test
+package kzxform_test
 
 import (
 	_ "embed"
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform/operators"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/format"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/shiftarrayitems"
 	"github.com/qntfy/kazaam"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -20,9 +20,9 @@ var coalesceInput = `
 
 func TestKazaam(t *testing.T) {
 	kc := kazaam.NewDefaultConfig()
-	err := kc.RegisterTransform(transform.OperatorShiftArrayItems, operators.ShiftArrayItems(kc))
+	err := kc.RegisterTransform(shiftarrayitems.OperatorShiftArrayItems, shiftarrayitems.ShiftArrayItems(kc))
 	require.NoError(t, err)
-	err = kc.RegisterTransform(transform.OperatorFormat, operators.Format(kc))
+	err = kc.RegisterTransform(format.OperatorFormat, format.Format(kc))
 	require.NoError(t, err)
 
 	k, err := kazaam.New(string(coalesceRule), kc)

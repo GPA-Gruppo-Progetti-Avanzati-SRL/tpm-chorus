@@ -2,7 +2,7 @@ package examples_test
 
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -259,7 +259,7 @@ func TestMain(m *testing.M) {
 		log.Fatal().Err(err).Msg(semLogContext)
 	}
 
-	err = transform.InitializeKazaamRegistry()
+	err = kzxform.InitializeKazaamRegistry()
 	if nil != err {
 		log.Fatal().Err(err).Msg(semLogContext)
 	}

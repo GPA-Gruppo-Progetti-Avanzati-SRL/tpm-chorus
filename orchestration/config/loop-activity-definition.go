@@ -3,7 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -16,11 +16,11 @@ const (
 )
 
 type LoopControlFlowDefinition struct {
-	Typ   string                       `yaml:"type,omitempty" json:"type,omitempty" mapstructure:"type,omitempty"`
-	Start string                       `yaml:"start,omitempty" json:"start,omitempty" mapstructure:"start,omitempty"`
-	End   string                       `yaml:"end,omitempty" json:"end,omitempty" mapstructure:"end,omitempty"`
-	Step  string                       `yaml:"step,omitempty" json:"step,omitempty" mapstructure:"step,omitempty"`
-	XForm transform.TransformReference `yaml:"x-form,omitempty"  json:"x-form,omitempty" mapstructure:"x-form,omitempty"`
+	Typ   string                     `yaml:"type,omitempty" json:"type,omitempty" mapstructure:"type,omitempty"`
+	Start string                     `yaml:"start,omitempty" json:"start,omitempty" mapstructure:"start,omitempty"`
+	End   string                     `yaml:"end,omitempty" json:"end,omitempty" mapstructure:"end,omitempty"`
+	Step  string                     `yaml:"step,omitempty" json:"step,omitempty" mapstructure:"step,omitempty"`
+	XForm kzxform.TransformReference `yaml:"x-form,omitempty"  json:"x-form,omitempty" mapstructure:"x-form,omitempty"`
 }
 
 type LoopActivityDefinition struct {

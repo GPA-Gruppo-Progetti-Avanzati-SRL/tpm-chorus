@@ -3,7 +3,7 @@ package executable
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/transform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
@@ -250,7 +250,7 @@ func (a *Activity) ProcessResponseActionByStatusCode(
 	return 0, nil
 }
 
-func (a *Activity) ChooseTransformation(wfc *wfcase.WfCase, trs []transform.TransformReference) (string, error) {
+func (a *Activity) ChooseTransformation(wfc *wfcase.WfCase, trs []kzxform.TransformReference) (string, error) {
 	for _, t := range trs {
 
 		b := true
