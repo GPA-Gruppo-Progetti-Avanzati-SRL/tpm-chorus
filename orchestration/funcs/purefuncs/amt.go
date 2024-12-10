@@ -56,6 +56,17 @@ func toDecimalFormat(s string) string {
 	return s[:len(s)-2] + "." + s[len(s)-2:]
 }
 
+func AmtNeg(amt interface{}) string {
+	s := fmt.Sprintf("%v", amt)
+	if strings.HasPrefix(s, "-") {
+		s = strings.TrimPrefix(s, "-")
+	} else {
+		s = "-" + s
+	}
+
+	return s
+}
+
 func AmtAdd(sourceUnit, targetUnit string, decimalFormat bool, amts ...interface{}) (string, error) {
 	return Amt(AmountOpAdd, sourceUnit, targetUnit, decimalFormat, amts...)
 }

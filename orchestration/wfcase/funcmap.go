@@ -80,6 +80,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins["parseAndFormatDate"] = purefuncs.ParseAndFmtDate
 	builtins["dateDiff"] = purefuncs.DateDiff
 	builtins["printf"] = purefuncs.Printf
+	builtins["amtNeg"] = purefuncs.AmtNeg
 	builtins["amtConv"] = purefuncs.AmtConv
 	builtins["amtCmp"] = purefuncs.AmtCmp
 	builtins["amtAdd"] = purefuncs.AmtAdd
