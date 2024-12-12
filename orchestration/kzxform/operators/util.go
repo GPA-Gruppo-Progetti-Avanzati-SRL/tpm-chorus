@@ -22,7 +22,7 @@ func GetJsonArray(data []byte, ref JsonReference) ([]byte, error) {
 }
 
 func GetJsonString(data []byte, targetRef string, required bool) (string, error) {
-	targetRefKeys, withI, err := SplitKeySpecifier(targetRef)
+	targetRefKeys, withI, _, err := SplitKeySpecifier(targetRef)
 	if err != nil {
 		return "", err
 	}
@@ -52,7 +52,7 @@ func GetJsonString(data []byte, targetRef string, required bool) (string, error)
 }
 
 func GetJsonValue(data []byte, targetRef string) (jsonValue []byte, dataType jsonparser.ValueType, err error) {
-	targetRefKeys, withI, err := SplitKeySpecifier(targetRef)
+	targetRefKeys, withI, _, err := SplitKeySpecifier(targetRef)
 	if err != nil {
 		return nil, jsonparser.NotExist, err
 	}
@@ -74,26 +74,35 @@ func GetJsonValue(data []byte, targetRef string) (jsonValue []byte, dataType jso
 }
 
 var KeyPatternRegexpOld = regexp.MustCompile("([a-zA-Z0-9-_]+|\\.|\\[\\*])")
-var KeyPatternRegexp = regexp.MustCompile("([a-zA-Z0-9-_]+|\\.|\\[[0-9*i]\\])")
+var KeyPatternRegexp = regexp.MustCompile("([a-zA-Z0-9-_]+|\\.|\\[[0-9*i+]\\])")
 
-func SplitKeySpecifier(k string) ([]string, int, error) {
+func SplitKeySpecifier(k string) ([]string, int, int, error) {
 	matches := KeyPatternRegexp.FindAllSubmatch([]byte(k), -1)
 
-	withI := -1
+	withIota := -1
+	withPlus := -1
 	elemNdx := 0
 	var res []string
 	for _, m := range matches {
 		captured := string(m[1])
 		if captured != "." {
 			if captured == "[i]" {
-				withI = elemNdx
+				if withIota != -1 {
+					return nil, -1, -1, errors.New("invalid syntax for key specifier: " + k)
+				}
+				withIota = elemNdx
+			} else if captured == "[+]" {
+				if withPlus != -1 {
+					return nil, -1, -1, errors.New("invalid syntax for key specifier: " + k)
+				}
+				withPlus = elemNdx
 			}
 			elemNdx++
 			res = append(res, captured)
 		}
 	}
 
-	return res, withI, nil
+	return res, withIota, withPlus, nil
 }
 
 func GetJsonReferenceParam(spec *transform.Config, n string, required bool) (JsonReference, error) {

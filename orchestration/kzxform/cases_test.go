@@ -73,3 +73,15 @@ var case011Input string
 
 //go:embed case-011-rule.yml
 var case011RuleYml []byte
+
+//go:embed case-012-input.json
+var case012Input string
+
+//go:embed case-012-rule.yml
+var case012RuleYml []byte
+
+//go:embed case-013-input.json
+var case013Input string
+
+//go:embed case-013-rule.yml
+var case013RuleYml []byte

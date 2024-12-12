@@ -1,0 +1,110 @@
+{
+  "cab": {
+    "appliesTo": "StartGiovaniMedium",
+    "award": "€0 / mese per 12 mesi",
+    "description": "Poste Italiane  premia i clienti che aprono il conto corrente BancoPosta",
+    "title": "APRI CONTO CORRENTE"
+  },
+  "listini": [
+    {
+      "codiceListinoAnag": "GIOVANI",
+      "descrizioneCanone": "2,00",
+      "descrizioneListino": "Il conto indicato per  i clienti che hanno meno di 30 anni e desiderano operare online",
+      "flagConsigliato": "SI",
+      "flagListinoConsigliato": null,
+      "nomeListino": "Start Giovani",
+      "numeroConvenzioni": "0",
+      "numeroProdottiFacoltativi": 2,
+      "numeroProdottiObbligatori": 0,
+      "numeroServiziGratis": 3,
+      "numeroServiziPagamento": 1,
+      "prodottiFacoltativi": [
+        {
+          "codiceProdottoFacolt": "900",
+          "testoProdottoFacolt": "Carta di Debito Postepay"
+        },
+        {
+          "codiceProdottoFacolt": "902",
+          "testoProdottoFacolt": "Convenzione Assegni"
+        }
+      ],
+      "prodottiObbligatori": [
+
+      ],
+      "promo": [
+        {
+          "descrizionePromo": "chi trova un amico trova  un tesoro",
+          "scontoPromo": "non paghi la merenda per 12 mesi",
+          "titoloPromo": "Start Giovani: Un amico per  te"
+        }
+      ],
+      "serviziGratis": [
+        {
+          "testoServiziGratis": "Carta Debito (conto monointestatario)"
+        },
+        {
+          "testoServiziGratis": "Prelievi ATM Poste"
+        },
+        {
+          "testoServiziGratis": "Sconti BP"
+        }
+      ],
+      "serviziPagamento": [
+        {
+          "testoServiziPagam": "Sportello : Bonifici (5,00 euro)/Postagiro (2,50 euro)"
+        }
+      ]
+    },
+    {
+      "codiceListinoAnag": "START",
+      "descrizioneCanone": "7 ,00",
+      "descrizioneListino": "Il conto indicato per i clienti con esigenze finanziarie orientate ad una  bassa operativita'",
+      "flagConsigliato": "NO",
+      "flagListinoConsigliato": null,
+      "nomeListino": "Start",
+      "numeroConvenzioni": "0",
+      "numeroProdottiFacoltativi": 2,
+      "numeroProdottiObbligatori": 0,
+      "numeroServiziGratis": 3,
+      "numeroServiziPagamento": 1,
+      "prodottiFacoltativi": [
+        {
+          "codiceProdottoFacolt": "900",
+          "testoProdottoFacolt": "Carta di Debito Postepay"
+        },
+        {
+          "codiceProdottoFacolt": "902",
+          "testoProdottoFacolt": "Convenzione Assegni"
+        }
+      ],
+      "prodottiObbligatori": [
+
+      ],
+      "promo": [
+        {
+          "descrizionePromo": "chi trova un amico trova un tesoro",
+          "scontoPromo": "non paghi la merenda  per 12 mesi",
+          "titoloPromo": "Start: Un amico per te"
+        }
+      ],
+      "serviziGratis": [
+        {
+          "testoServiziGratis": "Carta  Debito inclusa"
+        },
+        {
+          "testoServiziGratis": "Prelievi ATM Poste"
+        },
+        {
+          "testoServiziGratis": "Sconti BP"
+        }
+      ],
+      "serviziPagamento": [
+        {
+          "testoServiziPagam": "Sportello: Bonifici (5,00 euro)/Postagiro (2,50 euro)"
+        }
+      ]
+    }
+  ],
+  "numeroListini": 2,
+  "numeroPromo": "1"
+}

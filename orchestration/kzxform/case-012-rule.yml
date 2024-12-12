@@ -1,0 +1,19 @@
+id: "case012"
+rules:
+  - operation: default
+    spec:
+      codice: vendita-integrata
+      descrizione: descrizione vendita-integrata
+  - operation: concat
+    spec:
+      sources:
+        - path: prodotti[*].code
+      targetPath: prodottiCSV
+      delim: ","
+  - operation: shift
+    spec:
+      promo[+].codice: codice
+      promo[+].descrizione: descrizione
+      prodottiCSV: prodottiCSV
+
+

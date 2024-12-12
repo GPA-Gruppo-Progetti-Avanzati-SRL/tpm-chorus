@@ -113,6 +113,18 @@ func TestMain(m *testing.M) {
 	err = registry.Add3(trsf11)
 	handleErrorTestMain(err)
 
+	trsf12 := kzxform.Config{}
+	err = yaml.Unmarshal(case012RuleYml, &trsf12)
+	handleErrorTestMain(err)
+	err = registry.Add3(trsf12)
+	handleErrorTestMain(err)
+
+	trsf13 := kzxform.Config{}
+	err = yaml.Unmarshal(case013RuleYml, &trsf13)
+	handleErrorTestMain(err)
+	err = registry.Add3(trsf13)
+	handleErrorTestMain(err)
+
 	exitVal := m.Run()
 	os.Exit(exitVal)
 }
@@ -125,12 +137,15 @@ func TestSingleCase(t *testing.T) {
 	var err error
 	var dataOut []byte
 
-	trsf, err = registry.Get("case009")
+	rule := "case013"
+	input := case013Input
+	output := "case-013-output.json"
+	trsf, err = registry.Get(rule)
 	require.NoError(t, err)
 	t.Log(trsf.Cfg.ToYaml())
-	dataOut, err = registry.Transform("case009", []byte(case009Input))
+	dataOut, err = registry.Transform(rule, []byte(input))
 	require.NoError(t, err)
-	err = os.WriteFile("case-009-output.json", dataOut, fs.ModePerm)
+	err = os.WriteFile(output, dataOut, fs.ModePerm)
 	require.NoError(t, err)
 }
 

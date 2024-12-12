@@ -1,0 +1,20 @@
+id: "case013"
+rules:
+  - operation: set-properties
+    spec:
+      properties:
+        - name-ref: listini[i].promo
+          path: cab
+          if-missing: true
+#  - operation: shift-array-items
+#    spec:
+#      source-ref: listini
+#      target-ref: listini
+#      criteria:
+#        - attribute-ref: codiceListinoAnag
+#          term: GIOVANI
+#      sub-rules:
+#        - operation: shift
+#          spec:
+#            promo[+].titoloPromo: cab.title
+#          inplace: true

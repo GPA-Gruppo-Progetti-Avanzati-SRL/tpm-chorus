@@ -29,4 +29,4 @@
       "segnoInteressiLordoScad": "A"
     }
   ]
-,"tabPvrReduced":[{"idOfferta":20231107,"impoPvr":10000,"rapporto":34041077,"statoPvr":"ATTIVA","dtAperturaPvr":"20230915","dtScandenzaPvr":"20240401","dtSvincoloPvr":"0"}]}
+,"tabPvrReduced":[{"dtSvincoloPvr":"0","idOfferta":20231107,"impoPvr":10000,"rapporto":34041077,"statoPvr":"ATTIVA","dtAperturaPvr":"20230915","dtScandenzaPvr":"20240401"}]}
