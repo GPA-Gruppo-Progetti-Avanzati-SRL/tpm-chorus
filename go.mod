@@ -4,11 +4,11 @@ go 1.23.1
 
 require (
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.22
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.68
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.69
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.18
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.18
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.63-RC6
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.21-RC6
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.63-RC7
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.21-RCB
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/confluentinc/confluent-kafka-go/v2 v2.6.1
