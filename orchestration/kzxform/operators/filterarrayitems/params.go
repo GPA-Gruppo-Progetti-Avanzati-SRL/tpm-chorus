@@ -19,7 +19,7 @@ type FilterArrayParams struct {
 	sourceRef operators.JsonReference
 	destRef   operators.JsonReference
 	inPlace   bool
-	criteria  []filterCfg
+	criteria  []operators.Criterion
 }
 
 func getFilterParamsFromSpec(spec *transform.Config) (FilterArrayParams, error) {
@@ -57,23 +57,25 @@ func getFilterParamsFromSpec(spec *transform.Config) (FilterArrayParams, error) 
 	return params, nil
 }
 
+/*
 type filterCfg struct {
 	attributeName operators.JsonReference
 	operator      string
 	term          string
 }
+*/
 
-func getFilterConfigFromSpec(c interface{}) (filterCfg, error) {
+func getFilterConfigFromSpec(c interface{}) (operators.Criterion, error) {
 	var err error
-	var criterion filterCfg
-	criterion.attributeName, err = operators.GetJsonReferenceParamFromMap(c, SpecParamCriterionAttributeReference, true)
+	var criterion operators.Criterion
+	criterion.AttributeName, err = operators.GetJsonReferenceParamFromMap(c, SpecParamCriterionAttributeReference, true)
 	if err != nil {
 		return criterion, err
 	}
 
-	criterion.operator = "eq"
+	criterion.Operator = "eq"
 
-	criterion.term, err = operators.GetStringParamFromMap(c, SpecParamCriterionTerm, true)
+	criterion.Term, err = operators.GetStringParamFromMap(c, SpecParamCriterionTerm, true)
 	if err != nil {
 		return criterion, err
 	}
@@ -81,8 +83,8 @@ func getFilterConfigFromSpec(c interface{}) (filterCfg, error) {
 	return criterion, nil
 }
 
-func getFilterConfigsFromSpec(c []interface{}) ([]filterCfg, error) {
-	filtersObj := make([]filterCfg, 0)
+func getFilterConfigsFromSpec(c []interface{}) ([]operators.Criterion, error) {
+	filtersObj := make([]operators.Criterion, 0)
 	for _, f := range c {
 		crit, err := getFilterConfigFromSpec(f)
 		if err != nil {

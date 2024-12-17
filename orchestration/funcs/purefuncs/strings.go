@@ -72,6 +72,11 @@ func Right(elem interface{}, length float64) string {
 	return s[len(s)-l:]
 }
 
+func TrimSpace(elem interface{}) string {
+	s := fmt.Sprintf("%v", elem)
+	return strings.TrimSpace(s)
+}
+
 func Len(elem interface{}) int {
 	s := fmt.Sprintf("%v", elem)
 	return len(s)

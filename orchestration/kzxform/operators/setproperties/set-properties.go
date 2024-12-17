@@ -34,16 +34,13 @@ func SetProperties(_ kazaam.Config) func(spec *transform.Config, data []byte) ([
 			}
 
 			if pcfg.Name.WithArrayISpecifierIndex < 0 {
-				if pcfg.IfMissing {
-					_, vt, _, _ := jsonparser.Get(data, pcfg.Name.Keys...)
-					if vt == jsonparser.NotExist || vt == jsonparser.Null {
-						data, err = jsonparser.Set(data, pcfg.Value, pcfg.Name.Keys...)
-						if err != nil {
-							log.Error().Err(err).Msg(semLogContext)
-							return nil, err
-						}
-					}
-				} else {
+				ok, _, err := shouldBeSet(data, pcfg.Name.Keys, pcfg.IfMissing, pcfg.criterion)
+				if err != nil {
+					log.Error().Err(err).Msg(semLogContext)
+					return nil, err
+				}
+
+				if ok {
 					data, err = jsonparser.Set(data, pcfg.Value, pcfg.Name.Keys...)
 					if err != nil {
 						log.Error().Err(err).Msg(semLogContext)
@@ -57,6 +54,34 @@ func SetProperties(_ kazaam.Config) func(spec *transform.Config, data []byte) ([
 
 		return data, err
 	}
+}
+
+func shouldBeSet(data []byte, keys []string, ifMissing bool, criterion operators.Criterion) (bool, jsonparser.ValueType, error) {
+	const semLogContext = OperatorSemLogContext + "::should-be-set"
+	var err error
+	itShould := false
+	_, vt, _, _ := jsonparser.Get(data, keys...)
+	if ifMissing {
+		if vt == jsonparser.NotExist || vt == jsonparser.Null {
+			itShould = true
+		}
+	} else {
+		itShould = true
+	}
+
+	if !itShould {
+		return itShould, vt, nil
+	}
+
+	if !criterion.IsZero() {
+		itShould, err = criterion.IsAccepted(data)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return false, vt, err
+		}
+	}
+
+	return itShould, vt, err
 }
 
 func processWithIotaSpecifier(data []byte, params OperatorParams) ([]byte, error) {
@@ -92,28 +117,36 @@ func processWithIotaSpecifier(data []byte, params OperatorParams) ([]byte, error
 			return
 		}
 
-		itemRef := params.Name.JsonReferenceToArrayItemWithIotaSpecifier(loopIndex)
-		_, vt, _, _ := jsonparser.Get(data, itemRef.Keys...)
-		if vt == jsonparser.NotExist || vt == jsonparser.Null {
-			if params.IfMissing {
-				outData, err = jsonparser.Set(outData, val, itemRef.Keys...)
+		currentItemRef := params.Name.JsonReferenceToArrayNestedItemWithIotaSpecifier(loopIndex)
+		//
+		ok, vt, err := shouldBeSet(value, currentItemRef.Keys, params.IfMissing, params.criterion)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			loopErr = err
+			return
+		}
+
+		if ok {
+			indexedItemRef := params.Name.JsonReferenceToArrayItemWithIotaSpecifier(loopIndex)
+			if vt == jsonparser.NotExist || vt == jsonparser.Null {
+				data, err = jsonparser.Set(outData, val, indexedItemRef.Keys...)
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext)
 					loopErr = err
 					return
 				}
-			}
-		} else {
-			if vt == jsonparser.Array {
-				itemRef.Keys = append(itemRef.Keys, "[+]")
-				outData, err = jsonparser.Set(outData, val, itemRef.Keys...)
 			} else {
-				outData, err = jsonparser.Set(outData, val, itemRef.Keys...)
-			}
-			if err != nil {
-				log.Error().Err(err).Msg(semLogContext)
-				loopErr = err
-				return
+				if vt == jsonparser.Array {
+					indexedItemRef.Keys = append(indexedItemRef.Keys, "[+]")
+					outData, err = jsonparser.Set(outData, val, indexedItemRef.Keys...)
+				} else {
+					outData, err = jsonparser.Set(outData, val, indexedItemRef.Keys...)
+				}
+				if err != nil {
+					log.Error().Err(err).Msg(semLogContext)
+					loopErr = err
+					return
+				}
 			}
 		}
 

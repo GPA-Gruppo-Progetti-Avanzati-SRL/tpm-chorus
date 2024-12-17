@@ -4,10 +4,68 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/rs/zerolog/log"
 	"github.com/santhosh-tekuri/jsonschema"
+	"regexp"
 	"strings"
 )
+
+const (
+	JsonSchemaUnknownCause    = "unknown"
+	JsonSchemaMissingProperty = "missing-property"
+
+	MissingPropertyMessageCause         = "missing properties: "
+	MissingPropertyMessageRegexpPattern = "missing properties: \"([A-Za-z\\-]+)[\\s\\n\\r]*\""
+)
+
+var MissingPropertyCauseRegexp = regexp.MustCompile(MissingPropertyMessageRegexpPattern)
+
+type SchemaErrorCause struct {
+	Typ  string `yaml:"type,omitempty" json:"type,omitempty" mapstructure:"type,omitempty"`
+	Info string `yaml:"info,omitempty" json:"info,omitempty" mapstructure:"info,omitempty"`
+}
+
+type SchemaError struct {
+	Message string             `yaml:"message,omitempty" json:"message,omitempty" mapstructure:"message,omitempty"`
+	Causes  []SchemaErrorCause `yaml:"causes,omitempty" json:"causes,omitempty" mapstructure:"causes,omitempty"`
+}
+
+func (schErr SchemaError) Error() string {
+	return schErr.ToJson()
+}
+
+func (schErr SchemaError) ToJson() string {
+	const semLogContext = "json-schema-registry::error marshalling schema error"
+	b, err := json.Marshal(schErr)
+	if err != nil {
+		log.Error().Err(err).Msg("Error marshalling schema error")
+		return ""
+	}
+
+	return string(b)
+}
+
+func NewSchemaErrorFromError(err error) (SchemaError, bool) {
+	var validationErr *jsonschema.ValidationError
+	var schemaErr SchemaError
+	if errors.As(err, &validationErr) {
+		schemaErr.Message = validationErr.Message
+		for _, cause := range validationErr.Causes {
+			var c SchemaErrorCause
+			switch m := cause.Message; {
+			case strings.HasPrefix(m, MissingPropertyMessageCause):
+				c = SchemaErrorCause{Typ: JsonSchemaMissingProperty, Info: util.ExtractCapturedGroupIfMatch(MissingPropertyCauseRegexp, cause.Message)}
+			default:
+				c = SchemaErrorCause{Typ: JsonSchemaUnknownCause, Info: m}
+			}
+			schemaErr.Causes = append(schemaErr.Causes, c)
+		}
+		return schemaErr, true
+	}
+
+	return schemaErr, false
+}
 
 type SchemaRegistry struct {
 	schemaMap map[string]*jsonschema.Schema

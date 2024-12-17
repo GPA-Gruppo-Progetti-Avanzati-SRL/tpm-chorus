@@ -12,6 +12,7 @@ const (
 	SpecParamPropertyPath    = "path"
 	SpecParamIfMissing       = "if-missing"
 	SpecParamProperties      = "properties"
+	SpecParamCriterion       = "criterion"
 )
 
 type OperatorParams struct {
@@ -19,6 +20,7 @@ type OperatorParams struct {
 	Value     []byte
 	Path      operators.JsonReference
 	IfMissing bool
+	criterion operators.Criterion
 }
 
 func getParamsFromSpec(c interface{}) (OperatorParams, error) {
@@ -53,6 +55,18 @@ func getParamsFromSpec(c interface{}) (OperatorParams, error) {
 	pcfg.IfMissing, err = operators.GetBoolParamFromMap(c, SpecParamIfMissing, false)
 	if err != nil {
 		return pcfg, err
+	}
+
+	criterion, err := operators.GetParamFromMap(c, SpecParamCriterion, false)
+	if err != nil {
+		return pcfg, err
+	}
+
+	if criterion != nil {
+		pcfg.criterion, err = operators.CriterionFromSpec(criterion)
+		if err != nil {
+			return pcfg, err
+		}
 	}
 
 	return pcfg, nil

@@ -141,10 +141,10 @@ func FilterArrayItems(kc kazaam.Config) func(spec *transform.Config, data []byte
 
 }
 
-func isAccepted(value []byte, obj []filterCfg) (bool, error) {
+func isAccepted(value []byte, obj []operators.Criterion) (bool, error) {
 
 	for _, criterion := range obj {
-		attributeValue, dataType, _, err := jsonparser.Get(value, criterion.attributeName.Keys...)
+		attributeValue, dataType, _, err := jsonparser.Get(value, criterion.AttributeName.Keys...)
 		if err != nil {
 			return false, err
 		}
@@ -154,7 +154,7 @@ func isAccepted(value []byte, obj []filterCfg) (bool, error) {
 		}
 
 		attrValue := string(attributeValue)
-		if attrValue == criterion.term {
+		if attrValue == criterion.Term {
 			return true, nil
 		}
 	}
@@ -225,7 +225,7 @@ func processFilterWIthINdxSpecifier(data []byte, params FilterArrayParams) ([]by
 	return outData, loopErr
 }
 
-func processArray(data []byte, sourceRef operators.JsonReference, criteria []filterCfg) ([]byte, error) {
+func processArray(data []byte, sourceRef operators.JsonReference, criteria []operators.Criterion) ([]byte, error) {
 	const semLogContext = "kazaam-filter-array-items::process-array"
 
 	sourceArray, err := operators.GetJsonArray(data, sourceRef)

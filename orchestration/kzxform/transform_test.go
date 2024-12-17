@@ -125,6 +125,12 @@ func TestMain(m *testing.M) {
 	err = registry.Add3(trsf13)
 	handleErrorTestMain(err)
 
+	setPropTrsf := kzxform.Config{}
+	err = yaml.Unmarshal(set_properties_000, &setPropTrsf)
+	handleErrorTestMain(err)
+	err = registry.Add3(setPropTrsf)
+	handleErrorTestMain(err)
+
 	exitVal := m.Run()
 	os.Exit(exitVal)
 }
@@ -137,9 +143,9 @@ func TestSingleCase(t *testing.T) {
 	var err error
 	var dataOut []byte
 
-	rule := "case013"
-	input := case013Input
-	output := "case-013-output.json"
+	rule := "set-properties-000"
+	input := set_properties_000_input
+	output := "set_properties_000_output.json"
 	trsf, err = registry.Get(rule)
 	require.NoError(t, err)
 	t.Log(trsf.Cfg.ToYaml())

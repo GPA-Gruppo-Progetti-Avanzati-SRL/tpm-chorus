@@ -17,23 +17,25 @@ const (
 	OperatorsTempReusltPropertyName      = "smp-tmp"
 )
 
+/*
 type criterion struct {
 	attributeName operators.JsonReference
 	operator      string
 	term          string
 }
+*/
 
-func getCriterionFromSpec(c interface{}) (criterion, error) {
+func getCriterionFromSpec(c interface{}) (operators.Criterion, error) {
 	var err error
-	var criterion criterion
-	criterion.attributeName, err = operators.GetJsonReferenceParamFromMap(c, SpecParamCriterionAttributeReference, true)
+	var criterion operators.Criterion
+	criterion.AttributeName, err = operators.GetJsonReferenceParamFromMap(c, SpecParamCriterionAttributeReference, true)
 	if err != nil {
 		return criterion, err
 	}
 
-	criterion.operator = "eq"
+	criterion.Operator = "eq"
 
-	criterion.term, err = operators.GetStringParamFromMap(c, SpecParamCriterionTerm, true)
+	criterion.Term, err = operators.GetStringParamFromMap(c, SpecParamCriterionTerm, true)
 	if err != nil {
 		return criterion, err
 	}
@@ -41,8 +43,8 @@ func getCriterionFromSpec(c interface{}) (criterion, error) {
 	return criterion, nil
 }
 
-func getCriteriaFromSpec(c []interface{}) ([]criterion, error) {
-	filtersObj := make([]criterion, 0)
+func getCriteriaFromSpec(c []interface{}) ([]operators.Criterion, error) {
+	filtersObj := make([]operators.Criterion, 0)
 	for _, f := range c {
 		crit, err := getCriterionFromSpec(f)
 		if err != nil {
@@ -59,7 +61,7 @@ type OperatorParams struct {
 	sourceRef           operators.JsonReference
 	destRef             operators.JsonReference
 	inPlace             bool
-	criteria            []criterion
+	criteria            []operators.Criterion
 	itemRulesSerialized string
 }
 

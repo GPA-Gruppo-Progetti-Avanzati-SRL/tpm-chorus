@@ -99,6 +99,8 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins["lenJsonArray"] = purefuncs.LenJsonArray
 	builtins["isJsonArray"] = purefuncs.IsJsonArray
 	builtins["stringIn"] = purefuncs.StringIn
+	builtins["trimSpace"] = purefuncs.TrimSpace
+
 	return builtins
 }
 

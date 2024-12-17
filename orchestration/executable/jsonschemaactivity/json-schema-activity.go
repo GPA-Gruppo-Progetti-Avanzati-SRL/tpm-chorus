@@ -1,6 +1,7 @@
 package jsonschemaactivity
 
 import (
+	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
@@ -130,7 +131,14 @@ func (a *JsonSchemaActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.Har
 	err = jsonschemaregistry.Validate(a.Name(), a.definition.SchemaRef, data)
 	if err != nil {
 		log.Info().Err(err).Msg(semLogContext)
-		r := har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
+		schError, ok := jsonschemaregistry.NewSchemaErrorFromError(err)
+		var r *har.Response
+		if ok {
+			r = har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), constants.ContentTypeApplicationJson, []byte(schError.ToJson()), nil)
+		} else {
+			r = har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
+			log.Warn().Err(errors.New("non validation schema error")).Msg(semLogContext)
+		}
 		return r, err
 	}
 

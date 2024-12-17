@@ -179,7 +179,7 @@ func processShiftWIthINdxSpecifier(data []byte, params OperatorParams, kXForm *k
 	return outData, loopErr
 }
 
-func processShiftArray(data []byte, sourceRef operators.JsonReference, itemKTransformation *kazaam.Kazaam, criteria []criterion) ([]byte, error) {
+func processShiftArray(data []byte, sourceRef operators.JsonReference, itemKTransformation *kazaam.Kazaam, criteria []operators.Criterion) ([]byte, error) {
 	const semLogContext = "kazaam-filter-array-items::process-array"
 
 	sourceArray, err := operators.GetJsonArray(data, sourceRef)
@@ -240,7 +240,7 @@ func processShiftArray(data []byte, sourceRef operators.JsonReference, itemKTran
 	return resultArray, nil
 }
 
-func isAccepted(value []byte, obj []criterion) (bool, error) {
+func isAccepted(value []byte, obj []operators.Criterion) (bool, error) {
 
 	// Always accepted if not specified
 	if len(obj) == 0 {
@@ -248,7 +248,7 @@ func isAccepted(value []byte, obj []criterion) (bool, error) {
 	}
 
 	for _, criterion := range obj {
-		attributeValue, dataType, _, err := jsonparser.Get(value, criterion.attributeName.Keys...)
+		attributeValue, dataType, _, err := jsonparser.Get(value, criterion.AttributeName.Keys...)
 		if err != nil {
 			return false, err
 		}
@@ -258,7 +258,7 @@ func isAccepted(value []byte, obj []criterion) (bool, error) {
 		}
 
 		attrValue := string(attributeValue)
-		if attrValue == criterion.term {
+		if attrValue == criterion.Term {
 			return true, nil
 		}
 	}

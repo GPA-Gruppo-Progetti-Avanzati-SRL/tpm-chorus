@@ -85,3 +85,9 @@ var case013Input string
 
 //go:embed case-013-rule.yml
 var case013RuleYml []byte
+
+//go:embed set-properties-000-input.json
+var set_properties_000_input string
+
+//go:embed set-properties-000.yml
+var set_properties_000 []byte
