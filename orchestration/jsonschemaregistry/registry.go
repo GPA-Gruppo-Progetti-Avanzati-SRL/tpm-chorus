@@ -14,16 +14,25 @@ import (
 const (
 	JsonSchemaUnknownCause    = "unknown"
 	JsonSchemaMissingProperty = "missing-property"
+	JsonSchemaInvalidValue    = "invalid-value"
 
 	MissingPropertyMessageCause         = "missing properties: "
 	MissingPropertyMessageRegexpPattern = "missing properties: \"([A-Za-z\\-]+)[\\s\\n\\r]*\""
+
+	SchemaPtrRequired            = "#/required"
+	SchemaPtrProperties          = "#/properties/"
+	SchemaPtrPropertiesEnum      = "/enum"
+	SchemaPtrPropertiesMaxLength = "/maxLength"
+	SchemaPtrPropertiesMinLength = "/minLength"
+	SchemaPtrPropertiesPattern   = "/pattern"
 )
 
 var MissingPropertyCauseRegexp = regexp.MustCompile(MissingPropertyMessageRegexpPattern)
 
 type SchemaErrorCause struct {
 	Typ  string `yaml:"type,omitempty" json:"type,omitempty" mapstructure:"type,omitempty"`
-	Info string `yaml:"info,omitempty" json:"info,omitempty" mapstructure:"info,omitempty"`
+	Name string `yaml:"name,omitempty" json:"name,omitempty" mapstructure:"name,omitempty"`
+	Msg  string `yaml:"msg,omitempty" json:"msg,omitempty" mapstructure:"msg,omitempty"`
 }
 
 type SchemaError struct {
@@ -46,18 +55,31 @@ func (schErr SchemaError) ToJson() string {
 	return string(b)
 }
 
-func NewSchemaErrorFromError(err error) (SchemaError, bool) {
+func NewSchemaErrorFromError(schema *jsonschema.Schema, err error) (SchemaError, bool) {
+	const semLogContext = "json-schema-registry::new-schema-error-from-error"
 	var validationErr *jsonschema.ValidationError
 	var schemaErr SchemaError
 	if errors.As(err, &validationErr) {
 		schemaErr.Message = validationErr.Message
 		for _, cause := range validationErr.Causes {
 			var c SchemaErrorCause
-			switch m := cause.Message; {
-			case strings.HasPrefix(m, MissingPropertyMessageCause):
-				c = SchemaErrorCause{Typ: JsonSchemaMissingProperty, Info: util.ExtractCapturedGroupIfMatch(MissingPropertyCauseRegexp, cause.Message)}
+			switch m := cause.SchemaPtr; {
+			case strings.HasPrefix(m, SchemaPtrRequired):
+				if strings.HasPrefix(cause.Message, MissingPropertyMessageCause) {
+					c = SchemaErrorCause{Typ: JsonSchemaMissingProperty, Name: util.ExtractCapturedGroupIfMatch(MissingPropertyCauseRegexp, cause.Message)}
+				} else {
+					log.Warn().Str("cause-msg", cause.Message).Str("schema-ptr", m).Msg(semLogContext)
+				}
+			case strings.HasPrefix(m, SchemaPtrProperties) && strings.HasSuffix(m, SchemaPtrPropertiesEnum):
+				c = SchemaErrorCause{Typ: JsonSchemaInvalidValue, Name: strings.TrimSuffix(strings.TrimPrefix(m, SchemaPtrProperties), SchemaPtrPropertiesEnum), Msg: cause.Message}
+			case strings.HasPrefix(m, SchemaPtrProperties) && strings.HasSuffix(m, SchemaPtrPropertiesMaxLength):
+				c = SchemaErrorCause{Typ: JsonSchemaInvalidValue, Name: strings.TrimSuffix(strings.TrimPrefix(m, SchemaPtrProperties), SchemaPtrPropertiesMaxLength), Msg: cause.Message}
+			case strings.HasPrefix(m, SchemaPtrProperties) && strings.HasSuffix(m, SchemaPtrPropertiesMinLength):
+				c = SchemaErrorCause{Typ: JsonSchemaInvalidValue, Name: strings.TrimSuffix(strings.TrimPrefix(m, SchemaPtrProperties), SchemaPtrPropertiesMinLength), Msg: cause.Message}
+			case strings.HasPrefix(m, SchemaPtrProperties) && strings.HasSuffix(m, SchemaPtrPropertiesPattern):
+				c = SchemaErrorCause{Typ: JsonSchemaInvalidValue, Name: strings.TrimSuffix(strings.TrimPrefix(m, SchemaPtrProperties), SchemaPtrPropertiesPattern), Msg: cause.Message}
 			default:
-				c = SchemaErrorCause{Typ: JsonSchemaUnknownCause, Info: m}
+				c = SchemaErrorCause{Typ: JsonSchemaUnknownCause, Msg: m}
 			}
 			schemaErr.Causes = append(schemaErr.Causes, c)
 		}
@@ -148,7 +170,8 @@ func Validate(namespace, refSchema string, data []byte) error {
 
 	if err = schema.ValidateInterface(obj); err != nil {
 		log.Info().Err(err).Msg(semLogContext)
-		return err
+		schemaErr, _ := NewSchemaErrorFromError(schema, err)
+		return schemaErr
 	}
 
 	return nil

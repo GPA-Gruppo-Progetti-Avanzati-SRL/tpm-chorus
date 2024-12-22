@@ -1,0 +1,25 @@
+id: "set-properties-000"
+rules:
+  - operation: set-properties
+    spec:
+      properties:
+        # copia l'elemento cab all'interno dell'array promo esistente
+        - name-ref: listini[i].promo
+          path: cab
+          if-missing: false
+          criterion:
+            attribute-ref: codiceListinoAnag
+            term: StartPlus
+            operator: in
+        # setta una propriet&agrave; in maniera diretta in caso di assenza
+        - name-ref: whatever
+          if-missing: true
+          value: 5
+        # setta una propriet&agrave; in maniera diretta in caso di assenza e condizionando ad un valore di un'altra proprieta'
+        - name-ref: whatever2
+          if-missing: true
+          value: 7
+          criterion:
+            attribute-ref: cab.titoloPromo
+            term: "APRI CONTO CORRENTE"
+            operator: eq

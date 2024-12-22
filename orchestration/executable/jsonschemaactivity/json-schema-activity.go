@@ -128,18 +128,20 @@ func (a *JsonSchemaActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.Har
 		return r, err
 	}
 
-	err = jsonschemaregistry.Validate(a.Name(), a.definition.SchemaRef, data)
-	if err != nil {
-		log.Info().Err(err).Msg(semLogContext)
-		schError, ok := jsonschemaregistry.NewSchemaErrorFromError(err)
-		var r *har.Response
-		if ok {
-			r = har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), constants.ContentTypeApplicationJson, []byte(schError.ToJson()), nil)
-		} else {
-			r = har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
-			log.Warn().Err(errors.New("non validation schema error")).Msg(semLogContext)
+	for _, schemaRef := range a.definition.SchemaRef {
+		err := jsonschemaregistry.Validate(a.Name(), schemaRef.SchemaFile, data)
+		if err != nil {
+			log.Info().Err(err).Msg(semLogContext)
+			var r *har.Response
+			var schError jsonschemaregistry.SchemaError
+			if errors.As(err, &schError) {
+				r = har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), constants.ContentTypeApplicationJson, []byte(schError.ToJson()), nil)
+			} else {
+				r = har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
+				log.Warn().Err(errors.New("non validation schema error")).Msg(semLogContext)
+			}
+			return r, err
 		}
-		return r, err
 	}
 
 	var r *har.Response

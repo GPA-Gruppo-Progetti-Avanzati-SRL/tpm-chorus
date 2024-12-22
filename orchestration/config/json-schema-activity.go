@@ -75,13 +75,19 @@ func NewJsonSchemaActivityFromYAML(b []byte /* mp interface{}*/) (Configurable, 
 	return sa, nil
 }
 
+type JsonSchemaRef struct {
+	SchemaFile  string `yaml:"schema-file,omitempty" json:"schema-file,omitempty" mapstructure:"schema-file,omitempty"`
+	Description string `yaml:"description,omitempty" json:"description,omitempty" mapstructure:"description,omitempty"`
+	Guard       string `yaml:"guard,omitempty" json:"guard,omitempty" mapstructure:"guard,omitempty"`
+}
+
 type JsonSchemaActivityDefinition struct {
-	SchemaRef         string            `yaml:"schema-file,omitempty" json:"schema-file,omitempty" mapstructure:"schema-file,omitempty"`
+	SchemaRef         []JsonSchemaRef   `yaml:"schemas,omitempty" json:"schemas,omitempty" mapstructure:"schemas,omitempty"`
 	OnResponseActions OnResponseActions `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
 }
 
 func (def *JsonSchemaActivityDefinition) IsZero() bool {
-	return def.SchemaRef == ""
+	return len(def.SchemaRef) == 0
 }
 
 func (def *JsonSchemaActivityDefinition) WriteToFile(folderName string, fileName string, writeOpts ...fileutil.WriteOption) error {
@@ -125,17 +131,17 @@ func UnmarshalJsonSchemaActivityDefinition(schemaNamespace, def string, refs Dat
 		}
 	}
 
-	if maDef.SchemaRef != "" {
-		data, ok := refs.Find(maDef.SchemaRef)
+	for _, ref := range maDef.SchemaRef {
+		data, ok := refs.Find(ref.SchemaFile)
 		if len(data) == 0 || !ok {
 			err = errors.New("cannot find schema file")
-			log.Error().Err(err).Str("def", maDef.SchemaRef).Msg(semLogContext)
+			log.Error().Err(err).Str("def", ref.SchemaFile).Msg(semLogContext)
 			return maDef, err
 		}
 
-		err = jsonschemaregistry.Register(schemaNamespace, maDef.SchemaRef, data)
+		err = jsonschemaregistry.Register(schemaNamespace, ref.SchemaFile, data)
 		if err != nil {
-			log.Error().Err(err).Str("def", maDef.SchemaRef).Msg(semLogContext)
+			log.Error().Err(err).Str("def", ref.SchemaFile).Msg(semLogContext)
 			return maDef, err
 		}
 	}

@@ -131,6 +131,12 @@ func TestMain(m *testing.M) {
 	err = registry.Add3(setPropTrsf)
 	handleErrorTestMain(err)
 
+	filterItemsTrsf := kzxform.Config{}
+	err = yaml.Unmarshal(filter_array_items_000, &filterItemsTrsf)
+	handleErrorTestMain(err)
+	err = registry.Add3(filterItemsTrsf)
+	handleErrorTestMain(err)
+
 	exitVal := m.Run()
 	os.Exit(exitVal)
 }
@@ -143,9 +149,9 @@ func TestSingleCase(t *testing.T) {
 	var err error
 	var dataOut []byte
 
-	rule := "set-properties-000"
-	input := set_properties_000_input
-	output := "set_properties_000_output.json"
+	rule := "filter_array_items_000"
+	input := filter_array_items_000_input
+	output := "filter_array_items_000_output.json"
 	trsf, err = registry.Get(rule)
 	require.NoError(t, err)
 	t.Log(trsf.Cfg.ToYaml())

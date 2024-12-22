@@ -2,6 +2,7 @@ package operators
 
 import (
 	"fmt"
+	"github.com/PaesslerAG/gval"
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam/transform"
 	"github.com/rs/zerolog/log"
@@ -88,10 +89,19 @@ const (
 	OperatorIn = "in"
 )
 
+type CriterionVar struct {
+	With JsonReference
+	As   string
+}
+
 type Criterion struct {
+	Typ           string
 	AttributeName JsonReference
 	Operator      string
 	Term          string
+
+	Vars       []CriterionVar
+	Expression string
 }
 
 func (c Criterion) IsZero() bool {
@@ -101,30 +111,63 @@ func (c Criterion) IsZero() bool {
 func (c Criterion) IsAccepted(value []byte) (bool, error) {
 	const semLogContext = "criteria::is-accepted"
 
-	attributeValue, dataType, _, err := jsonparser.Get(value, c.AttributeName.Keys...)
-	if err != nil {
-		return false, err
-	}
-
-	if dataType == jsonparser.NotExist {
-		return false, nil
-	}
-
-	term := strings.ToLower(c.Term)
-	attrValue := strings.ToLower(string(attributeValue))
 	rc := false
-	switch c.Operator {
-	case OperatorIn:
-		if strings.Contains(term, attrValue) {
-			rc = true
+	if c.Typ == "operator-term" {
+		attributeValue, dataType, _, err := jsonparser.Get(value, c.AttributeName.Keys...)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return false, err
 		}
-	case OperatorEQ:
-		if attrValue == term {
-			rc = true
+
+		if dataType == jsonparser.NotExist {
+			return false, nil
 		}
-	default:
-		if attrValue == term {
-			rc = true
+
+		term := strings.ToLower(c.Term)
+		attrValue := strings.ToLower(string(attributeValue))
+		switch c.Operator {
+		case OperatorIn:
+			if strings.Contains(term, attrValue) {
+				rc = true
+			}
+		case OperatorEQ:
+			if attrValue == term {
+				rc = true
+			}
+		default:
+			if attrValue == term {
+				rc = true
+			}
+		}
+	} else {
+		mapOfVars := make(map[string]interface{})
+		for _, v := range c.Vars {
+			varValue, dataType, _, err := jsonparser.Get(value, v.With.Keys...)
+			if err != nil {
+				log.Error().Err(err).Msg(semLogContext)
+				return false, err
+			}
+
+			switch dataType {
+			case jsonparser.NotExist:
+				mapOfVars[v.As] = ""
+			case jsonparser.String:
+				mapOfVars[v.As] = string(varValue)
+			default:
+				mapOfVars[v.As] = fmt.Sprint(varValue)
+			}
+		}
+
+		result, err := gval.Evaluate(c.Expression, mapOfVars)
+		if err != nil {
+			return false, err
+		}
+
+		if b, ok := result.(bool); ok {
+			rc = b
+		} else {
+			log.Error().Err(err).Interface("result", result).Msg(semLogContext)
+			rc = false
 		}
 	}
 
@@ -152,34 +195,73 @@ func (ca Criteria) IsAccepted(value []byte) (bool, error) {
 
 const (
 	SpecParamCriterionAttributeReference = "attribute-ref"
-	SpecParamCriterionTerm               = "term"
-	SpecParamCriterionOperator           = "operator"
+
+	SpecParamCriterionTerm     = "term"
+	SpecParamCriterionOperator = "operator"
+
+	SpecParamCriterionVariableWith = "with"
+	SpecParamCriterionVariableAs   = "as"
+	SpecParamCriterionVars         = "vars"
+	SpecParamCriterionExpression   = "expression"
 )
 
 func CriterionFromSpec(c interface{}) (Criterion, error) {
 	var err error
 	var criterion Criterion
-	criterion.AttributeName, err = GetJsonReferenceParamFromMap(c, SpecParamCriterionAttributeReference, true)
+	criterion.AttributeName, err = GetJsonReferenceParamFromMap(c, SpecParamCriterionAttributeReference, false)
 	if err != nil {
 		return criterion, err
 	}
 
-	criterion.Operator, err = GetStringParamFromMap(c, SpecParamCriterionOperator, true)
-	if err != nil {
-		return criterion, err
-	}
+	if !criterion.AttributeName.IsZero() {
+		criterion.Typ = "operator-term"
+		criterion.Operator, err = GetStringParamFromMap(c, SpecParamCriterionOperator, false)
+		if err != nil {
+			return criterion, err
+		}
 
-	criterion.Term, err = GetStringParamFromMap(c, SpecParamCriterionTerm, true)
-	if err != nil {
-		return criterion, err
+		if criterion.Operator == "" {
+			criterion.Operator = OperatorEQ
+		}
+
+		criterion.Term, err = GetStringParamFromMap(c, SpecParamCriterionTerm, true)
+		if err != nil {
+			return criterion, err
+		}
+	} else {
+		criterion.Typ = "expression-evaluation"
+		vars, err := GetArrayParamFromMap(c, SpecParamCriterionVars, true)
+		if err != nil {
+			return criterion, err
+		}
+
+		for _, v := range vars {
+			vr := CriterionVar{}
+			vr.With, err = GetJsonReferenceParamFromMap(v, SpecParamCriterionVariableWith, true)
+			if err != nil {
+				return criterion, err
+			}
+
+			vr.As, err = GetStringParamFromMap(v, SpecParamCriterionVariableAs, true)
+			if err != nil {
+				return criterion, err
+			}
+
+			criterion.Vars = append(criterion.Vars, vr)
+		}
+
+		criterion.Expression, err = GetStringParamFromMap(c, SpecParamCriterionExpression, true)
+		if err != nil {
+			return criterion, err
+		}
 	}
 
 	return criterion, nil
 }
 
-func CriteriaFromSpec(spec *transform.Config, specParamName string) ([]Criterion, error) {
+func CriteriaFromSpec(spec *transform.Config, specParamName string, required bool) ([]Criterion, error) {
 	const semLogContext = "criteria::get-criteria-from-spec"
-	filters, err := GetArrayParam(spec, specParamName, false)
+	filters, err := GetArrayParam(spec, specParamName, required)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return nil, err

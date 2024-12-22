@@ -81,7 +81,8 @@ func FilterArrayItems(kc kazaam.Config) func(spec *transform.Config, data []byte
 					return
 				}
 
-				accepted, err := isAccepted(value, params.criteria)
+				accepted, err := params.criteria.IsAccepted(value)
+				// accepted, err := isAccepted(value, params.criteria)
 				if err != nil {
 					// Note: how to signal back an error?
 					log.Error().Err(err).Msg(semLogContext)
@@ -141,26 +142,26 @@ func FilterArrayItems(kc kazaam.Config) func(spec *transform.Config, data []byte
 
 }
 
-func isAccepted(value []byte, obj []operators.Criterion) (bool, error) {
-
-	for _, criterion := range obj {
-		attributeValue, dataType, _, err := jsonparser.Get(value, criterion.AttributeName.Keys...)
-		if err != nil {
-			return false, err
-		}
-
-		if dataType == jsonparser.NotExist {
-			continue
-		}
-
-		attrValue := string(attributeValue)
-		if attrValue == criterion.Term {
-			return true, nil
-		}
-	}
-
-	return false, nil
-}
+//func isAccepted(value []byte, obj []operators.Criterion) (bool, error) {
+//
+//	for _, criterion := range obj {
+//		attributeValue, dataType, _, err := jsonparser.Get(value, criterion.AttributeName.Keys...)
+//		if err != nil {
+//			return false, err
+//		}
+//
+//		if dataType == jsonparser.NotExist {
+//			continue
+//		}
+//
+//		attrValue := string(attributeValue)
+//		if attrValue == criterion.Term {
+//			return true, nil
+//		}
+//	}
+//
+//	return false, nil
+//}
 
 func processFilterWIthINdxSpecifier(data []byte, params FilterArrayParams) ([]byte, error) {
 	const semLogContext = "kazaam-filter-array-items::process-i-wildcard"
@@ -225,7 +226,7 @@ func processFilterWIthINdxSpecifier(data []byte, params FilterArrayParams) ([]by
 	return outData, loopErr
 }
 
-func processArray(data []byte, sourceRef operators.JsonReference, criteria []operators.Criterion) ([]byte, error) {
+func processArray(data []byte, sourceRef operators.JsonReference, criteria operators.Criteria) ([]byte, error) {
 	const semLogContext = "kazaam-filter-array-items::process-array"
 
 	sourceArray, err := operators.GetJsonArray(data, sourceRef)
@@ -244,7 +245,8 @@ func processArray(data []byte, sourceRef operators.JsonReference, criteria []ope
 			return
 		}
 
-		accepted, err := isAccepted(value, criteria)
+		accepted, err := criteria.IsAccepted(value)
+		// accepted, err := isAccepted(value, criteria)
 		if err != nil {
 			// Note: how to signal back an error?
 			log.Error().Err(err).Msg(semLogContext)

@@ -19,7 +19,7 @@ type FilterArrayParams struct {
 	sourceRef operators.JsonReference
 	destRef   operators.JsonReference
 	inPlace   bool
-	criteria  []operators.Criterion
+	criteria  operators.Criteria
 }
 
 func getFilterParamsFromSpec(spec *transform.Config) (FilterArrayParams, error) {
@@ -46,15 +46,24 @@ func getFilterParamsFromSpec(spec *transform.Config) (FilterArrayParams, error) 
 		params.inPlace = true
 	}
 
-	filters, err := operators.GetArrayParam(spec, SpecParamCriteria, true)
+	params.criteria, err = operators.CriteriaFromSpec(spec, SpecParamCriteria, true)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return params, err
 	}
 
-	params.criteria, err = getFilterConfigsFromSpec(filters)
+	/*
+		filters, err := operators.GetArrayParam(spec, SpecParamCriteria, true)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return params, err
+		}
+
+		params.criteria, err = getFilterConfigsFromSpec(filters)
+	*/
 	log.Debug().Interface(SpecParamSourceReference, params.sourceRef).Interface(SpecParamTargetReference, params.destRef).Interface(SpecParamCriteria, params.criteria).Bool("in-place", params.inPlace).Msg(semLogContext)
 	return params, nil
+
 }
 
 /*

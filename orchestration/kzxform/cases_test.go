@@ -91,3 +91,9 @@ var set_properties_000_input string
 
 //go:embed set-properties-000.yml
 var set_properties_000 []byte
+
+//go:embed filter-array-items-000-input.json
+var filter_array_items_000_input string
+
+//go:embed  filter-array-items-000.yml
+var filter_array_items_000 []byte

@@ -173,12 +173,30 @@ func GetStringParamFromMap(spec interface{}, n string, required bool) (string, e
 		return "", nil
 	}
 
+	if param == nil {
+		return "", nil
+	}
+
 	s, ok := param.(string)
 	if !ok {
 		return "", fmt.Errorf("param %s is not a string but %T", n, param)
 	}
 
 	return s, nil
+}
+
+func GetArrayParamFromMap(spec interface{}, n string, required bool) ([]interface{}, error) {
+	param, err := GetParamFromMap(spec, n, required)
+	if err != nil {
+		return nil, nil
+	}
+
+	arr, ok := param.([]interface{})
+	if !ok {
+		return nil, fmt.Errorf("param %s is not an array but %T", n, param)
+	}
+
+	return arr, nil
 }
 
 func GetJsonReferenceParamFromMap(spec interface{}, n string, required bool) (JsonReference, error) {
