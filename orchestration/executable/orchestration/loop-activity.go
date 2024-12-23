@@ -34,7 +34,13 @@ type LoopControlFlow struct {
 	inputRequest *har.Request
 }
 
-func (cf *LoopControlFlow) HasNext() bool {
+func (cf *LoopControlFlow) HasNext(wfc *wfcase.WfCase) bool {
+	if cf.cfg.BreakCondition != "" {
+		if wfc.EvalBoolExpression(cf.cfg.BreakCondition) {
+			return false
+		}
+	}
+
 	if cf.step > 0 {
 		return cf.current < cf.end
 	} else {
@@ -266,7 +272,8 @@ func (a *LoopActivity) Execute(wfc *wfcase.WfCase) error {
 
 	var loopBodyResponses [][]byte
 	var activityError error
-	for controlFlow.HasNext() {
+	var loopBodyStatusCode int
+	for controlFlow.HasNext(wfc) {
 
 		log.Info().Int("loop", controlFlow.current).Msg(semLogContext)
 		loopBodyInputRequest, err := controlFlow.Next(wfc, evaluator)
@@ -309,71 +316,17 @@ func (a *LoopActivity) Execute(wfc *wfcase.WfCase) error {
 			}
 		}
 
+		st = http.StatusOK
 		if err != nil {
 			st = http.StatusInternalServerError
+		}
+
+		loopBodyStatusCode, err = a.ProcessResponseActionByStatusCode(st, a.Name(), a.Name(), wfc, wfcChild, wfcase.HarEntryReference{Name: "request", UseResponse: true}, a.definition.OnResponseActions, false)
+		if err != nil {
 			activityError = err
 			break
 		}
 
-		/*
-				//Vars are used as params...
-				//if len(tcfg.ProcessVars) > 0 {
-				//	err = wfc.SetVars(expressionCtx, tcfg.ProcessVars, "", false)
-				//	if err != nil {
-				//		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-				//		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
-				//	}
-				//}
-
-
-			wfcChild, err := wfc.NewChild(
-				expressionCtx,
-				a.bodyOrchestration.Cfg.Id,
-				a.bodyOrchestration.Cfg.Version,
-				a.bodyOrchestration.Cfg.SHA,
-				a.bodyOrchestration.Cfg.Description,
-				a.bodyOrchestration.Cfg.Dictionaries,
-				a.bodyOrchestration.Cfg.References,
-				tcfg.ProcessVars,
-				nil)
-
-			if err != nil {
-				wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-				metricsLabels[MetricIdStatusCode] = "500"
-				return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
-			}
-
-			err = a.executeNestedOrchestration(wfcChild)
-			harData := wfcChild.GetHarData(wfcase.ReportLogHAR, nil)
-			if harData != nil {
-				entryId := wfc.ComputeFirstAvailableIndexedHarEntryId(a.Name())
-				for _, e := range harData.Log.Entries {
-					if strings.HasPrefix(e.Comment, "request") {
-						e.Comment = fmt.Sprintf("%s", entryId)
-					} else {
-						e.Comment = fmt.Sprintf("%s@%s", entryId, e.Comment)
-					}
-					wfc.Entries[e.Comment] = e
-				}
-			}
-
-			st := http.StatusOK
-			if err != nil {
-				st = http.StatusInternalServerError
-			}
-
-			remappedStatusCode, err := a.ProcessResponseActionByStatusCode(st, a.Name(), a.Name(), wfc, wfcChild, wfcase.HarEntryReference{Name: "request", UseResponse: true}, a.definition.OnResponseActions, false)
-			if remappedStatusCode > 0 {
-				metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
-			}
-			if err != nil {
-				wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-				return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
-			}
-
-			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
-
-		*/
 	}
 
 	var harResponse *har.Response
@@ -388,13 +341,13 @@ func (a *LoopActivity) Execute(wfc *wfcase.WfCase) error {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
 	}
 
-	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(st, a.Name(), a.Name(), wfc, nil, wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, a.definition.OnResponseActions, true)
-	if remappedStatusCode > 0 {
-		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
+	// remappedStatusCode, err := a.ProcessResponseActionByStatusCode(st, a.Name(), a.Name(), wfc, nil, wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, a.definition.OnResponseActions, true)
+	if loopBodyStatusCode > 0 {
+		metricsLabels[MetricIdStatusCode] = fmt.Sprint(loopBodyStatusCode)
 	}
-	if err != nil {
-		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+	if activityError != nil {
+		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), activityError)
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(activityError.Error()))
 	}
 
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
