@@ -129,6 +129,13 @@ func (a *JsonSchemaActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.Har
 	}
 
 	for _, schemaRef := range a.definition.SchemaRef {
+
+		if schemaRef.Guard != "" {
+			if !wfc.EvalBoolExpression(schemaRef.Guard) {
+				continue
+			}
+		}
+
 		err := jsonschemaregistry.Validate(a.Name(), schemaRef.SchemaFile, data)
 		if err != nil {
 			log.Info().Err(err).Msg(semLogContext)
