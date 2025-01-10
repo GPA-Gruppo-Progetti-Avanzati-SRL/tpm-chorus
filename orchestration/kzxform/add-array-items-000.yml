@@ -1,0 +1,6 @@
+id: "add_array_items_000"
+rules:
+  - operation: add-array-items
+    spec:
+      intArraySum: int-array
+      objArraySum: obj-array[i].amt

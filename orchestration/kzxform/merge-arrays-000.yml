@@ -2,7 +2,7 @@ id: "merge_arrays_000"
 rules:
   - operation: merge-arrays
     spec:
-      dtEmissionsFlat: test2[i].dtEmissions
-      tagliFlat: test2[i].tagli
+      dtEmissionsFlat: array-prop[i].dtEmissions
+      tagliFlat: array-prop[i].tagli
 
 
