@@ -137,6 +137,12 @@ func TestMain(m *testing.M) {
 	err = registry.Add3(filterItemsTrsf)
 	handleErrorTestMain(err)
 
+	concatArraysTrsf := kzxform.Config{}
+	err = yaml.Unmarshal(merge_arrays_items_000, &concatArraysTrsf)
+	handleErrorTestMain(err)
+	err = registry.Add3(concatArraysTrsf)
+	handleErrorTestMain(err)
+
 	exitVal := m.Run()
 	os.Exit(exitVal)
 }
@@ -149,9 +155,14 @@ func TestSingleCase(t *testing.T) {
 	var err error
 	var dataOut []byte
 
-	rule := "filter_array_items_000"
-	input := filter_array_items_000_input
-	output := "filter_array_items_000_output.json"
+	//rule := "filter_array_items_000"
+	//input := filter_array_items_000_input
+	//output := "filter_array_items_000_output.json"
+
+	rule := "merge_arrays_000"
+	input := merge_arrays_000_input
+	output := "merge_arrays_000_output.json"
+
 	trsf, err = registry.Get(rule)
 	require.NoError(t, err)
 	t.Log(trsf.Cfg.ToYaml())

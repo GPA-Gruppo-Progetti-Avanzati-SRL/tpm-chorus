@@ -97,3 +97,9 @@ var filter_array_items_000_input string
 
 //go:embed  filter-array-items-000.yml
 var filter_array_items_000 []byte
+
+//go:embed merge-arrays-000-input.json
+var merge_arrays_000_input string
+
+//go:embed  merge-arrays-000.yml
+var merge_arrays_items_000 []byte

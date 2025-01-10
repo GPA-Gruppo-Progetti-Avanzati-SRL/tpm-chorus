@@ -8,6 +8,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/filterarrayitems"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/format"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/lenarrays"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/mergearrays"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/reducearray"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/setproperties"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/shiftarrayitems"
@@ -61,6 +62,11 @@ func InitializeKazaamRegistry() error {
 	}
 
 	err = kc.RegisterTransform(lenarrays.OperatorLenArrays, lenarrays.LenArrays(kc))
+	if err != nil {
+		return err
+	}
+
+	err = kc.RegisterTransform(mergearrays.OperatorMergeArrays, mergearrays.MergeArrays(kc))
 	if err != nil {
 		return err
 	}
