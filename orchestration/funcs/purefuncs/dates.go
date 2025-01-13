@@ -1,6 +1,7 @@
 package purefuncs
 
 import (
+	"errors"
 	"fmt"
 	"github.com/rs/zerolog/log"
 	"strings"
@@ -90,7 +91,7 @@ func ParseAndFmtDate(value interface{}, location string, targetLayout string, in
 	return s
 }
 
-func Age(value1 interface{}, inputLayouts ...string) int {
+func Age(value1 interface{}, birthdayMode string, inputLayouts ...string) int {
 	const semLogContext = "orchestration-funcs::age"
 	const SemLogDateValue1 = "date-value-1"
 	i1 := ParseDate(value1, "Local", inputLayouts...)
@@ -110,8 +111,20 @@ func Age(value1 interface{}, inputLayouts ...string) int {
 	nowYear := now.Year()
 
 	age := nowYear - birthYear - 1
-	if now.Month() > tm1.Month() || (now.Month() == tm1.Month() && now.Day() >= tm1.Day()) {
-		age++
+	switch birthdayMode {
+	case "include":
+		if now.Month() > tm1.Month() || (now.Month() == tm1.Month() && now.Day() >= tm1.Day()) {
+			age++
+		}
+	case "exclude":
+		if now.Month() > tm1.Month() || (now.Month() == tm1.Month() && now.Day() > tm1.Day()) {
+			age++
+		}
+	default:
+		log.Error().Err(errors.New("birthday mode unsupported")).Str("birthday-mode", birthdayMode).Msg(semLogContext)
+		if now.Month() > tm1.Month() || (now.Month() == tm1.Month() && now.Day() >= tm1.Day()) {
+			age++
+		}
 	}
 
 	return age

@@ -321,7 +321,7 @@ func TestFuncs(t *testing.T) {
 			i := purefuncs.DateDiff(dinput.input, dinput.value2, dinput.fmtLayout, dinput.layouts...)
 			require.Equal(t, dinput.wantedInt, i, fmt.Sprintf("error on simple.DateDiff [%d]", ndx))
 		case "Age":
-			i := purefuncs.Age(dinput.input, dinput.layouts...)
+			i := purefuncs.Age(dinput.input, "include", dinput.layouts...)
 			require.Equal(t, dinput.wantedInt, i, fmt.Sprintf("error on age [%d]", ndx))
 		}
 	}
