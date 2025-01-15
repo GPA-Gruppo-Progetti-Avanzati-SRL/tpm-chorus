@@ -1,0 +1,7 @@
+id: "merge_arrays_001"
+rules:
+  - operation: merge-arrays
+    spec:
+      codProdsFull: arrPatr[i].codProds
+
+

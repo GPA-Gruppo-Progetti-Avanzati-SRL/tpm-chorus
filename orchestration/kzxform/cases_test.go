@@ -9,7 +9,9 @@ type TestInfo struct {
 }
 
 var tests = map[string]TestInfo{
-	addArrayItems000.ruleId: addArrayItems000,
+	addArrayItems000.ruleId:    addArrayItems000,
+	mergeArraysItems000.ruleId: mergeArraysItems000,
+	mergeArraysItems001.ruleId: mergeArraysItems001,
 }
 
 //go:embed case-001-input.json
@@ -113,6 +115,24 @@ var merge_arrays_000_input []byte
 
 //go:embed  merge-arrays-000.yml
 var merge_arrays_items_000 []byte
+
+var mergeArraysItems000 = TestInfo{
+	"merge_arrays_000",
+	merge_arrays_000_input,
+	"amerge-arrays-000-output.json",
+}
+
+//go:embed merge-arrays-001-input.json
+var merge_arrays_001_input []byte
+
+//go:embed  merge-arrays-001.yml
+var merge_arrays_items_001 []byte
+
+var mergeArraysItems001 = TestInfo{
+	"merge_arrays_001",
+	merge_arrays_001_input,
+	"merge-arrays-001-output.json",
+}
 
 //go:embed add-array-items-000-input.json
 var add_arrays_000_input []byte

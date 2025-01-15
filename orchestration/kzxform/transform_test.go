@@ -143,6 +143,12 @@ func TestMain(m *testing.M) {
 	err = registry.Add3(concatArraysTrsf)
 	handleErrorTestMain(err)
 
+	concatArraysTrsf = kzxform.Config{}
+	err = yaml.Unmarshal(merge_arrays_items_001, &concatArraysTrsf)
+	handleErrorTestMain(err)
+	err = registry.Add3(concatArraysTrsf)
+	handleErrorTestMain(err)
+
 	addArraysTrsf := kzxform.Config{}
 	err = yaml.Unmarshal(add_arrays_items_000, &addArraysTrsf)
 	handleErrorTestMain(err)
@@ -161,7 +167,7 @@ func TestSingleCase(t *testing.T) {
 	var err error
 	var dataOut []byte
 
-	testCase := tests[addArrayItems000.ruleId]
+	testCase := tests[mergeArraysItems001.ruleId]
 	trsf, err = registry.Get(testCase.ruleId)
 	require.NoError(t, err)
 	t.Log(trsf.Cfg.ToYaml())

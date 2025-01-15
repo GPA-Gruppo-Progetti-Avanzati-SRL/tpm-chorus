@@ -73,6 +73,7 @@ func process(outData []byte, dst operators.JsonReference, data []byte, src opera
 	var loopErr error
 	var loopIndex int
 	mergedArray := []byte(`{}`)
+	mergedArraySize := 0
 	_, err = jsonparser.ArrayEach(rootArray, func(value []byte, dataType jsonparser.ValueType, offset int, errParam error) {
 		if loopErr != nil {
 			log.Error().Err(err).Msg(semLogContext + " previous error in for-each")
@@ -90,18 +91,20 @@ func process(outData []byte, dst operators.JsonReference, data []byte, src opera
 		nestedRef.Keys[0] = fmt.Sprintf("[%d]", loopIndex)
 
 		// var nestedLen = 0
-		mergedArray, _, err = mergeArray(mergedArray, rootArray, nestedRef)
+		numMergedItems := 0
+		mergedArray, numMergedItems, err = mergeArray(mergedArray, rootArray, nestedRef)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			loopErr = err
 			return
 		}
 
+		mergedArraySize += numMergedItems
 		loopIndex++
 	})
 
 	var resultArray []byte
-	if loopIndex > 0 {
+	if mergedArraySize > 0 {
 		var dt jsonparser.ValueType
 		resultArray, dt, _, err = jsonparser.Get(mergedArray, OperatorMergeArraysTempPropertyName)
 		if err != nil {
@@ -126,7 +129,7 @@ func process(outData []byte, dst operators.JsonReference, data []byte, src opera
 }
 
 func mergeArray(outArray []byte, data []byte, jsonRef operators.JsonReference) ([]byte, int, error) {
-	const semLogContext = "kazaam-util::len-of-array"
+	const semLogContext = OperatorSemLogContext + "::merge-array"
 
 	nestedArray, err := operators.GetJsonArray(data, jsonRef)
 	if err != nil {
