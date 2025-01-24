@@ -1,0 +1,57 @@
+id: "shift_array_items_000"
+rules:
+  - operation: shift-array-items
+    spec:
+      source-ref: listini[i].promo
+      target-ref: listini[i].promo
+      criteria:
+        - expression: _kz_array_len == 2 && _kz_array_ndx == 0
+      sub-rules:
+        - operation: shift
+          spec:
+            titoloPromo: titoloPromo
+            descrizionePromo: descrizionePromo
+            # I set as renamed in order to easily detect whats on.
+            scontoPromoRenamed: scontoPromo
+
+  - operation: shift-array-items
+    spec:
+      source-ref: listini[i].promo
+      target-ref: listini[i].scontoPromo
+      flatten: true
+      filter-items: true
+      criteria:
+        - expression: (_kz_array_len == 2 && _kz_array_ndx == 1) || _kz_array_len == 1
+      sub-rules:
+        - operation: shift
+          spec:
+            scontoPromo: scontoPromo
+#  - operation: set-properties
+#    spec:
+#      properties:
+#        - name-ref: listini[i].scontoPromo
+#          path: scontoPromo.scontoPromo
+
+  - operation: shift-array-items
+    spec:
+      source-ref: listini
+      target-ref: listini
+      sub-rules:
+        - operation: shift
+          spec:
+            scontoPromo: scontoPromo.scontoPromo
+            codiceListinoAnag: codiceListinoAnag
+            descrizioneCanone: descrizioneCanone
+            descrizioneListino: descrizioneListino
+            flagListinoConsigliato: flagListinoConsigliato
+            nomeListino: nomeListino
+            numeroConvenzioni: numeroConvenzioni
+            numeroProdottiFacolt: numeroProdottiFacolt
+            prodottiFacoltativi: prodottiFacoltativi
+            numeroProdottiObblig: numeroProdottiObblig
+            prodottiObbligatori: prodottiObbligatori
+            numeroServiziGratis: numeroServiziGratis
+            serviziGratis: serviziGratis
+            numeroServiziPagam: numeroServiziPagam
+            serviziPagamento: serviziPagamento
+            promo: promo

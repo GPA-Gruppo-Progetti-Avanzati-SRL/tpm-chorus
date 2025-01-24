@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs/amt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/withenvfuncs"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
@@ -80,11 +81,11 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins["parseAndFormatDate"] = purefuncs.ParseAndFmtDate
 	builtins["dateDiff"] = purefuncs.DateDiff
 	builtins["printf"] = purefuncs.Printf
-	builtins["amtNeg"] = purefuncs.AmtNeg
-	builtins["amtConv"] = purefuncs.AmtConv
-	builtins["amtCmp"] = purefuncs.AmtCmp
-	builtins["amtAdd"] = purefuncs.AmtAdd
-	builtins["amtDiff"] = purefuncs.AmtDiff
+	builtins["amtNeg"] = amt.AmtNeg
+	builtins["amtConv"] = amt.AmtConv
+	builtins["amtCmp"] = amt.AmtCmp
+	builtins["amtAdd"] = amt.AmtAdd
+	builtins["amtDiff"] = amt.AmtDiff
 	builtins["padLeft"] = purefuncs.PadLeft
 	builtins["left"] = purefuncs.Left
 	builtins["right"] = purefuncs.Right

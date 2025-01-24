@@ -62,6 +62,14 @@ func FilterArrayItems(kc kazaam.Config) func(spec *transform.Config, data []byte
 				return nil, err
 			}
 
+			lenOfSourceArray, err := operators.LenOfArray(sourceArray, operators.JsonReference{})
+			if err != nil {
+				log.Error().Err(err).Msg(semLogContext)
+				return nil, err
+			}
+
+			log.Info().Int("len", lenOfSourceArray).Msg(semLogContext)
+
 			// copiedData := make([]byte, len(data))
 			// _ = copy(copiedData, data)
 			//var modifiedArray = []byte(`{"val": []}`)
@@ -81,7 +89,10 @@ func FilterArrayItems(kc kazaam.Config) func(spec *transform.Config, data []byte
 					return
 				}
 
-				accepted, err := params.criteria.IsAccepted(value)
+				accepted := true
+				if params.criteria != nil {
+					accepted, err = params.criteria.IsAccepted(value, map[string]interface{}{operators.CriterionSystemVariableKazaamArrayLen: lenOfSourceArray, operators.CriterionSystemVariableKazaamArrayLoopIndex: arrayItemNdx})
+				}
 				// accepted, err := isAccepted(value, params.criteria)
 				if err != nil {
 					// Note: how to signal back an error?
@@ -235,6 +246,14 @@ func processArray(data []byte, sourceRef operators.JsonReference, criteria opera
 		return nil, err
 	}
 
+	lenOfSourceArray, err := operators.LenOfArray(sourceArray, operators.JsonReference{})
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	log.Info().Int("len", lenOfSourceArray).Msg(semLogContext)
+
 	// Variables to build new array
 	arrayItemNdx := 0
 	filteredArray := []byte(`{}`)
@@ -245,7 +264,10 @@ func processArray(data []byte, sourceRef operators.JsonReference, criteria opera
 			return
 		}
 
-		accepted, err := criteria.IsAccepted(value)
+		accepted := true
+		if criteria != nil {
+			accepted, err = criteria.IsAccepted(value, map[string]interface{}{operators.CriterionSystemVariableKazaamArrayLen: lenOfSourceArray, operators.CriterionSystemVariableKazaamArrayLoopIndex: arrayItemNdx})
+		}
 		// accepted, err := isAccepted(value, criteria)
 		if err != nil {
 			// Note: how to signal back an error?

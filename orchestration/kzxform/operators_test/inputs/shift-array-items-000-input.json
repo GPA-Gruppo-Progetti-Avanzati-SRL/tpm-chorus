@@ -1,0 +1,203 @@
+{
+  "numListiniOut": 3,
+  "numeroPromo": "2",
+  "listini": [
+    {
+      "codiceListinoAnag": "START",
+      "descrizioneCanone": "7,00",
+      "descrizioneListino": "Il conto indicato per i clienti con esigenze finanziarie orientate ad una bassa operativita'",
+      "flagListinoConsigliato": "SI",
+      "nomeListino": "Start",
+      "numeroConvenzioni": "0",
+      "numeroProdottiFacolt": 1,
+      "numeroProdottiObblig": 2,
+      "numeroServiziGratis": 4,
+      "numeroServiziPagam": 3,
+      "prodottiFacoltativi": [
+        {
+          "codiceProdottoFacolt": "902",
+          "testoProdottoFacolt": "Convenzione Assegni"
+        }
+      ],
+      "prodottiObbligatori": [
+        {
+          "codiceProdottoObblig": "900",
+          "testoProdottoObblig": "Carta di Debito Postepay"
+        },
+        {
+          "codiceProdottoObblig": "901",
+          "testoProdottoObblig": "Banca Multicanale"
+        }
+      ],
+      "promo": [
+        {
+          "descrizionePromo": "chi trova un amico trova un tesoro",
+          "scontoPromo": "non paghi la merenda per 12 mesi",
+          "titoloPromo": "Start: Un amico per te"
+        },
+        {
+          "descrizionePromo": "Puoi ottenere l'azzeramento del canone fino a un massimo di 24 mesi se apri il conto entro il 31/07/2024. Lo sconto è previsto per i primi 12 mesi dall'apertura del conto e per ulteriori 12 nei mesi in cui è presente l'accredito dello stipendio/pensione o un saldo contabile medio mensile superiore a 2.500€. Per dettagli sulla definizione di accredito e informazioni aggiuntive consulta il Regolamento.",
+          "scontoPromo": "€0 / mese fina a 24 mesi",
+          "titoloPromo": "PROMOZIONE DIGITAL 2024"
+        }
+      ],
+      "serviziGratis": [
+        {
+          "testoServiziGratis": "Carta di Debito inclusa per I e II intestatario"
+        },
+        {
+          "testoServiziGratis": "Home banking/ APP/ PFM"
+        },
+        {
+          "testoServiziGratis": "Prelievi ATM Poste"
+        },
+        {
+          "testoServiziGratis": "Sconti BP"
+        }
+      ],
+      "serviziPagamento": [
+        {
+          "testoServiziPagam": "Sportello: Bonifici (5,00 euro)/Postagiro (2,50 euro)"
+        },
+        {
+          "testoServiziPagam": "Canone carta di credito: classica (44 euro) oro (70 euro)"
+        },
+        {
+          "testoServiziPagam": "APP/BPOL: Bonifici(1,00 euro)/(Postagiro(0,50 euro)"
+        }
+      ]
+    },
+    {
+      "codiceListinoAnag": "MEDIUM",
+      "descrizioneCanone": "8,00",
+      "descrizioneListino": "Il conto indicato per i clienti/famiglie con esigenze finanziarie orientate ad una operativita' online consistente",
+      "flagListinoConsigliato": "NO",
+      "nomeListino": "Medium",
+      "numeroConvenzioni": "0",
+      "numeroProdottiFacolt": 1,
+      "numeroProdottiObblig": 2,
+      "numeroServiziGratis": 5,
+      "numeroServiziPagam": 2,
+      "prodottiFacoltativi": [
+        {
+          "codiceProdottoFacolt": "902",
+          "testoProdottoFacolt": "Convenzione Assegni"
+        }
+      ],
+      "prodottiObbligatori": [
+        {
+          "codiceProdottoObblig": "900",
+          "testoProdottoObblig": "Carta di Debito Postepay"
+        },
+        {
+          "codiceProdottoObblig": "901",
+          "testoProdottoObblig": "Banca Multicanale"
+        }
+      ],
+      "promo": [
+        {
+          "descrizionePromo": "chi trova un amico trova un tesoro",
+          "scontoPromo": "non paghi la merenda per 12 mesi",
+          "titoloPromo": "Start: Un amico per te"
+        },
+        {
+          "descrizionePromo": "Puoi ottenere l'azzeramento del canone fino a un massimo di 24 mesi se apri il conto entro il 31/07/2024. Lo sconto è previsto per i primi 12 mesi dall'apertura del conto e per ulteriori 12 nei mesi in cui è presente l'accredito dello stipendio/pensione o un saldo contabile medio mensile superiore a 2.500€. Per dettagli sulla definizione di accredito e informazioni aggiuntive consulta il Regolamento.",
+          "scontoPromo": "€0 / mese fina a 24 mesi",
+          "titoloPromo": "PROMOZIONE DIGITAL 2024"
+        }
+      ],
+      "serviziGratis": [
+        {
+          "testoServiziGratis": "Carta di Debito inclusa per I e II intestatario"
+        },
+        {
+          "testoServiziGratis": "Home banking/ APP/ PFM"
+        },
+        {
+          "testoServiziGratis": "Prelievi ATM Poste"
+        },
+        {
+          "testoServiziGratis": "Sconti BP"
+        },
+        {
+          "testoServiziGratis": "Bonifici/Postagiro online/app gratuiti illimitati"
+        }
+      ],
+      "serviziPagamento": [
+        {
+          "testoServiziPagam": "Canone carta di credito: classica (44 euro) oro (70 euro)"
+        },
+        {
+          "testoServiziPagam": "Sportello: Bonifici (5,00 euro)/Postagiro (2,50 euro)"
+        }
+      ]
+    },
+    {
+      "codiceListinoAnag": "PLUS",
+      "descrizioneCanone": "10,00",
+      "descrizioneListino": "Il conto indicato per i clienti con esigenze finanziarie piu' evolute e orientatti a una operativita' elevata",
+      "flagListinoConsigliato": "NO",
+      "nomeListino": "Plus",
+      "numeroConvenzioni": "0",
+      "numeroProdottiFacolt": 2,
+      "numeroProdottiObblig": 2,
+      "numeroServiziGratis": 6,
+      "numeroServiziPagam": 2,
+      "prodottiFacoltativi": [
+        {
+          "codiceProdottoFacolt": "231",
+          "testoProdottoFacolt": "Carta di credito BancoPosta Classica"
+        },
+        {
+          "codiceProdottoFacolt": "902",
+          "testoProdottoFacolt": "Convenzione Assegni"
+        }
+      ],
+      "prodottiObbligatori": [
+        {
+          "codiceProdottoObblig": "900",
+          "testoProdottoObblig": "Carta di Debito Postepay"
+        },
+        {
+          "codiceProdottoObblig": "901",
+          "testoProdottoObblig": "Banca Multicanale"
+        }
+      ],
+      "promo": [
+        {
+          "descrizionePromo": "chi trova un amico trova un tesoro",
+          "scontoPromo": "non paghi la merenda per 12 mesi",
+          "titoloPromo": "Start: Un amico per te"
+        }
+      ],
+      "serviziGratis": [
+        {
+          "testoServiziGratis": "Carta di Debito inclusa per I e II intestatario"
+        },
+        {
+          "testoServiziGratis": "Home banking/ APP/ PFM"
+        },
+        {
+          "testoServiziGratis": "Prelievi ATM Poste"
+        },
+        {
+          "testoServiziGratis": "Sconti BP"
+        },
+        {
+          "testoServiziGratis": "1 Carta Credito classica inclusa nel canone"
+        },
+        {
+          "testoServiziGratis": "Bonifici/Postagiro online/app gratuiti illimitati"
+        }
+      ],
+      "serviziPagamento": [
+        {
+          "testoServiziPagam": "Canone carta di credito: oro (70 euro)"
+        },
+        {
+          "testoServiziPagam": "Sportello: Bonifici (5,00 euro)/Postagiro (2,50 euro)"
+        }
+      ]
+    }
+  ]
+}

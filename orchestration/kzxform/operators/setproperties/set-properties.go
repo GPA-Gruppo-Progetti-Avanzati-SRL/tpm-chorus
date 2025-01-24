@@ -74,7 +74,7 @@ func shouldBeSet(data []byte, keys []string, ifMissing bool, criterion operators
 	}
 
 	if !criterion.IsZero() {
-		itShould, err = criterion.IsAccepted(data)
+		itShould, err = criterion.IsAccepted(data, nil)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return false, vt, err

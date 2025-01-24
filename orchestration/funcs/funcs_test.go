@@ -41,15 +41,6 @@ type DatesInputWanted struct {
 	wantedInt    int
 }
 
-type AmountCompareInputWanted struct {
-	cmpUnit     string
-	amt1SrcUnit string
-	amt1        string
-	amt2SrcUnit string
-	amt2        string
-	wanted      bool
-}
-
 func TestFuncs(t *testing.T) {
 
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
@@ -87,63 +78,11 @@ func TestFuncs(t *testing.T) {
 		require.Equal(t, s.wanted, news)
 	}
 
-	addDiffArr := []AmountConversionInputWanted{
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Mill, sourceUnit: purefuncs.Cent, decimalFormat: false, amts: []interface{}{"15000", "100"}, wanted: "151000"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.Cent, decimalFormat: true, amts: []interface{}{"15000", "100"}, wanted: "151.00"},
-		{OpType: purefuncs.AmountOpDiff, targetUnit: purefuncs.Mill, sourceUnit: purefuncs.Cent, decimalFormat: false, amts: []interface{}{"1234", "100"}, wanted: "11340"},
-		{OpType: purefuncs.AmountOpDiff, targetUnit: purefuncs.Mill, sourceUnit: purefuncs.Cent, decimalFormat: false, amts: []interface{}{"100", "1234"}, wanted: "-11340"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.DecimalCent, decimalFormat: false, amts: []interface{}{"1", "1"}, wanted: "200"},
-	}
-
-	for i, input := range addDiffArr {
-		news, err := purefuncs.Amt(input.OpType, input.sourceUnit, input.targetUnit, input.decimalFormat, input.amts...)
-		require.NoError(t, err)
-		require.Equal(t, input.wanted, news, fmt.Sprintf("error on funcs.AmtAdd [%d]", i))
-	}
-
-	convArr := []AmountConversionInputWanted{
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.MicroCent, decimalFormat: false, amts: []interface{}{"000000000001000000"}, wanted: "100"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.MicroCent, sourceUnit: purefuncs.Cent, decimalFormat: false, amts: []interface{}{"100"}, wanted: "1000000"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.Cent, decimalFormat: true, amts: []interface{}{"999"}, wanted: "9.99"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.Cent, decimalFormat: true, amts: []interface{}{"1"}, wanted: "0.01"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Mill, sourceUnit: purefuncs.Cent, decimalFormat: true, amts: []interface{}{"123"}, wanted: "12.30"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.DecimalCent, decimalFormat: false, amts: []interface{}{"12.34"}, wanted: "1234"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.DecimalCent, decimalFormat: false, amts: []interface{}{"12,34"}, wanted: "1234"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.DecimalCent, decimalFormat: false, amts: []interface{}{"0,1"}, wanted: "10"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.Cent, decimalFormat: false, amts: []interface{}{"9.000000"}, wanted: "9"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Mill, sourceUnit: purefuncs.DecimalMillis, decimalFormat: false, amts: []interface{}{"9.001000"}, wanted: "9001"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.DecimalCent, decimalFormat: false, amts: []interface{}{"1"}, wanted: "100"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.Mill, decimalFormat: true, amts: []interface{}{"355120"}, wanted: "355.12"},
-		{OpType: purefuncs.AmountOpAdd, targetUnit: purefuncs.Cent, sourceUnit: purefuncs.DecimalCent, decimalFormat: false, amts: []interface{}{"2400,45"}, wanted: "240045"},
-	}
-
 	/*
 		news, err = simple.AmtConv(convArr[12].sourceUnit, convArr[12].targetUnit, convArr[12].decimalFormat, convArr[12].amts[0])
 		require.NoError(t, err)
 		require.Equal(t, convArr[12].wanted, news, fmt.Sprintf("error on funcs.Amt [%d]", 12))
 	*/
-
-	for i, input := range convArr {
-		news, err := purefuncs.AmtConv(input.sourceUnit, input.targetUnit, input.decimalFormat, input.amts[0])
-		require.NoError(t, err)
-		require.Equal(t, input.wanted, news, fmt.Sprintf("error on funcs.AmtConv [%d]", i))
-	}
-
-	cmpArr := []AmountCompareInputWanted{
-		{
-			cmpUnit:     purefuncs.Cent,
-			amt1SrcUnit: purefuncs.Cent,
-			amt1:        "72",
-			amt2SrcUnit: purefuncs.Cent,
-			amt2:        "123",
-			wanted:      false,
-		}}
-
-	for _, input := range cmpArr {
-		r, err := purefuncs.AmtCmp(input.cmpUnit, input.amt1, input.amt1SrcUnit, input.amt2, input.amt2SrcUnit)
-		require.NoError(t, err)
-		require.Equal(t, input.wanted, r)
-	}
 
 	now := time.Now()
 	const Dashed20230301 = "2023-03-01"

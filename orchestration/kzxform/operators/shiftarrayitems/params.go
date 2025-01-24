@@ -14,54 +14,58 @@ const (
 	SpecParamCriterionAttributeReference = "attribute-ref"
 	SpecParamCriterionTerm               = "term"
 	SpecParamSubRules                    = "sub-rules"
-	OperatorsTempReusltPropertyName      = "smp-tmp"
+	OperatorsTempResultPropertyName      = "smp-tmp"
+	SpecParamFilterItems                 = "filter-items"
+	SpecParamFlatten                     = "flatten"
 )
 
 /*
-type criterion struct {
-	attributeName operators.JsonReference
-	operator      string
-	term          string
-}
-*/
-
-func getCriterionFromSpec(c interface{}) (operators.Criterion, error) {
-	var err error
-	var criterion operators.Criterion
-	criterion.AttributeName, err = operators.GetJsonReferenceParamFromMap(c, SpecParamCriterionAttributeReference, true)
-	if err != nil {
-		return criterion, err
+	type criterion struct {
+		attributeName operators.JsonReference
+		operator      string
+		term          string
 	}
 
-	criterion.Operator = "eq"
-
-	criterion.Term, err = operators.GetStringParamFromMap(c, SpecParamCriterionTerm, true)
-	if err != nil {
-		return criterion, err
-	}
-
-	return criterion, nil
-}
-
-func getCriteriaFromSpec(c []interface{}) ([]operators.Criterion, error) {
-	filtersObj := make([]operators.Criterion, 0)
-	for _, f := range c {
-		crit, err := getCriterionFromSpec(f)
+	func getCriterionFromSpec(c interface{}) (operators.Criterion, error) {
+		var err error
+		var criterion operators.Criterion
+		criterion.AttributeName, err = operators.GetJsonReferenceParamFromMap(c, SpecParamCriterionAttributeReference, true)
 		if err != nil {
-			return nil, err
+			return criterion, err
 		}
 
-		filtersObj = append(filtersObj, crit)
+		criterion.Operator = "eq"
+
+		criterion.Term, err = operators.GetStringParamFromMap(c, SpecParamCriterionTerm, true)
+		if err != nil {
+			return criterion, err
+		}
+
+		return criterion, nil
 	}
 
-	return filtersObj, nil
-}
+	func getCriteriaFromSpec(c []interface{}) ([]operators.Criterion, error) {
+		filtersObj := make([]operators.Criterion, 0)
+		for _, f := range c {
+			crit, err := getCriterionFromSpec(f)
+			if err != nil {
+				return nil, err
+			}
+
+			filtersObj = append(filtersObj, crit)
+		}
+
+		return filtersObj, nil
+	}
+*/
 
 type OperatorParams struct {
 	sourceRef           operators.JsonReference
 	destRef             operators.JsonReference
+	filterItems         bool
+	flatten             bool
 	inPlace             bool
-	criteria            []operators.Criterion
+	criteria            operators.Criteria
 	itemRulesSerialized string
 }
 
@@ -89,6 +93,18 @@ func getParamsFromSpec(spec *transform.Config) (OperatorParams, error) {
 		params.inPlace = true
 	}
 
+	params.filterItems, err = operators.GetBoolParam(spec, SpecParamFilterItems, false)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return params, err
+	}
+
+	params.flatten, err = operators.GetBoolParam(spec, SpecParamFlatten, false)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return params, err
+	}
+
 	itemRules, err := operators.GetArrayParam(spec, SpecParamSubRules, true)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
@@ -107,15 +123,24 @@ func getParamsFromSpec(spec *transform.Config) (OperatorParams, error) {
 		log.Debug().Str(SpecParamSubRules, params.itemRulesSerialized).Msg(semLogContext)
 	}
 
-	filters, err := operators.GetArrayParam(spec, SpecParamCriteria, false)
+	params.criteria, err = operators.CriteriaFromSpec(spec, SpecParamCriteria, false)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return params, err
 	}
 
-	if filters != nil {
-		params.criteria, err = getCriteriaFromSpec(filters)
-	}
+	/*
+		    This implementation supported only the old style..
+			filters, err := operators.GetArrayParam(spec, SpecParamCriteria, false)
+			if err != nil {
+				log.Error().Err(err).Msg(semLogContext)
+				return params, err
+			}
+
+			if filters != nil {
+				params.criteria, err = getCriteriaFromSpec(filters)
+			}
+	*/
 
 	log.Debug().
 		Interface(SpecParamSourceReference, params.sourceRef).

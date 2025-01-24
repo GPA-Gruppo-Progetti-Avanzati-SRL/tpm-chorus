@@ -1,4 +1,4 @@
-package kzxform_test
+package operators_test
 
 import (
 	_ "embed"

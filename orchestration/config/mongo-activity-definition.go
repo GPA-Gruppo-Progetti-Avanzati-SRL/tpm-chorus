@@ -30,12 +30,13 @@ const (
 )
 
 var opTypes = map[jsonops.MongoJsonOperationType]struct{}{
-	jsonops.FindOneOperationType:      struct{}{},
-	jsonops.ReplaceOneOperationType:   struct{}{},
-	jsonops.AggregateOneOperationType: struct{}{},
-	jsonops.UpdateOneOperationType:    struct{}{},
-	jsonops.UpdateManyOperationType:   struct{}{},
-	jsonops.DeleteManyOperationType:   struct{}{},
+	jsonops.FindOneOperationType:          struct{}{},
+	jsonops.FindOneAndUpdateOperationType: struct{}{},
+	jsonops.ReplaceOneOperationType:       struct{}{},
+	jsonops.AggregateOneOperationType:     struct{}{},
+	jsonops.UpdateOneOperationType:        struct{}{},
+	jsonops.UpdateManyOperationType:       struct{}{},
+	jsonops.DeleteManyOperationType:       struct{}{},
 }
 
 type MongoActivityDefinition struct {

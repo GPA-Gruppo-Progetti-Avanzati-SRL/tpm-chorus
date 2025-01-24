@@ -12,7 +12,7 @@ import (
 
 const (
 	OperatorShiftArrayItems = "shift-array-items"
-	OperatorSemLogContext   = "shift-array-items"
+	OperatorSemLogContext   = "kz-shift-array-items"
 )
 
 func ShiftArrayItems(kc kazaam.Config) func(spec *transform.Config, data []byte) ([]byte, error) {
@@ -34,81 +34,9 @@ func ShiftArrayItems(kc kazaam.Config) func(spec *transform.Config, data []byte)
 		}
 
 		if params.sourceRef.WithArrayISpecifierIndex < 0 {
-			sourceArray, err := operators.GetJsonArray(data, params.sourceRef)
-			if err != nil {
-				log.Error().Err(err).Msg(semLogContext)
-				return nil, err
-			}
-
-			// copiedData := make([]byte, len(data))
-			// _ = copy(copiedData, data)
-			//var modifiedArray = []byte(`{"val": []}`)
-			arrayItemNdx := 0
-			result := []byte(`{}`)
-
-			var loopErr error
-			_, err = jsonparser.ArrayEach(sourceArray, func(value []byte, dataType jsonparser.ValueType, offset int, errParam error) {
-
-				if loopErr != nil {
-					log.Error().Err(err).Msg(semLogContext + " previous error in for-each")
-					return
-				}
-
-				itemTransformed := string(value)
-
-				accepted, err := isAccepted(value, params.criteria)
-				if accepted {
-					itemTransformed, err = itemKTransformation.TransformJSONStringToString(itemTransformed)
-				}
-				if err != nil {
-					log.Error().Err(err).Msg(semLogContext)
-					loopErr = err
-					return
-				}
-
-				log.Debug().Str("item-transformed", itemTransformed).Msg(semLogContext)
-				result, err = jsonparser.Set(result, []byte(itemTransformed), OperatorsTempReusltPropertyName, "[+]")
-				if err != nil {
-					// Note: how to signal back an error?
-					loopErr = err
-					log.Error().Err(err).Msg(semLogContext)
-					return
-				}
-
-				arrayItemNdx++
-			})
-
-			if loopErr != nil {
-				return nil, loopErr
-			}
-
-			if arrayItemNdx > 0 {
-				val, dt, _, err := jsonparser.Get(result, OperatorsTempReusltPropertyName)
-				if err != nil {
-					// Note: how to signal back an error?
-					log.Error().Err(err).Msg(semLogContext)
-					return nil, err
-				}
-				log.Info().Interface("data-type", dt).Msg(semLogContext)
-
-				data, err = jsonparser.Set(data, val, params.destRef.Keys...)
-				if err != nil {
-					// Note: how to signal back an error?
-					log.Error().Err(err).Msg(semLogContext)
-					return nil, err
-				}
-			} else {
-				data, err = jsonparser.Set(data, []byte(`[]`), params.destRef.Keys...)
-				if err != nil {
-					// Note: how to signal back an error?
-					log.Error().Err(err).Msg(semLogContext)
-					return nil, err
-				}
-			}
-
-			return data, err
+			data, err = process(data, params.sourceRef, itemKTransformation, params)
 		} else {
-			data, err = processShiftWIthINdxSpecifier(data, params, itemKTransformation)
+			data, err = processWithIotaSpecifier(data, params, itemKTransformation)
 		}
 
 		return data, err
@@ -116,8 +44,54 @@ func ShiftArrayItems(kc kazaam.Config) func(spec *transform.Config, data []byte)
 
 }
 
-func processShiftWIthINdxSpecifier(data []byte, params OperatorParams, kXForm *kazaam.Kazaam) ([]byte, error) {
-	const semLogContext = "kazaam-shift-array-items::process-i-wildcard"
+/*
+func isAccepted(value []byte, obj []operators.Criterion) (bool, error) {
+
+		// Always accepted if not specified
+		if len(obj) == 0 {
+			return true, nil
+		}
+
+		for _, criterion := range obj {
+			attributeValue, dataType, _, err := jsonparser.Get(value, criterion.AttributeName.Keys...)
+			if err != nil {
+				return false, err
+			}
+
+			if dataType == jsonparser.NotExist {
+				continue
+			}
+
+			attrValue := string(attributeValue)
+			if attrValue == criterion.Term {
+				return true, nil
+			}
+		}
+
+		return false, nil
+	}
+*/
+
+func process(data []byte, sourceRef operators.JsonReference, itemKTransformation *kazaam.Kazaam, params OperatorParams) ([]byte, error) {
+	const semLogContext = OperatorSemLogContext + "::process"
+	result, err := processArray(data, sourceRef, itemKTransformation, params)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	data, err = jsonparser.Set(data, result, params.destRef.Keys...)
+	if err != nil {
+		// Note: how to signal back an error?
+		log.Error().Err(err).Msg(semLogContext)
+		return nil, err
+	}
+
+	return data, err
+}
+
+func processWithIotaSpecifier(data []byte, params OperatorParams, kXForm *kazaam.Kazaam) ([]byte, error) {
+	const semLogContext = OperatorSemLogContext + "::process-with-i-specifier"
 
 	rootRef := operators.JsonReference{
 		WithArrayISpecifierIndex: -1,
@@ -152,7 +126,7 @@ func processShiftWIthINdxSpecifier(data []byte, params OperatorParams, kXForm *k
 		nestedRef.Keys = append(nestedRef.Keys, params.sourceRef.Keys[params.sourceRef.WithArrayISpecifierIndex:]...)
 		// copy(nestedRef.Keys, sourceRef.Keys)
 		nestedRef.Keys[0] = fmt.Sprintf("[%d]", loopIndex)
-		resultArray, err := processShiftArray(rootArray, nestedRef, kXForm, params.criteria)
+		resultArray, err := processArray(rootArray, nestedRef, kXForm, params)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			loopErr = err
@@ -177,91 +151,4 @@ func processShiftWIthINdxSpecifier(data []byte, params OperatorParams, kXForm *k
 	})
 
 	return outData, loopErr
-}
-
-func processShiftArray(data []byte, sourceRef operators.JsonReference, itemKTransformation *kazaam.Kazaam, criteria []operators.Criterion) ([]byte, error) {
-	const semLogContext = "kazaam-filter-array-items::process-array"
-
-	sourceArray, err := operators.GetJsonArray(data, sourceRef)
-	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
-		return nil, err
-	}
-
-	// Variables to build new array
-	arrayItemNdx := 0
-	resultArray := []byte(`{}`)
-	var loopErr error
-	_, err = jsonparser.ArrayEach(sourceArray, func(value []byte, dataType jsonparser.ValueType, offset int, errParam error) {
-		if loopErr != nil {
-			log.Error().Err(err).Msg(semLogContext + " previous error in for-each")
-			return
-		}
-
-		itemTransformed := string(value)
-		accepted, err := isAccepted(value, criteria)
-		if accepted {
-			itemTransformed, err = itemKTransformation.TransformJSONStringToString(itemTransformed)
-		}
-		if err != nil {
-			log.Error().Err(err).Msg(semLogContext)
-			loopErr = err
-			return
-		}
-
-		resultArray, err = jsonparser.Set(resultArray, []byte(itemTransformed), OperatorsTempReusltPropertyName, "[+]")
-		if err != nil {
-			loopErr = err
-			log.Error().Err(err).Msg(semLogContext)
-			return
-		}
-
-		arrayItemNdx++
-
-	})
-
-	if loopErr != nil {
-		return nil, loopErr
-	}
-
-	if arrayItemNdx > 0 {
-		var dt jsonparser.ValueType
-		resultArray, dt, _, err = jsonparser.Get(resultArray, OperatorsTempReusltPropertyName)
-		if err != nil {
-			// Note: how to signal back an error?
-			log.Error().Err(err).Msg(semLogContext)
-			return nil, err
-		}
-		log.Info().Interface("data-type", dt).Msg(semLogContext)
-	} else {
-		resultArray = []byte(`[]`)
-	}
-
-	return resultArray, nil
-}
-
-func isAccepted(value []byte, obj []operators.Criterion) (bool, error) {
-
-	// Always accepted if not specified
-	if len(obj) == 0 {
-		return true, nil
-	}
-
-	for _, criterion := range obj {
-		attributeValue, dataType, _, err := jsonparser.Get(value, criterion.AttributeName.Keys...)
-		if err != nil {
-			return false, err
-		}
-
-		if dataType == jsonparser.NotExist {
-			continue
-		}
-
-		attrValue := string(attributeValue)
-		if attrValue == criterion.Term {
-			return true, nil
-		}
-	}
-
-	return false, nil
 }

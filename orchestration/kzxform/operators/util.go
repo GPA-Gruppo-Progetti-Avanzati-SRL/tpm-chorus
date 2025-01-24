@@ -148,6 +148,24 @@ func GetStringParam(spec *transform.Config, n string, required bool, defaultValu
 	return s, nil
 }
 
+func GetBoolParam(spec *transform.Config, n string, required bool) (bool, error) {
+
+	param, ok := (*spec.Spec)[n]
+	if !ok {
+		if required {
+			return false, fmt.Errorf("cannot find string param %s in specs", n)
+		}
+		return false, nil
+	}
+
+	b, ok := param.(bool)
+	if !ok {
+		return false, fmt.Errorf("param %s is not a bool but %T", n, param)
+	}
+
+	return b, nil
+}
+
 func GetArrayParam(spec *transform.Config, n string, required bool) ([]interface{}, error) {
 	param, ok := (*spec.Spec)[n]
 	if !ok {
@@ -217,6 +235,10 @@ func GetBoolParamFromMap(spec interface{}, n string, required bool) (bool, error
 		return false, nil
 	}
 
+	if param == nil {
+		return false, nil
+	}
+
 	b, ok := param.(bool)
 	if !ok {
 		return false, fmt.Errorf("param %s is not a bool but %T", n, param)
@@ -244,10 +266,18 @@ func GetParamFromMap(spec interface{}, n string, required bool) (interface{}, er
 	return param, nil
 }
 
+// LenOfArray iterate over an array and compute the length. If jsonRef is specified the actual array is a subproperty of the object provided ad data
 func LenOfArray(data []byte, jsonRef JsonReference) (int, error) {
 	const semLogContext = "kazaam-util::len-of-array"
 
-	nestedArray, err := GetJsonArray(data, jsonRef)
+	var err error
+	var nestedArray []byte
+	if !jsonRef.IsZero() {
+		nestedArray, err = GetJsonArray(data, jsonRef)
+	} else {
+		nestedArray = data
+	}
+
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return -1, err

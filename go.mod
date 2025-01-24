@@ -3,12 +3,12 @@ module github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus
 go 1.23.1
 
 require (
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.22
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.69
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.18
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.18
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.63-RC7
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.21-RCB
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.23
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.73
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.19
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.19
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.80
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.25
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/confluentinc/confluent-kafka-go/v2 v2.6.1
@@ -18,12 +18,12 @@ require (
 	github.com/json-iterator/go v1.1.12
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/opentracing/opentracing-go v1.2.0
-	github.com/prometheus/client_golang v1.20.3
+	github.com/prometheus/client_golang v1.20.5
 	github.com/qntfy/jsonparser v1.0.2
 	github.com/qntfy/kazaam v3.4.9+incompatible
 	github.com/rs/zerolog v1.33.0
 	github.com/santhosh-tekuri/jsonschema v1.2.4
-	github.com/stretchr/testify v1.9.0
+	github.com/stretchr/testify v1.10.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -35,7 +35,7 @@ require (
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/go-openapi/jsonpointer v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.8 // indirect
-	github.com/go-resty/resty/v2 v2.13.1 // indirect
+	github.com/go-resty/resty/v2 v2.16.4 // indirect
 	github.com/go-test/deep v1.1.0 // indirect
 	github.com/gofrs/uuid v4.4.0+incompatible // indirect
 	github.com/golang/snappy v0.0.4 // indirect
@@ -65,12 +65,12 @@ require (
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20240726163527-a2c0da244d78 // indirect
-	go.mongodb.org/mongo-driver v1.17.1 // indirect
-	golang.org/x/crypto v0.27.0 // indirect
-	golang.org/x/net v0.29.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.25.0 // indirect
-	golang.org/x/text v0.18.0 // indirect
+	go.mongodb.org/mongo-driver v1.17.2 // indirect
+	golang.org/x/crypto v0.31.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.28.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	google.golang.org/protobuf v1.34.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

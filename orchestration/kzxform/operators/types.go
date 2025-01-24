@@ -9,6 +9,11 @@ import (
 	"strings"
 )
 
+const (
+	CriterionSystemVariableKazaamArrayLen       = "_kz_array_len"
+	CriterionSystemVariableKazaamArrayLoopIndex = "_kz_array_ndx"
+)
+
 type JsonReference struct {
 	WithArrayISpecifierIndex    int
 	WithArrayPushSpecifierIndex int
@@ -108,7 +113,7 @@ func (c Criterion) IsZero() bool {
 	return c.AttributeName.IsZero() && c.Term == ""
 }
 
-func (c Criterion) IsAccepted(value []byte) (bool, error) {
+func (c Criterion) IsAccepted(value []byte, vars map[string]interface{}) (bool, error) {
 	const semLogContext = "criteria::is-accepted"
 
 	rc := false
@@ -140,7 +145,10 @@ func (c Criterion) IsAccepted(value []byte) (bool, error) {
 			}
 		}
 	} else {
-		mapOfVars := make(map[string]interface{})
+		mapOfVars := vars
+		if mapOfVars == nil {
+			mapOfVars = make(map[string]interface{})
+		}
 		for _, v := range c.Vars {
 			varValue, dataType, _, err := jsonparser.Get(value, v.With.Keys...)
 			if err != nil {
@@ -176,12 +184,12 @@ func (c Criterion) IsAccepted(value []byte) (bool, error) {
 
 type Criteria []Criterion
 
-func (ca Criteria) IsAccepted(value []byte) (bool, error) {
+func (ca Criteria) IsAccepted(value []byte, vars map[string]interface{}) (bool, error) {
 	const semLogContext = "criteria::is-accepted"
 
 	for _, criterion := range ca {
 
-		ok, err := criterion.IsAccepted(value)
+		ok, err := criterion.IsAccepted(value, vars)
 		if err != nil {
 			return false, err
 		}

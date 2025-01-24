@@ -2,7 +2,7 @@ package format
 
 import (
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs/amt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
 
 	"github.com/qntfy/jsonparser"
@@ -63,7 +63,7 @@ func Format(_ kazaam.Config) func(spec *transform.Config, data []byte) ([]byte, 
 			iv := 0
 			switch conv.convType {
 			case "amt":
-				s, err = purefuncs.Amt(purefuncs.AmountOpAdd, conv.sourceUnit, conv.targetUnit, conv.decimalFormat, s)
+				s, err = amt.Amt(amt.AmountOpAdd, conv.sourceUnit, conv.targetUnit, conv.decimalFormat, s)
 				if err == nil {
 					data, err = jsonparser.Set(data, []byte(s), conv.targetRef.Keys...)
 				}

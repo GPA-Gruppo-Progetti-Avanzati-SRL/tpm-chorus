@@ -1,8 +1,9 @@
-package kzxform_test
+package operators_test
 
 import (
 	_ "embed"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
+
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
@@ -125,12 +126,6 @@ func TestMain(m *testing.M) {
 	err = registry.Add3(trsf13)
 	handleErrorTestMain(err)
 
-	setPropTrsf := kzxform.Config{}
-	err = yaml.Unmarshal(set_properties_000, &setPropTrsf)
-	handleErrorTestMain(err)
-	err = registry.Add3(setPropTrsf)
-	handleErrorTestMain(err)
-
 	filterItemsTrsf := kzxform.Config{}
 	err = yaml.Unmarshal(filter_array_items_000, &filterItemsTrsf)
 	handleErrorTestMain(err)
@@ -155,8 +150,20 @@ func TestMain(m *testing.M) {
 	err = registry.Add3(addArraysTrsf)
 	handleErrorTestMain(err)
 
+	addTransformation(registry, set_properties_000)
+	addTransformation(registry, set_properties_001)
+	addTransformation(registry, shift_array_items_000)
+	addTransformation(registry, concat_000)
 	exitVal := m.Run()
 	os.Exit(exitVal)
+}
+
+func addTransformation(registry kzxform.Registry, yamlRule []byte) {
+	trsf := kzxform.Config{}
+	err := yaml.Unmarshal(yamlRule, &trsf)
+	handleErrorTestMain(err)
+	err = registry.Add3(trsf)
+	handleErrorTestMain(err)
 }
 
 func TestSingleCase(t *testing.T) {
@@ -167,7 +174,7 @@ func TestSingleCase(t *testing.T) {
 	var err error
 	var dataOut []byte
 
-	testCase := tests[mergeArraysItems001.ruleId]
+	testCase := tests[setProperties001.ruleId]
 	trsf, err = registry.Get(testCase.ruleId)
 	require.NoError(t, err)
 	t.Log(trsf.Cfg.ToYaml())

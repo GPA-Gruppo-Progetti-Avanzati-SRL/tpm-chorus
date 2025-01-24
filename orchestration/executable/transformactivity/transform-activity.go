@@ -196,6 +196,8 @@ func (a *TransformActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.HarE
 		r := har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
 		return r, err
 	}
+	// I'm setting the name since it gets modified and is not any more valid.
+	resolver.Name = fmt.Sprintf("%s-%s", a.Name(), "req")
 
 	var b []byte
 	for _, xform := range a.definition.Transforms {
