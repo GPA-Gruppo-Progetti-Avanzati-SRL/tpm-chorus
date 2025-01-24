@@ -86,6 +86,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins["amtCmp"] = amt.AmtCmp
 	builtins["amtAdd"] = amt.AmtAdd
 	builtins["amtDiff"] = amt.AmtDiff
+	builtins["amtFmt"] = amt.Format
 	builtins["padLeft"] = purefuncs.PadLeft
 	builtins["left"] = purefuncs.Left
 	builtins["right"] = purefuncs.Right
