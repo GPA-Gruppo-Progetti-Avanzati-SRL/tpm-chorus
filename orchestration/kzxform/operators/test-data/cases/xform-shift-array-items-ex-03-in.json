@@ -1,0 +1,26 @@
+{
+  "items": [
+    {
+      "codice": "P1",
+      "services": [
+        {
+          "descr": "p1 - mode free",
+          "mode": "free"
+        }
+      ]
+    },
+    {
+      "codice": "P2",
+      "services": [
+        {
+          "descr": "P2 - mode free",
+          "mode": "free"
+        },
+        {
+          "descr": "P2 - mode paid",
+          "mode": "paid"
+        }
+      ]
+    }
+  ]
+}

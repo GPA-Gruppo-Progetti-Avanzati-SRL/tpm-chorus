@@ -3,11 +3,10 @@ package operators
 import (
 	"errors"
 	"fmt"
-	"github.com/rs/zerolog/log"
-	"regexp"
-
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam/transform"
+	"github.com/rs/zerolog/log"
+	"regexp"
 )
 
 func GetJsonArray(data []byte, ref JsonReference) ([]byte, error) {

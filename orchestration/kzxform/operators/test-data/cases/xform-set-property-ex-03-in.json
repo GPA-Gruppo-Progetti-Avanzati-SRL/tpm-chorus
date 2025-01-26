@@ -1,0 +1,13 @@
+{
+  "property-string": "value of property",
+  "property-array": [
+    {
+      "item-property": "value of item-1-property",
+      "item-type": "type-1"
+    },
+    {
+      "item-property": "value of item-2-property",
+      "item-type": "type-2"
+    }
+  ]
+}

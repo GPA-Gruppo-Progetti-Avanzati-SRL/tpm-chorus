@@ -1,0 +1,19 @@
+id: "set-properties-ex-01"
+rules:
+  - operation: set-properties
+    spec:
+      properties:
+        - name-ref: new-property-string
+          value: hello new property
+        - name-ref: new-property-boolean
+          value: true
+        - name-ref: new-property-numeric
+          value: 31
+        - name-ref: property-obj.second-property-of-obj
+          value: property string modified
+        - name-ref: property-string
+          value: property string modified
+          if-missing: true
+        - name-ref: path-copied-property
+          path: property-string
+

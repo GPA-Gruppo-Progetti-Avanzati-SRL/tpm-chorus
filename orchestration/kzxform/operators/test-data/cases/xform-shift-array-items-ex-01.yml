@@ -1,0 +1,54 @@
+id: "xform-shift-array-items-ex-01"
+rules:
+  - operation: shift-array-items
+    spec:
+      source-ref: items
+      target-ref: items
+      criteria:
+        - expression: _kz_array_len == 3 && _kz_array_ndx == 0
+          # vars:
+          #  - with: mode
+          #    as: mode
+      sub-rules:
+        - operation: default
+          spec:
+            xform-descr: "xform-0"
+        - operation: shift
+          spec:
+            xform-descr: xform-descr
+            descr: descr
+            mode: mode
+  - operation: shift-array-items
+    spec:
+      source-ref: items
+      target-ref: items
+      criteria:
+        - expression: mode == "free" && _kz_array_ndx != 0
+          vars:
+            - with: mode
+              as: mode
+      sub-rules:
+        - operation: default
+          spec:
+            xform-descr: "xform-1"
+        - operation: shift
+          spec:
+            xform-descr: xform-descr
+            descr: descr
+            mode: mode
+  - operation: shift-array-items
+    spec:
+      source-ref: items
+      target-ref: items
+      criteria:
+        - attribute-ref: mode
+          term: paid
+      sub-rules:
+        - operation: default
+          spec:
+            xform-descr: "xform-2"
+        - operation: shift
+          spec:
+            xform-descr: xform-descr
+            descr: descr
+            mode: mode

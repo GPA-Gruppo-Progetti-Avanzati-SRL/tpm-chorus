@@ -1,6 +1,7 @@
 package operators
 
 import (
+	"errors"
 	"fmt"
 	"github.com/PaesslerAG/gval"
 	"github.com/qntfy/jsonparser"
@@ -18,6 +19,7 @@ type JsonReference struct {
 	WithArrayISpecifierIndex    int
 	WithArrayPushSpecifierIndex int
 	Path                        string
+	IsPathRelative              bool
 	Keys                        []string
 }
 
@@ -31,6 +33,14 @@ func MustToJsonReference(s string) JsonReference {
 }
 
 func ToJsonReference(s string) (JsonReference, error) {
+	isAbs := false
+	if strings.HasPrefix(s, "/") {
+		isAbs = true
+	}
+
+	s = strings.TrimPrefix(s, "./")
+	s = strings.TrimSuffix(s, "/")
+
 	keys, iSpecifierNdx, plusNdx, err := SplitKeySpecifier(s)
 	if err != nil {
 		return JsonReference{}, err
@@ -38,6 +48,7 @@ func ToJsonReference(s string) (JsonReference, error) {
 
 	jr := JsonReference{
 		Path:                        s,
+		IsPathRelative:              !isAbs,
 		Keys:                        keys,
 		WithArrayISpecifierIndex:    iSpecifierNdx,
 		WithArrayPushSpecifierIndex: plusNdx,
@@ -110,14 +121,30 @@ type Criterion struct {
 }
 
 func (c Criterion) IsZero() bool {
-	return c.AttributeName.IsZero() && c.Term == ""
+	const semLogContext = "criteria::is-zero"
+
+	if c.Typ == "" {
+		return true
+	}
+
+	if c.Typ == SpecParamCriterionTypeTerm {
+		return c.AttributeName.IsZero() && c.Term == ""
+	}
+
+	if c.Typ == SpecParamCriterionTypeExpression {
+		return c.Expression == ""
+	}
+
+	err := errors.New("unknown criterion type")
+	log.Error().Err(err).Msg(semLogContext)
+	return false
 }
 
 func (c Criterion) IsAccepted(value []byte, vars map[string]interface{}) (bool, error) {
 	const semLogContext = "criteria::is-accepted"
 
 	rc := false
-	if c.Typ == "operator-term" {
+	if c.Typ == SpecParamCriterionTypeTerm {
 		attributeValue, dataType, _, err := jsonparser.Get(value, c.AttributeName.Keys...)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
@@ -211,6 +238,9 @@ const (
 	SpecParamCriterionVariableAs   = "as"
 	SpecParamCriterionVars         = "vars"
 	SpecParamCriterionExpression   = "expression"
+
+	SpecParamCriterionTypeTerm       = "operator-term"
+	SpecParamCriterionTypeExpression = "expression-evaluation"
 )
 
 func CriterionFromSpec(c interface{}) (Criterion, error) {
@@ -222,7 +252,7 @@ func CriterionFromSpec(c interface{}) (Criterion, error) {
 	}
 
 	if !criterion.AttributeName.IsZero() {
-		criterion.Typ = "operator-term"
+		criterion.Typ = SpecParamCriterionTypeTerm
 		criterion.Operator, err = GetStringParamFromMap(c, SpecParamCriterionOperator, false)
 		if err != nil {
 			return criterion, err
@@ -237,7 +267,7 @@ func CriterionFromSpec(c interface{}) (Criterion, error) {
 			return criterion, err
 		}
 	} else {
-		criterion.Typ = "expression-evaluation"
+		criterion.Typ = SpecParamCriterionTypeExpression
 		vars, err := GetArrayParamFromMap(c, SpecParamCriterionVars, true)
 		if err != nil {
 			return criterion, err

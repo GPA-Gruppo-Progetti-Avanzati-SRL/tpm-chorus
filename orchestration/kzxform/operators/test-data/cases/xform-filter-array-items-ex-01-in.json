@@ -1,0 +1,16 @@
+{
+  "items": [
+    {
+      "descr": "P1 - mode free",
+      "mode": "free"
+    },
+    {
+      "descr": "P2 - mode free",
+      "mode": "free"
+    },
+    {
+      "descr": "P2 - mode paid",
+      "mode": "paid"
+    }
+  ]
+}

@@ -1,0 +1,27 @@
+# set-properties
+- rule: xform-set-property-ex-01.yml
+  in: xform-set-property-ex-01-in.json
+  out: xform-set-property-ex-01-out.json
+- rule: xform-set-property-ex-02.yml
+  in: xform-set-property-ex-02-in.json
+  out: xform-set-property-ex-02-out.json
+- rule: xform-set-property-ex-03.yml
+  in: xform-set-property-ex-03-in.json
+  out: xform-set-property-ex-03-out.json
+# filter-array-items
+- rule: xform-filter-array-items-ex-01.yml
+  in: xform-filter-array-items-ex-01-in.json
+  out: xform-filter-array-items-ex-01-out.json
+- rule: xform-filter-array-items-ex-02.yml
+  in: xform-filter-array-items-ex-02-in.json
+  out: xform-filter-array-items-ex-02-out.json
+# shiftr-array-items
+- rule: xform-shift-array-items-ex-01.yml
+  in: xform-shift-array-items-ex-01-in.json
+  out: xform-shift-array-items-ex-01-out.json
+- rule: xform-shift-array-items-ex-02.yml
+  in: xform-shift-array-items-ex-02-in.json
+  out: xform-shift-array-items-ex-02-out.json
+- rule: xform-shift-array-items-ex-03.yml
+  in: xform-shift-array-items-ex-03-in.json
+  out: xform-shift-array-items-ex-03-out.json

@@ -1,0 +1,15 @@
+id: "xform-filter-array-items-ex-03"
+rules:
+  - operation: shift-array-items
+    spec:
+      source-ref: items[i].services
+      target-ref: items[i].paidServices
+      filter-items: true
+      criteria:
+        - attribute-ref: mode
+          term: paid
+      sub-rules:
+        - operation: shift
+          spec:
+            descr-renamed: descr
+            mode-renamed: mode

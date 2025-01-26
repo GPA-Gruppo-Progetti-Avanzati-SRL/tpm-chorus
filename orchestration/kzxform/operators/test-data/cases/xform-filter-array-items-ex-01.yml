@@ -1,0 +1,18 @@
+id: "xform-filter-array-items-ex-01"
+rules:
+  - operation: filter-array-items
+    spec:
+      source-ref: items
+      target-ref: paidItems
+      criteria:
+        - attribute-ref: mode
+          term: paid
+  - operation: filter-array-items
+    spec:
+      source-ref: items
+      target-ref: freeItems
+      criteria:
+        - vars:
+            - with: mode
+              as: mode
+          expression: mode == "free"

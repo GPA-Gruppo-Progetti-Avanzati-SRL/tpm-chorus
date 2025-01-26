@@ -1,0 +1,12 @@
+id: "set-properties-ex-02"
+rules:
+  - operation: set-properties
+    spec:
+      properties:
+        - name-ref: property-array[i].new-item-property
+          value: hello new item property
+        - name-ref: property-array[i].copied-property
+          path: item-property
+        - name-ref: property-array[i].property-from-absolute-path
+          path: /property-string
+

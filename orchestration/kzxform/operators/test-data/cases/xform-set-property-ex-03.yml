@@ -1,0 +1,20 @@
+id: "set-properties-ex-03"
+rules:
+  - operation: set-properties
+    spec:
+      properties:
+        - name-ref: property-array[i].item-property-if-type-1
+          value: hello condition term
+          criterion:
+            attribute-ref: item-type
+            term: "type-1"
+            operator: eq
+        - name-ref: property-array[i].item-property-if-type-2
+          value: hello condition expression
+          criterion:
+            vars:
+              - with: item-type
+                as: typ
+            expression: typ == "type-2"
+
+

@@ -1,0 +1,16 @@
+id: "xform-shift-array-items-ex-02"
+rules:
+  - operation: shift-array-items
+    spec:
+      source-ref: items
+      target-ref: items
+      # flatten: true
+      filter-items: true
+      criteria:
+        - attribute-ref: mode
+          term: paid
+      sub-rules:
+        - operation: shift
+          spec:
+            descr-renamed: descr
+            mode-renamed: mode

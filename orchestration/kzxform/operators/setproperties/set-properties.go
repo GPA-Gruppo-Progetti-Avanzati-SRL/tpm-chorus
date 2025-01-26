@@ -2,6 +2,7 @@ package setproperties
 
 import (
 	"errors"
+	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam"
@@ -34,6 +35,22 @@ func SetProperties(_ kazaam.Config) func(spec *transform.Config, data []byte) ([
 			}
 
 			if pcfg.Name.WithArrayISpecifierIndex < 0 {
+				var vt jsonparser.ValueType
+
+				val := pcfg.Value
+				vt = jsonparser.String
+				if !pcfg.Path.IsZero() {
+					val, vt, _, _ = jsonparser.Get(data, pcfg.Path.Keys...)
+					if vt == jsonparser.NotExist || vt == jsonparser.Null {
+						err = errors.New("the source path does not exists")
+						log.Error().Err(err).Msg(semLogContext)
+						return nil, err
+					}
+					if vt == jsonparser.String {
+						val = []byte(fmt.Sprintf("\"%s\"", val))
+					}
+				}
+
 				ok, _, err := shouldBeSet(data, pcfg.Name.Keys, pcfg.IfMissing, pcfg.criterion)
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext)
@@ -41,7 +58,7 @@ func SetProperties(_ kazaam.Config) func(spec *transform.Config, data []byte) ([
 				}
 
 				if ok {
-					data, err = jsonparser.Set(data, pcfg.Value, pcfg.Name.Keys...)
+					data, err = jsonparser.Set(data, val, pcfg.Name.Keys...)
 					if err != nil {
 						log.Error().Err(err).Msg(semLogContext)
 						return nil, err
@@ -94,17 +111,6 @@ func processWithIotaSpecifier(data []byte, params OperatorParams) ([]byte, error
 		return nil, err
 	}
 
-	val := params.Value
-	if !params.Path.IsZero() {
-		var vt jsonparser.ValueType
-		val, vt, _, _ = jsonparser.Get(data, params.Path.Keys...)
-		if vt == jsonparser.NotExist || vt == jsonparser.Null {
-			err = errors.New("the source path does not exists")
-			log.Error().Err(err).Msg(semLogContext)
-			return nil, err
-		}
-	}
-
 	// clone the data... in place process has some glitches.
 	outData := make([]byte, len(data))
 	copy(outData, data)
@@ -127,9 +133,30 @@ func processWithIotaSpecifier(data []byte, params OperatorParams) ([]byte, error
 		}
 
 		if ok {
+			val := params.Value
+			if !params.Path.IsZero() {
+				var vt jsonparser.ValueType
+				dataObject := data
+				if params.Path.IsPathRelative {
+					dataObject = value
+				}
+
+				val, vt, _, _ = jsonparser.Get(dataObject, params.Path.Keys...)
+				if vt == jsonparser.NotExist || vt == jsonparser.Null {
+					err = errors.New("the source path does not exists")
+					log.Error().Err(err).Msg(semLogContext)
+					loopErr = err
+					return
+				}
+
+				if vt == jsonparser.String {
+					val = []byte(fmt.Sprintf("\"%s\"", val))
+				}
+			}
+
 			indexedItemRef := params.Name.JsonReferenceToArrayItemWithIotaSpecifier(loopIndex)
 			if vt == jsonparser.NotExist || vt == jsonparser.Null {
-				data, err = jsonparser.Set(outData, val, indexedItemRef.Keys...)
+				outData, err = jsonparser.Set(outData, val, indexedItemRef.Keys...)
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext)
 					loopErr = err

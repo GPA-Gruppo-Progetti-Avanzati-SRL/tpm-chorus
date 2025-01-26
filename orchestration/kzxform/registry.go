@@ -142,16 +142,21 @@ func (r Registry) Add3(tcfg Config) error {
 	return nil
 }
 
+var XFormNotFound = errors.New("kazaam x-form not found in registry")
+
 func (r Registry) Get(id string) (Transformation, error) {
+	const semLogContext = "kzxform-registry::get"
+
 	if id == "" {
 		err := errors.New("transformation require an id")
+		log.Error().Err(err).Msg(semLogContext)
 		return Transformation{}, err
 	}
 
 	t, ok := r[id]
 	if !ok {
-		err := fmt.Errorf("transformation not found (missing id: %s)", id)
-		return Transformation{}, err
+		log.Error().Err(XFormNotFound).Str("id", id).Msg(semLogContext)
+		return Transformation{}, XFormNotFound
 	}
 
 	return t, nil
