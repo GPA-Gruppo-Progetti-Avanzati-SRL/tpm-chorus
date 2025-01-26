@@ -1,8 +1,0 @@
-# Vedi case-003-input.json
-#  risultati dell'array 'data.anagrafica.datiRapp' non vanno filtrati ma prese soltanto numero e passati come lista di valori interi
-id: "case002"
-rules:
-  - operation: shift
-    spec:
-      offerte: offerte
-      smp-xform.idsOfferteCollegate: offerte[*].idOfferta

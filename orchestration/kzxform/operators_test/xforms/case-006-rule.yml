@@ -1,6 +1,0 @@
-id: "case006"
-rules:
-   - operation: shift
-     spec:
-       field: body.chiavi.field
-       legati-new[0]: body.legati[1]

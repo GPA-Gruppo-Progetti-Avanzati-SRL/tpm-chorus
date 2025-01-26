@@ -1,9 +1,0 @@
-id: "case005"
-rules:
-   - operation: default
-     spec:
-       _bid: "2024092300130091884300000"
-       _et: "MOVIMENTI-CC"
-   - operation: shift
-     spec:
-       evento_chiavi: body.chiavi
