@@ -156,7 +156,7 @@ func TestXForms(t *testing.T) {
 	const semLogContext = "test-operators"
 	var err error
 
-	filterPrefix := "" // "xform-shift-array"
+	filterPrefix := "xform-shift-array"
 	err = catalog.executeXForms(filterPrefix, true)
 	require.NoError(t, err)
 }

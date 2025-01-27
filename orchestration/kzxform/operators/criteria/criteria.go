@@ -192,6 +192,7 @@ func CriterionFromSpec(c interface{}) (Criterion, error) {
 
 	if !attributeName.IsZero() {
 		var criterion termOperatorCriterionImpl
+		criterion.AttributeName = attributeName
 		criterion.Operator, err = operators.GetStringParamFromMap(c, SpecParamCriterionOperator, false)
 		if err != nil {
 			return criterion, err
