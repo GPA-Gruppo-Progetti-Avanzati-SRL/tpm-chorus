@@ -326,7 +326,6 @@ func (a *LoopActivity) Execute(wfc *wfcase.WfCase) error {
 			activityError = err
 			break
 		}
-
 	}
 
 	var harResponse *har.Response

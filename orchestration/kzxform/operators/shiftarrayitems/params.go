@@ -3,6 +3,7 @@ package shiftarrayitems
 import (
 	"encoding/json"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/criteria"
 	"github.com/qntfy/kazaam/transform"
 	"github.com/rs/zerolog/log"
 )
@@ -65,7 +66,7 @@ type OperatorParams struct {
 	filterItems         bool
 	flatten             bool
 	inPlace             bool
-	criteria            operators.Criteria
+	criteria            criteria.Criteria
 	itemRulesSerialized string
 }
 
@@ -123,7 +124,7 @@ func getParamsFromSpec(spec *transform.Config) (OperatorParams, error) {
 		log.Debug().Str(SpecParamSubRules, params.itemRulesSerialized).Msg(semLogContext)
 	}
 
-	params.criteria, err = operators.CriteriaFromSpec(spec, SpecParamCriteria, false)
+	params.criteria, err = criteria.CriteriaFromSpec(spec, SpecParamCriteria, false)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return params, err

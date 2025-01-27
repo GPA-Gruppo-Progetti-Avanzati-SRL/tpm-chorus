@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/criteria"
 )
 
 const (
@@ -20,7 +21,7 @@ type OperatorParams struct {
 	Value     []byte
 	Path      operators.JsonReference
 	IfMissing bool
-	criterion operators.Criterion
+	criterion criteria.Criterion
 }
 
 func getParamsFromSpec(c interface{}) (OperatorParams, error) {
@@ -62,11 +63,9 @@ func getParamsFromSpec(c interface{}) (OperatorParams, error) {
 		return pcfg, err
 	}
 
-	if criterion != nil {
-		pcfg.criterion, err = operators.CriterionFromSpec(criterion)
-		if err != nil {
-			return pcfg, err
-		}
+	pcfg.criterion, err = criteria.CriterionFromSpec(criterion)
+	if err != nil {
+		return pcfg, err
 	}
 
 	return pcfg, nil

@@ -9,4 +9,11 @@ rules:
           path: item-property
         - name-ref: property-array[i].property-from-absolute-path
           path: /property-string
+#        - name-ref: len-of-property-array
+#          value:
+#            vars:
+#              - with: property-array
+#                as: ar
+#            eval: len(ar)
+
 

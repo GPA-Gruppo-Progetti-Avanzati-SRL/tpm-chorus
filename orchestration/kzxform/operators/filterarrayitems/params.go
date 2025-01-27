@@ -2,6 +2,7 @@ package filterarrayitems
 
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/criteria"
 	"github.com/qntfy/kazaam/transform"
 	"github.com/rs/zerolog/log"
 )
@@ -19,7 +20,7 @@ type FilterArrayParams struct {
 	sourceRef operators.JsonReference
 	destRef   operators.JsonReference
 	inPlace   bool
-	criteria  operators.Criteria
+	criteria  criteria.Criteria
 }
 
 func getFilterParamsFromSpec(spec *transform.Config) (FilterArrayParams, error) {
@@ -46,7 +47,7 @@ func getFilterParamsFromSpec(spec *transform.Config) (FilterArrayParams, error) 
 		params.inPlace = true
 	}
 
-	params.criteria, err = operators.CriteriaFromSpec(spec, SpecParamCriteria, true)
+	params.criteria, err = criteria.CriteriaFromSpec(spec, SpecParamCriteria, true)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return params, err
@@ -74,9 +75,10 @@ type filterCfg struct {
 }
 */
 
-func getFilterConfigFromSpec(c interface{}) (operators.Criterion, error) {
+/*
+func getFilterConfigFromSpec(c interface{}) (criteria.Criterion, error) {
 	var err error
-	var criterion operators.Criterion
+	var criterion criteria.Criterion
 	criterion.AttributeName, err = operators.GetJsonReferenceParamFromMap(c, SpecParamCriterionAttributeReference, true)
 	if err != nil {
 		return criterion, err
@@ -92,8 +94,8 @@ func getFilterConfigFromSpec(c interface{}) (operators.Criterion, error) {
 	return criterion, nil
 }
 
-func getFilterConfigsFromSpec(c []interface{}) ([]operators.Criterion, error) {
-	filtersObj := make([]operators.Criterion, 0)
+func getFilterConfigsFromSpec(c []interface{}) ([]criteria.Criterion, error) {
+	filtersObj := make([]criteria.Criterion, 0)
 	for _, f := range c {
 		crit, err := getFilterConfigFromSpec(f)
 		if err != nil {
@@ -105,3 +107,4 @@ func getFilterConfigsFromSpec(c []interface{}) ([]operators.Criterion, error) {
 
 	return filtersObj, nil
 }
+*/

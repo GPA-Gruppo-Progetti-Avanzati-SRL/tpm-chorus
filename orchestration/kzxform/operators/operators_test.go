@@ -5,6 +5,8 @@ import (
 	"errors"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 	"os"
@@ -23,6 +25,7 @@ type CatalogEntry struct {
 type Catalog []CatalogEntry
 
 func (c Catalog) executeXForms(prefix string, writeOutput bool) error {
+	const semLogContext = "catalog::execute-forms"
 	for i, entry := range c {
 		doIt := false
 		if prefix != "" {
@@ -36,6 +39,7 @@ func (c Catalog) executeXForms(prefix string, writeOutput bool) error {
 		if doIt {
 			_, err := c.executeXFormByEntryNdx(i, writeOutput)
 			if err != nil {
+				log.Error().Err(err).Str("rule", entry.Rule).Msg(semLogContext)
 				return err
 			}
 		}
@@ -132,6 +136,8 @@ var catalog Catalog
 
 func TestMain(m *testing.M) {
 	var err error
+
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
 	catalog, err = readCatalog()
 	if err != nil {
 		panic(err)
@@ -150,7 +156,7 @@ func TestXForms(t *testing.T) {
 	const semLogContext = "test-operators"
 	var err error
 
-	filterPrefix := "xform-shift-array"
+	filterPrefix := "" // "xform-shift-array"
 	err = catalog.executeXForms(filterPrefix, true)
 	require.NoError(t, err)
 }

@@ -15,4 +15,4 @@ rules:
         - vars:
             - with: mode
               as: mode
-          expression: mode == "free"
+          eval: mode == "free"
