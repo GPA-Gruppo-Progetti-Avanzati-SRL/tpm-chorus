@@ -276,7 +276,14 @@ func (a *LoopActivity) Execute(wfc *wfcase.WfCase) error {
 	for controlFlow.HasNext(wfc) {
 
 		log.Info().Int("loop", controlFlow.current).Msg(semLogContext)
-		loopBodyInputRequest, err := controlFlow.Next(wfc, evaluator)
+		var loopBodyInputRequest []byte
+		loopBodyInputRequest, err = controlFlow.Next(wfc, evaluator)
+		if err != nil {
+			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+			metricsLabels[MetricIdStatusCode] = "500"
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+		}
+
 		wfcChild, err := wfc.NewChild(
 			expressionCtx,
 			a.bodyOrchestration.Cfg.Id,
@@ -319,6 +326,10 @@ func (a *LoopActivity) Execute(wfc *wfcase.WfCase) error {
 		st = http.StatusOK
 		if err != nil {
 			st = http.StatusInternalServerError
+			var smpErr *smperror.SymphonyError
+			if errors.As(err, &smpErr) {
+				st = smpErr.StatusCode
+			}
 		}
 
 		loopBodyStatusCode, err = a.ProcessResponseActionByStatusCode(st, a.Name(), a.Name(), wfc, wfcChild, wfcase.HarEntryReference{Name: "request", UseResponse: true}, a.definition.OnResponseActions, false)
@@ -346,7 +357,7 @@ func (a *LoopActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 	if activityError != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), activityError)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(activityError.Error()))
+		return smperror.NewExecutableServerError(smperror.WithError(activityError), smperror.WithErrorAmbit(a.Name()))
 	}
 
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)

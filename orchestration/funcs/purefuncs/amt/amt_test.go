@@ -23,6 +23,7 @@ func TestFormat(t *testing.T) {
 		{sourceUnit: amt.Cent, targetUnit: amt.MicroCent, amt: "1", wanted: "10000"},
 		{sourceUnit: amt.Cent, targetUnit: amt.Mill, amt: "1", wanted: "10"},
 		{sourceUnit: amt.Cent, targetUnit: amt.Cent, amt: "1", wanted: "1"},
+		{sourceUnit: amt.Cent, targetUnit: amt.Cent, amt: "00000", wanted: "0"},
 		{sourceUnit: amt.Cent, targetUnit: amt.Decimal, amt: "1", wanted: "0.01"},
 		{sourceUnit: amt.Decimal, targetUnit: amt.Cent, amt: "1500", wanted: "150000"},
 		{sourceUnit: amt.Decimal, targetUnit: amt.Cent, amt: "1500.0000000000", wanted: "150000"},

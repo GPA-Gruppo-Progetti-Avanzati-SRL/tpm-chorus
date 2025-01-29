@@ -2,6 +2,7 @@ package smperror
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/templateutil"
 	"github.com/rs/zerolog/log"
@@ -65,6 +66,19 @@ func WithStep(s string) Option {
 func WithErrorMessage(m string) Option {
 	return func(e *SymphonyError) {
 		e.Message = m
+	}
+}
+
+func WithError(err error) Option {
+	return func(e *SymphonyError) {
+		var smpErr *SymphonyError
+		if errors.As(err, &smpErr) {
+			e.StatusCode = smpErr.StatusCode
+			e.Ambit = smpErr.Ambit
+			e.Step = smpErr.Step
+			e.Message = smpErr.Message
+			e.Description = smpErr.Description
+		}
 	}
 }
 

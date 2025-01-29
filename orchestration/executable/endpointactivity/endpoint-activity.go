@@ -423,7 +423,9 @@ func (a *EndpointActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Endpoint)
 	opts = append(opts, har.WithUrl(ub.Url()))
 
 	for _, h := range ep.Definition.Headers {
-		r, _, err := varResolver.ResolveVariables(h.Value, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
+		// WAS
+		// r, _, err := varResolver.ResolveVariables(h.Value, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
+		r, err := resolver.InterpolateAndEvalToString(h.Value)
 		if err != nil {
 			return nil, err
 		}
@@ -432,7 +434,8 @@ func (a *EndpointActivity) newRequestDefinition(wfc *wfcase.WfCase, ep Endpoint)
 
 	for _, qs := range ep.Definition.QueryString {
 		if wfc.EvalBoolExpression(qs.Guard) {
-			r, _, err := varResolver.ResolveVariables(qs.Value, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
+			// r, _, err := varResolver.ResolveVariables(qs.Value, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
+			r, err := resolver.InterpolateAndEvalToString(qs.Value)
 			if err != nil {
 				return nil, err
 			}
