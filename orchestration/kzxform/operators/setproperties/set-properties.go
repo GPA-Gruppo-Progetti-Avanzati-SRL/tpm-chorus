@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/criteria"
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam"
 	"github.com/qntfy/kazaam/transform"
@@ -74,7 +73,7 @@ func SetProperties(_ kazaam.Config) func(spec *transform.Config, data []byte) ([
 	}
 }
 
-func shouldBeSet(data []byte, keys []string, ifMissing bool, criterion criteria.Criterion) (bool, jsonparser.ValueType, error) {
+func shouldBeSet(data []byte, keys []string, ifMissing bool, criterion operators.Criterion) (bool, jsonparser.ValueType, error) {
 	const semLogContext = OperatorSemLogContext + "::should-be-set"
 	var err error
 	itShould := false

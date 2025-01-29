@@ -5,7 +5,7 @@ rules:
       source-ref: items
       target-ref: items
       criteria:
-        - eval: _kz_array_len == 3 && _kz_array_ndx == 0
+        - text: _kz_array_len == 3 && _kz_array_ndx == 0
           # vars:
           #  - with: mode
           #    as: mode
@@ -23,7 +23,7 @@ rules:
       source-ref: items
       target-ref: items
       criteria:
-        - eval: mode == "free" && _kz_array_ndx != 0
+        - text: mode == "free" && _kz_array_ndx != 0
           vars:
             - with: mode
               as: mode

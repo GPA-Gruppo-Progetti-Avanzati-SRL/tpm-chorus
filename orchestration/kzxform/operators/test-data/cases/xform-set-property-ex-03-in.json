@@ -3,11 +3,23 @@
   "property-array": [
     {
       "item-property": "value of item-1-property",
-      "item-type": "type-1"
+      "item-type": "type-1",
+      "item-nested-obj": {
+        "nested-property": "nested-property item-1"
+      },
+      "item-nested-array": [{
+        "nested-array-item-property": "nested-array item-1 - item-1"
+      }]
     },
     {
       "item-property": "value of item-2-property",
-      "item-type": "type-2"
+      "item-type": "type-2",
+      "item-nested-obj": {
+        "nested-property": "nested-property item-2"
+      },
+      "item-nested-array": [{
+        "nested-array-item-property": "nested-array item-2 - item-1"
+      }]
     }
   ]
 }

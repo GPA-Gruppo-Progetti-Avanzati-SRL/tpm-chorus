@@ -2,7 +2,6 @@ package filterarrayitems
 
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/criteria"
 	"github.com/qntfy/kazaam/transform"
 	"github.com/rs/zerolog/log"
 )
@@ -20,7 +19,7 @@ type FilterArrayParams struct {
 	sourceRef operators.JsonReference
 	destRef   operators.JsonReference
 	inPlace   bool
-	criteria  criteria.Criteria
+	criteria  operators.Criteria
 }
 
 func getFilterParamsFromSpec(spec *transform.Config) (FilterArrayParams, error) {
@@ -47,7 +46,7 @@ func getFilterParamsFromSpec(spec *transform.Config) (FilterArrayParams, error) 
 		params.inPlace = true
 	}
 
-	params.criteria, err = criteria.CriteriaFromSpec(spec, SpecParamCriteria, true)
+	params.criteria, err = operators.CriteriaFromSpec(spec, SpecParamCriteria, true)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		return params, err

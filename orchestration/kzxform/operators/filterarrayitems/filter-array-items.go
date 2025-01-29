@@ -3,7 +3,6 @@ package filterarrayitems
 import (
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators/criteria"
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam"
 	"github.com/qntfy/kazaam/transform"
@@ -238,7 +237,7 @@ func processFilterWIthINdxSpecifier(data []byte, params FilterArrayParams) ([]by
 	return outData, loopErr
 }
 
-func processArray(data []byte, sourceRef operators.JsonReference, criteria criteria.Criteria) ([]byte, error) {
+func processArray(data []byte, sourceRef operators.JsonReference, criteria operators.Criteria) ([]byte, error) {
 	const semLogContext = "kazaam-filter-array-items::process-array"
 
 	sourceArray, err := operators.GetJsonArray(data, sourceRef)

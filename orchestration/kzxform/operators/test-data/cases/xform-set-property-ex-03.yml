@@ -15,6 +15,6 @@ rules:
             vars:
               - with: item-type
                 as: typ
-            eval: typ == "type-2"
+            text: typ == "type-2"
 
 

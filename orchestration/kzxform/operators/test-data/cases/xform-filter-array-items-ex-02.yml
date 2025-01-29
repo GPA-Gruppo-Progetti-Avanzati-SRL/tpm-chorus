@@ -15,4 +15,4 @@ rules:
         - vars:
             - with: mode
               as: mode
-          eval: mode == "free"
+          text: mode == "free"
