@@ -9,7 +9,17 @@ rules:
           path: item-property
         - name-ref: property-array[i].property-from-absolute-path
           path: /property-string
-
-
+        - name-ref: len-of-property-array
+          expression:
+            vars:
+              - with: property-array
+                as: arr
+            text: _lenArray(arr, "number")
+        - name-ref: property-array[i].new-item-property-with-expression
+          expression:
+            vars:
+              - with: new-item-property
+                as: p1
+            text: 1
 
 

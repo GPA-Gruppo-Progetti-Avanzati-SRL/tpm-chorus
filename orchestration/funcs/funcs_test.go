@@ -316,3 +316,50 @@ func TestParseDate(t *testing.T) {
 	fmt.Println(date)
 
 }
+
+func TestRegex(t *testing.T) {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+
+	var iws = []struct {
+		input   string
+		pattern []string
+		wanted  string
+	}{
+		{
+			pattern: []string{"¢(?:\\s)?([0-9]+(?:,|\\.)?[0-9]*)", "zero"},
+			input:   "¢ zero per 12 mesi",
+			wanted:  "0",
+		},
+		{
+			pattern: []string{"¢(?:\\s)?([0-9]+(?:,|\\.)?[0-9]*)", "zero"},
+			input:   "¢ zorro per 12 mesi",
+			wanted:  "",
+		},
+		{
+			pattern: []string{"¢(?:\\s)?([0-9]+(?:,|\\.)?[0-9]*)"},
+			input:   "zero per 12 mesi ¢ 2,34 ",
+			wanted:  "2,34",
+		},
+		{
+			pattern: []string{"¢(?:\\s)?([0-9]+(?:,|\\.)?[0-9]*)"},
+			input:   "¢ 2.3.4",
+			wanted:  "2.3",
+		},
+		{
+			pattern: []string{"¢(?:\\s)?([0-9]+(?:,|\\.)?[0-9]*)"},
+			input:   "¢23.4",
+			wanted:  "23.4",
+		},
+		{
+			pattern: []string{"([0-9]+)(?:\\s)?mesi"},
+			input:   "12 mesi",
+			wanted:  "12",
+		},
+	}
+
+	for ndx, iw := range iws {
+		s := purefuncs.RegexSetMatchAndExtract(iw.input, "0", "", iw.pattern...)
+		require.Equal(t, iw.wanted, s, fmt.Sprintf("error on regex [%d]", ndx))
+		t.Log(ndx, s)
+	}
+}

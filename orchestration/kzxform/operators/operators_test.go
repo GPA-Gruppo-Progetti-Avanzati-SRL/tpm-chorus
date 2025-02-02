@@ -156,7 +156,7 @@ func TestXForms(t *testing.T) {
 	const semLogContext = "test-operators"
 	var err error
 
-	filterPrefix := "" // "xform-set-propert"
+	filterPrefix := "xform-set-propert"
 	err = catalog.executeXForms(filterPrefix, true)
 	require.NoError(t, err)
 }

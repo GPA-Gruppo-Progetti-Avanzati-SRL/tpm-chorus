@@ -35,21 +35,6 @@ func SetProperties(_ kazaam.Config) func(spec *transform.Config, data []byte) ([
 			}
 
 			if pcfg.Name.WithArrayISpecifierIndex < 0 {
-				var vt jsonparser.ValueType
-
-				val := pcfg.Value
-				vt = jsonparser.String
-				if !pcfg.Path.IsZero() {
-					val, vt, _, _ = jsonparser.Get(data, pcfg.Path.Keys...)
-					if vt == jsonparser.NotExist || vt == jsonparser.Null {
-						err = errors.New("the source path does not exists")
-						log.Error().Err(err).Msg(semLogContext)
-						return nil, err
-					}
-					if vt == jsonparser.String {
-						val = []byte(fmt.Sprintf("\"%s\"", val))
-					}
-				}
 
 				ok, _, err := shouldBeSet(data, pcfg.Name.Keys, pcfg.IfMissing, pcfg.criterion)
 				if err != nil {
@@ -58,12 +43,21 @@ func SetProperties(_ kazaam.Config) func(spec *transform.Config, data []byte) ([
 				}
 
 				if ok {
+					var valVt jsonparser.ValueType
+					var val []byte
+					val, valVt, err = propertyValue(data, &pcfg)
+					if err != nil {
+						log.Error().Err(err).Str("vt", valVt.String()).Str("val", string(val)).Msg(semLogContext)
+						return nil, err
+					}
+
 					data, err = jsonparser.Set(data, val, pcfg.Name.Keys...)
 					if err != nil {
 						log.Error().Err(err).Msg(semLogContext)
 						return nil, err
 					}
 				}
+
 			} else {
 				data, err = processWithIotaSpecifier(data, pcfg)
 			}
@@ -71,6 +65,59 @@ func SetProperties(_ kazaam.Config) func(spec *transform.Config, data []byte) ([
 
 		return data, err
 	}
+}
+
+func propertyValue(data []byte, pcfg *OperatorParams) ([]byte, jsonparser.ValueType, error) {
+	const semLogContext = OperatorSemLogContext + "::value"
+	var err error
+
+	var val []byte
+	vt := jsonparser.NotExist
+
+	switch {
+	case pcfg.Value != nil:
+		val = pcfg.Value
+		vt = jsonparser.String
+
+	case !pcfg.Path.IsZero():
+		val, vt, _, _ = jsonparser.Get(data, pcfg.Path.Keys...)
+		switch vt {
+		case jsonparser.String:
+			val = []byte(fmt.Sprintf("\"%s\"", val))
+		case jsonparser.NotExist:
+			fallthrough
+		case jsonparser.Null:
+			err = errors.New("the source path does not exists")
+			log.Error().Err(err).Str("path", pcfg.Path.Path).Msg(semLogContext)
+		default:
+		}
+
+	case !pcfg.Expression.IsZero():
+		var res interface{}
+		res, err = pcfg.Expression.Eval(data, nil)
+		if err == nil {
+			val = []byte(fmt.Sprintf("%v", res))
+			switch res.(type) {
+			case string:
+				val = []byte(fmt.Sprintf("\"%s\"", val))
+				vt = jsonparser.String
+			case bool:
+				vt = jsonparser.Boolean
+			case int:
+				vt = jsonparser.Number
+			case float64:
+				vt = jsonparser.Number
+			default:
+				vt = jsonparser.Unknown
+			}
+		} else {
+			log.Error().Err(err).Str("path", pcfg.Expression.String()).Msg(semLogContext)
+		}
+
+	default:
+	}
+
+	return val, vt, err
 }
 
 func shouldBeSet(data []byte, keys []string, ifMissing bool, criterion operators.Criterion) (bool, jsonparser.ValueType, error) {
@@ -133,26 +180,28 @@ func processWithIotaSpecifier(data []byte, params OperatorParams) ([]byte, error
 		}
 
 		if ok {
-			val := params.Value
-			if !params.Path.IsZero() {
-				var vt jsonparser.ValueType
-				dataObject := data
-				if params.Path.IsPathRelative {
-					dataObject = value
-				}
+			var val []byte
+			var valVt jsonparser.ValueType
+			dataObject := data
+			if (!params.Path.IsZero() && params.Path.IsPathRelative) || !params.Expression.IsZero() {
+				dataObject = value
+			}
 
-				val, vt, _, _ = jsonparser.Get(dataObject, params.Path.Keys...)
-				if vt == jsonparser.NotExist || vt == jsonparser.Null {
-					err = errors.New("the source path does not exists")
+			val, valVt, err = propertyValue(dataObject, &params)
+			if err != nil {
+				log.Error().Err(err).Str("vt", valVt.String()).Str("val", string(val)).Msg(semLogContext)
+				loopErr = err
+				return
+			}
+
+			/*
+				data, err = jsonparser.Set(data, val, params.Name.Keys...)
+				if err != nil {
 					log.Error().Err(err).Msg(semLogContext)
 					loopErr = err
 					return
 				}
-
-				if vt == jsonparser.String {
-					val = []byte(fmt.Sprintf("\"%s\"", val))
-				}
-			}
+			*/
 
 			indexedItemRef := params.Name.JsonReferenceToArrayItemWithIotaSpecifier(loopIndex)
 			if vt == jsonparser.NotExist || vt == jsonparser.Null {

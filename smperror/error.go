@@ -74,6 +74,7 @@ func WithError(err error) Option {
 		var smpErr *SymphonyError
 		if errors.As(err, &smpErr) {
 			e.StatusCode = smpErr.StatusCode
+			e.ErrCode = smpErr.ErrCode
 			e.Ambit = smpErr.Ambit
 			e.Step = smpErr.Step
 			e.Message = smpErr.Message

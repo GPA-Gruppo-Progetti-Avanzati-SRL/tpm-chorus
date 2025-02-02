@@ -7,20 +7,22 @@ import (
 )
 
 const (
-	SpecParamPropertyNameRef = "name-ref"
-	SpecParamPropertyValue   = "value"
-	SpecParamPropertyPath    = "path"
-	SpecParamIfMissing       = "if-missing"
-	SpecParamProperties      = "properties"
-	SpecParamCriterion       = "criterion"
+	SpecParamPropertyNameRef    = "name-ref"
+	SpecParamPropertyValue      = "value"
+	SpecParamPropertyPath       = "path"
+	SpecParamPropertyExpression = "expression"
+	SpecParamIfMissing          = "if-missing"
+	SpecParamProperties         = "properties"
+	SpecParamCriterion          = "criterion"
 )
 
 type OperatorParams struct {
-	Name      operators.JsonReference
-	Value     []byte
-	Path      operators.JsonReference
-	IfMissing bool
-	criterion operators.Criterion
+	Name       operators.JsonReference
+	Value      []byte
+	Path       operators.JsonReference
+	Expression operators.Expression
+	IfMissing  bool
+	criterion  operators.Criterion
 }
 
 func getParamsFromSpec(c interface{}) (OperatorParams, error) {
@@ -36,10 +38,11 @@ func getParamsFromSpec(c interface{}) (OperatorParams, error) {
 	if err != nil {
 		return pcfg, err
 	}
-
-	pcfg.Value, err = json.Marshal(pv)
-	if err != nil {
-		return pcfg, err
+	if pv != nil {
+		pcfg.Value, err = json.Marshal(pv)
+		if err != nil {
+			return pcfg, err
+		}
 	}
 
 	pcfg.Path, err = operators.GetJsonReferenceParamFromMap(c, SpecParamPropertyPath, false)
@@ -47,8 +50,17 @@ func getParamsFromSpec(c interface{}) (OperatorParams, error) {
 		return pcfg, err
 	}
 
-	if pcfg.Path.IsZero() && pcfg.Value == nil {
-		err = errors.New("path or value is required")
+	expressionProperty, err := operators.GetParamFromMap(c, SpecParamPropertyExpression, false)
+	if err != nil {
+		return pcfg, err
+	}
+	pcfg.Expression, err = operators.NewExpression(expressionProperty)
+	if err != nil {
+		return pcfg, err
+	}
+
+	if pcfg.Path.IsZero() && pcfg.Value == nil && pcfg.Expression.IsZero() {
+		err = errors.New("path or value or expression is required")
 		return pcfg, err
 	}
 
