@@ -1,0 +1,18 @@
+{
+  "property-strung": "prop-1",
+  "attributi": [
+    {
+      "nomeAttributo": "FEU-NUM-ACCANTONAMENTI-SINGOLA",
+      "valore": 1234567890
+    },
+    {
+      "nomeAttributo": "FEU-NUM-ACCANTONAMENTI-CROSS",
+      "valore": 1234567890
+    }
+  ],
+  "motivi":[
+    "Test 1",
+    "Test 2",
+    "Test 3"
+  ]
+}

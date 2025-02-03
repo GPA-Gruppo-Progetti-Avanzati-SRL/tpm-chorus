@@ -1,3 +1,7 @@
+# default
+- rule: xform-default-ex-01.yml
+  in: xform-default-ex-01-in.json
+  out: xform-default-ex-01-out.json
 # set-properties
 - rule: xform-set-property-ex-01.yml
   in: xform-set-property-ex-01-in.json
@@ -8,6 +12,9 @@
 - rule: xform-set-property-ex-03.yml
   in: xform-set-property-ex-03-in.json
   out: xform-set-property-ex-03-out.json
+- rule: xform-set-property-ex-04.yml
+  in: xform-set-property-ex-04-in.json
+  out: xform-set-property-ex-04-out.json
 # filter-array-items
 - rule: xform-filter-array-items-ex-01.yml
   in: xform-filter-array-items-ex-01-in.json
@@ -25,3 +32,10 @@
 - rule: xform-shift-array-items-ex-03.yml
   in: xform-shift-array-items-ex-03-in.json
   out: xform-shift-array-items-ex-03-out.json
+- rule: xform-shift-array-items-ex-04.yml
+  in: xform-shift-array-items-ex-04-in.json
+  out: xform-shift-array-items-ex-04-out.json
+# reduce-array
+- rule: xform-reduce-array-ex-01.yml
+  in: xform-reduce-array-ex-01-in.json
+  out: xform-reduce-array-ex-01-out.json

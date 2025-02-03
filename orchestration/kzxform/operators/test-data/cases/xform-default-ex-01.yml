@@ -1,0 +1,23 @@
+id: "default-ex-01"
+rules:
+  - operation: default
+    spec:
+      numeroSecurizzato1: "null"
+      numeroSecurizzato2: null
+      numeroSecurizzato3: ""
+      numeroSecurizzato4:
+  - operation: set-properties
+    spec:
+      properties:
+      - name-ref: numeroSecurizzato11
+        value: "null"
+      - name-ref: numeroSecurizzato12
+        value: null
+      - name-ref: numeroSecurizzato13
+        value: ""
+      # This gets in error
+      - name-ref: numeroSecurizzato14
+        value:
+
+#      numeroSecurizzato: {v:numeroSecurizzato,onf=null,quoted-ont}
+

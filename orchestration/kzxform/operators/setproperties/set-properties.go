@@ -115,6 +115,8 @@ func propertyValue(data []byte, pcfg *OperatorParams) ([]byte, jsonparser.ValueT
 		}
 
 	default:
+		val = []byte("null") // pcfg.Value
+		vt = jsonparser.Null
 	}
 
 	return val, vt, err

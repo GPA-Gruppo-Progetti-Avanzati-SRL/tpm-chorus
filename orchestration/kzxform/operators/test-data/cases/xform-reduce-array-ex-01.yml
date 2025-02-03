@@ -1,0 +1,11 @@
+id: "xform-reduce-array-ex-01"
+rules:
+  - operation: reduce-array
+    spec:
+      source-ref: attributi
+      target-ref: attributi-reduced
+      name-ref: nomeAttributo
+      value-ref: valore
+
+
+

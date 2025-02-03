@@ -3,6 +3,7 @@ package kzxform
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/mitchellh/mapstructure"
 	"gopkg.in/yaml.v3"
 )
@@ -89,6 +90,11 @@ func cleanUpSpecValue(spec map[string]interface{}) map[string]interface{} {
 }
 
 func cleanUpValue(v interface{}) interface{} {
+
+	if util.IsNilish(v) {
+		return nil
+	}
+
 	switch v := v.(type) {
 	case []interface{}:
 		return cleanUpInterfaceArray(v)

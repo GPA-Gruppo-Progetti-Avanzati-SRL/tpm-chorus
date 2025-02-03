@@ -1,4 +1,4 @@
-id: "xform-filter-array-items-ex-03"
+id: "xform-shift-array-items-ex-03"
 rules:
   - operation: shift-array-items
     spec:

@@ -1,0 +1,12 @@
+id: "set-properties-ex-04"
+rules:
+  - operation: set-properties
+    spec:
+      properties:
+        - name-ref: property-array[i].len-of-item-nested-array
+          expression:
+            text: _lenArray(itemNestedArray, "number")
+            vars:
+              - with: item-nested-array
+                as: itemNestedArray
+

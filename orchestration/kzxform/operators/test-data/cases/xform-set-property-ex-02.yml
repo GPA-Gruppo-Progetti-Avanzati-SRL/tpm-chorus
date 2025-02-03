@@ -20,6 +20,6 @@ rules:
             vars:
               - with: new-item-property
                 as: p1
-            text: 1
+            text: "1"
 
 

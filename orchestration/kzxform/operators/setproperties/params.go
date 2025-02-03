@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -26,6 +27,7 @@ type OperatorParams struct {
 }
 
 func getParamsFromSpec(c interface{}) (OperatorParams, error) {
+	const semLogContext = OperatorSemLogContext + "::get-params-from-spec"
 	var err error
 	pcfg := OperatorParams{}
 
@@ -61,7 +63,8 @@ func getParamsFromSpec(c interface{}) (OperatorParams, error) {
 
 	if pcfg.Path.IsZero() && pcfg.Value == nil && pcfg.Expression.IsZero() {
 		err = errors.New("path or value or expression is required")
-		return pcfg, err
+		log.Warn().Err(err).Msg(semLogContext)
+		// return pcfg, err
 	}
 
 	pcfg.IfMissing, err = operators.GetBoolParamFromMap(c, SpecParamIfMissing, false)

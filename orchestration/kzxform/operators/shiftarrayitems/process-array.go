@@ -40,6 +40,10 @@ func processArray(data []byte, sourceRef operators.JsonReference, itemKTransform
 		}
 
 		itemTransformed := string(value)
+		if dataType == jsonparser.String {
+			itemTransformed = fmt.Sprintf(`"%s"`, itemTransformed)
+		}
+
 		accepted := true
 		if len(params.criteria) > 0 {
 			accepted, err = params.criteria.IsAccepted(value, map[string]interface{}{operators.CriterionSystemVariableKazaamArrayLen: lenOfSourceArray, operators.CriterionSystemVariableKazaamArrayLoopIndex: arrayItemNdx}) // isAccepted(value, params.criteria)

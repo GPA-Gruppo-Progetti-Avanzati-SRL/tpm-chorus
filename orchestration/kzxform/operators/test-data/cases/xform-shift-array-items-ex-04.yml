@@ -1,0 +1,10 @@
+id: "xform-shift-array-items-ex-04"
+rules:
+  - operation: shift-array-items
+    spec:
+      source-ref: items
+      target-ref: items-remapped
+      sub-rules:
+        - operation: shift
+          spec:
+            message: $
