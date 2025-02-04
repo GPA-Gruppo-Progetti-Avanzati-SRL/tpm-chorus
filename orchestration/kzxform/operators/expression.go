@@ -1,21 +1,24 @@
 package operators
 
 import (
+	"fmt"
 	"github.com/PaesslerAG/gval"
 	"github.com/qntfy/jsonparser"
 	"github.com/rs/zerolog/log"
 )
 
 const (
-	ExpressionSpecParamVariableWith   = "with"
-	ExpressionSpecParamVariableAs     = "as"
-	ExpressionSpecParamVars           = "vars"
-	ExpressionSpecParamExpressionText = "text"
+	ExpressionSpecParamVariableWith           = "with"
+	ExpressionSpecParamVariableAs             = "as"
+	ExpressionSpecParamVariableIfMissingValue = "defaults-to"
+	ExpressionSpecParamVars                   = "vars"
+	ExpressionSpecParamExpressionText         = "text"
 )
 
 type ExpressionVar struct {
-	With JsonReference
-	As   string
+	With           JsonReference
+	As             string
+	IfMissingValue interface{}
 }
 
 type Expression interface {
@@ -62,6 +65,11 @@ func NewExpression(c interface{}) (Expression, error) {
 			return exp, err
 		}
 
+		vr.IfMissingValue, err = GetParamFromMap(v, ExpressionSpecParamVariableIfMissingValue, false)
+		if err != nil {
+			return exp, err
+		}
+
 		exp.Vars = append(exp.Vars, vr)
 	}
 
@@ -89,8 +97,22 @@ func (c expressionImpl) Eval(value []byte, vars map[string]interface{}) (interfa
 	for _, v := range c.Vars {
 		varValue, dataType, _, err := jsonparser.Get(value, v.With.Keys...)
 		if err != nil {
-			log.Error().Err(err).Str("value", string(value)).Msg(semLogContext)
-			return false, err
+			if dataType == jsonparser.NotExist && v.IfMissingValue != nil {
+				switch v.IfMissingValue.(type) {
+				case string:
+					dataType = jsonparser.String
+					varValue = []byte(v.IfMissingValue.(string))
+				case float64:
+					dataType = jsonparser.Number
+					varValue = []byte(fmt.Sprint(v.IfMissingValue.(float64)))
+				default:
+					log.Error().Err(err).Str("of-type", fmt.Sprintf("%T", value)).Str("value", fmt.Sprintf("%v", value)).Msg(semLogContext)
+					return false, err
+				}
+				log.Warn().Err(err).Str("value", string(value)).Msg(semLogContext)
+			} else {
+				return false, err
+			}
 		}
 
 		switch dataType {
