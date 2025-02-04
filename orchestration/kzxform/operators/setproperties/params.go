@@ -15,12 +15,14 @@ const (
 	SpecParamIfMissing          = "if-missing"
 	SpecParamProperties         = "properties"
 	SpecParamCriterion          = "criterion"
+	SpecParamPropertyFormat     = "format"
 )
 
 type OperatorParams struct {
 	Name       operators.JsonReference
 	Value      []byte
 	Path       operators.JsonReference
+	Format     string
 	Expression operators.Expression
 	IfMissing  bool
 	criterion  operators.Criterion
@@ -52,6 +54,11 @@ func getParamsFromSpec(c interface{}) (OperatorParams, error) {
 		return pcfg, err
 	}
 
+	pcfg.Format, err = operators.GetStringParamFromMap(c, SpecParamPropertyFormat, false)
+	if err != nil {
+		return pcfg, err
+	}
+
 	expressionProperty, err := operators.GetParamFromMap(c, SpecParamPropertyExpression, false)
 	if err != nil {
 		return pcfg, err
@@ -67,7 +74,7 @@ func getParamsFromSpec(c interface{}) (OperatorParams, error) {
 		// return pcfg, err
 	}
 
-	pcfg.IfMissing, err = operators.GetBoolParamFromMap(c, SpecParamIfMissing, false)
+	pcfg.IfMissing, _, err = operators.GetBoolParamFromMap(c, SpecParamIfMissing, false)
 	if err != nil {
 		return pcfg, err
 	}

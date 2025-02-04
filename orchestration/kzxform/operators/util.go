@@ -227,23 +227,23 @@ func GetJsonReferenceParamFromMap(spec interface{}, n string, required bool) (Js
 	return ToJsonReference(param)
 }
 
-func GetBoolParamFromMap(spec interface{}, n string, required bool) (bool, error) {
+func GetBoolParamFromMap(spec interface{}, n string, required bool) (bool, bool, error) {
 
 	param, err := GetParamFromMap(spec, n, required)
 	if err != nil {
-		return false, nil
+		return false, false, err
 	}
 
 	if param == nil {
-		return false, nil
+		return false, false, nil
 	}
 
 	b, ok := param.(bool)
 	if !ok {
-		return false, fmt.Errorf("param %s is not a bool but %T", n, param)
+		return false, true, fmt.Errorf("param %s is not a bool but %T", n, param)
 	}
 
-	return b, nil
+	return b, true, nil
 }
 
 func GetParamFromMap(spec interface{}, n string, required bool) (interface{}, error) {

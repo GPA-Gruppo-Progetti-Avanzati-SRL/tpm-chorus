@@ -1,5 +1,6 @@
 {
   "property-string": "value of property",
+  "space-filled-property": "          ",
   "property-obj": {
     "property-of-obj": "value of nested property"
   },

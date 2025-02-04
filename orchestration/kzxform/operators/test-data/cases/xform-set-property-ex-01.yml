@@ -16,4 +16,7 @@ rules:
           if-missing: true
         - name-ref: path-copied-property
           path: property-string
+        - name-ref: space-filled-property
+          path: space-filled-property
+          format: trim-space
 

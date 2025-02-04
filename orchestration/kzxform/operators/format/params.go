@@ -49,7 +49,7 @@ func getConversionSpecw(c interface{}) (conversion, error) {
 			return pcfg, err
 		}
 
-		pcfg.decimalFormat, err = operators.GetBoolParamFromMap(c, SpecParamDecimalFormat, false)
+		pcfg.decimalFormat, _, err = operators.GetBoolParamFromMap(c, SpecParamDecimalFormat, false)
 		if err != nil {
 			return pcfg, err
 		}

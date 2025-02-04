@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
+	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam"
 	"github.com/qntfy/kazaam/transform"
@@ -83,6 +84,20 @@ func propertyValue(data []byte, pcfg *OperatorParams) ([]byte, jsonparser.ValueT
 		val, vt, _, _ = jsonparser.Get(data, pcfg.Path.Keys...)
 		switch vt {
 		case jsonparser.String:
+			if pcfg.Format != "" {
+				fictitiousVar := fmt.Sprintf("$.fictitious,%s", pcfg.Format)
+				var vr varResolver.Variable
+				vr, err = varResolver.ParseVariable(fictitiousVar)
+				if err == nil {
+					var s string
+					s, err = vr.ToString(string(val), true, false)
+					if err == nil {
+						val = []byte(s)
+					} else {
+						log.Error().Err(err).Msg(semLogContext)
+					}
+				}
+			}
 			val = []byte(fmt.Sprintf("\"%s\"", val))
 		case jsonparser.NotExist:
 			fallthrough
