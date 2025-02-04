@@ -21,5 +21,12 @@ rules:
               - with: new-item-property
                 as: p1
             text: "1"
+        - name-ref: property-array[i].not-existent-var-with-expression
+          expression:
+            vars:
+              - with: not-existent-item-property
+                as: p1
+                defaults-to: I do not exist
+            text: p1
 
 
