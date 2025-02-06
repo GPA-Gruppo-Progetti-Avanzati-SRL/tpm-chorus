@@ -8,7 +8,7 @@ require (
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.19
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.19
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.80
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.28
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.29
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/confluentinc/confluent-kafka-go/v2 v2.6.1
