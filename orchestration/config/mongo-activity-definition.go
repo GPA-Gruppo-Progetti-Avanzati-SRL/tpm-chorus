@@ -14,13 +14,13 @@ import (
 type MongoActivityOpType string
 
 const (
-	MongoActivityFindOne = "find-one"
-
-	MongoActivityFindOneStatementProperty  = "statement"
-	MongoActivityFindOneQueryProperty      = "query"
-	MongoActivityFindOneSortProperty       = "sort"
-	MongoActivityFindOneProjectionProperty = "projection"
-	MongoActivityFindOneOptsProperty       = "opts"
+	//MongoActivityFindOne = "find-one"
+	//
+	//MongoActivityFindOneStatementProperty  = "statement"
+	//MongoActivityFindOneQueryPropertys     = "query"
+	//MongoActivityFindOneSortProperty       = "sort"
+	//MongoActivityFindOneProjectionProperty = "projection"
+	//MongoActivityFindOneOptsProperty       = "opts"
 
 	MongoOperationResultMatchedCountPropertyVarName   = "matched-count"
 	MongoOperationResultModifiedCountPropertyVarName  = "modified-count"
@@ -30,6 +30,7 @@ const (
 )
 
 var opTypes = map[jsonops.MongoJsonOperationType]struct{}{
+	jsonops.FindManyOperationType:         struct{}{},
 	jsonops.FindOneOperationType:          struct{}{},
 	jsonops.FindOneAndUpdateOperationType: struct{}{},
 	jsonops.ReplaceOneOperationType:       struct{}{},

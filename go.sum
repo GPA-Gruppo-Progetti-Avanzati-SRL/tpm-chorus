@@ -8,8 +8,6 @@ github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1 h1:UQHMgLO+TxOEl
 github.com/Azure/go-ansiterm v0.0.0-20210617225240-d185dfc1b5a1/go.mod h1:xomTg63KZ2rFqZQzSB4Vz2SUXa1BpHTVz9L5PTmPC4E=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.23 h1:I1uiXBrcAjPMsPHrY4SE00sxBHiveCmZz4FsYnAy97E=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.23/go.mod h1:e2rkuRp0zXJgExBESgcpLxMr0N5ioFDpA00U2mq71zc=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.73 h1:Sb9L4A6aqLgXJOT2iSn1+nRMWLhRoXQXm3KzcTY8xfc=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.73/go.mod h1:4WYfJ0LgWLu38TukgFrFN4/zLePQ1BhFkpH/k28zRlA=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.75 h1:Kcu6nefMXKDEk65rsLxmyy3w56wdCJZFaPsgNtll78c=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.75/go.mod h1:4WYfJ0LgWLu38TukgFrFN4/zLePQ1BhFkpH/k28zRlA=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.19 h1:orhZDY8bYze16N7Dq3cGcMI/5csZ6IlWHl6gEoIMmSU=
@@ -18,8 +16,8 @@ github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.19 h1:+wxm7F+gm
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.19/go.mod h1:I9m6Njhx/AatwQXm1Yd7/KJ35TqXRISRLklZgg8eclU=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.80 h1:rGB8y9pgNyLRLAV66V2JzfV2hLHMvgSiVDZA/aHjrlE=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.80/go.mod h1:o0CLazDfwNuCFKzJ6WeheJ/vnWAoD9kHInOu4coaDYk=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.26 h1:5rz49j7zUTMDcn2O9S0zfnCPP5OFgZdNxVHJ7klKeLo=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.26/go.mod h1:cmp63wI/3whXiH86BGP1+B0ztkGtyyzcOB0XOsxTziQ=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.27 h1:kZkTe0n7bij2mJoqLi4C0O5HMMXMB+iNiPw0oUZzntc=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.27/go.mod h1:cmp63wI/3whXiH86BGP1+B0ztkGtyyzcOB0XOsxTziQ=
 github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0rYXWg0=
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
