@@ -14,10 +14,10 @@ github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.19 h1:orhZDY8b
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.19/go.mod h1:q0Dv5QpnNBvM6iDrwMPuUZm0JRPMQz6JX4o6PeI24yk=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.19 h1:+wxm7F+gm3c2QNSTJ3qarH8ykab4mzM0yWwdYTaUnk8=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.19/go.mod h1:I9m6Njhx/AatwQXm1Yd7/KJ35TqXRISRLklZgg8eclU=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.81 h1:Wd/NYmzvrwgVepET5C3FXLNc+mEyuMHqxKT/5jnApZE=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.81/go.mod h1:o0CLazDfwNuCFKzJ6WeheJ/vnWAoD9kHInOu4coaDYk=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.29 h1:OvfclWPJJnXooScxkROkHobxel7oc1Pz80lXOc1Pb74=
-github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.29/go.mod h1:cmp63wI/3whXiH86BGP1+B0ztkGtyyzcOB0XOsxTziQ=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.82 h1:pQfKjhc+JH+xOFqN5TNL3e/yPzyua0NaDF7bdietFXw=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.82/go.mod h1:o0CLazDfwNuCFKzJ6WeheJ/vnWAoD9kHInOu4coaDYk=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.34 h1:/gcZnrjPQckWt2JnX463eqF1Q9fOCpXBEEupZTDeq50=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.34/go.mod h1:cmp63wI/3whXiH86BGP1+B0ztkGtyyzcOB0XOsxTziQ=
 github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0rYXWg0=
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
