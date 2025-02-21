@@ -89,6 +89,8 @@ func (xform MergeXForm) Execute(wfc *wfcase.WfCase, data []byte) ([]byte, error)
 					log.Error().Err(err).Msg(semLogContext)
 				}
 			}
+		case jsonStructureString:
+			// TODO: should handle the string case
 		}
 
 		if err != nil {

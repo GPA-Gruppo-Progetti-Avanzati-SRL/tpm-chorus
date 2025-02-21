@@ -109,7 +109,7 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 	if err != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+		return smperror.NewExecutableServerError(smperror.WithError(err), smperror.WithErrorAmbit(a.Name()))
 	}
 
 	/*	actNdx := a.findResponseAction(harResponse.Status)

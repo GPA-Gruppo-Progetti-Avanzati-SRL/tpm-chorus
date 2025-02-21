@@ -58,6 +58,7 @@ func (wfc *WfCase) getEvaluatorForHarEntryRequest(evalName string, endpointData 
 }
 
 func (wfc *WfCase) getEvaluatorForHarEntryResponse(evalName string, endpointData *har.Entry, withVars bool, withTransformationId string, ignoreNonApplicationJsonContent bool) (*wfexpressions.Evaluator, error) {
+	const semLogContext = "wfcase::get-evaluator-for-har-entry-response"
 
 	var err error
 	var resolver *wfexpressions.Evaluator
@@ -76,6 +77,7 @@ func (wfc *WfCase) getEvaluatorForHarEntryResponse(evalName string, endpointData
 	}
 	resolver, err = wfexpressions.NewEvaluator(evalName, opts...)
 	if err != nil {
+		log.Error().Err(err).Msg(semLogContext + " new evaluator failed")
 		return nil, err
 	}
 
@@ -136,7 +138,7 @@ func (wfc *WfCase) SetVarsFromCase(sourceWfc *WfCase, resolverContext HarEntryRe
 
 	resolver, err := sourceWfc.GetEvaluatorByHarEntryReference(resolverContext, true, transformationId, ignoreNonApplicationJsonResponseContent)
 	if err != nil {
-		log.Error().Err(err).Msg(semLogContext)
+		log.Error().Err(err).Msg(semLogContext + " error in getting evaluator")
 		return err
 	}
 
@@ -152,14 +154,14 @@ func (wfc *WfCase) SetVarsFromCase(sourceWfc *WfCase, resolverContext HarEntryRe
 			if v.GlobalScope {
 				resolvedName, err = resolver.InterpolateAndEvalToString(v.Name)
 				if err != nil {
-					log.Error().Err(err).Msg(semLogContext)
+					log.Error().Err(err).Str("var", v.Name).Msg(semLogContext)
 					return err
 				}
 			}
 
 			val, _, err := varResolver.ResolveVariables(v.Value, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 			if err != nil {
-				log.Error().Err(err).Msg(semLogContext)
+				log.Error().Err(err).Str("var", v.Value).Msg(semLogContext)
 				return err
 			}
 
@@ -170,7 +172,7 @@ func (wfc *WfCase) SetVarsFromCase(sourceWfc *WfCase, resolverContext HarEntryRe
 			if isExpr && val != "" {
 				varValue, err = gval.Evaluate(val, sourceWfc.Vars)
 				if err != nil {
-					log.Error().Err(err).Msg(semLogContext)
+					log.Error().Err(err).Str("var", val).Msg(semLogContext)
 					return err
 				}
 			}

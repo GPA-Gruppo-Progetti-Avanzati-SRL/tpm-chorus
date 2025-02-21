@@ -130,6 +130,8 @@ func (pvr *Evaluator) WithBody(ct string, aBody []byte, transformationId string)
 			if err == nil {
 				pvr.body = v
 			} else {
+				log.Error().Err(err).Msg(semLogContext + " body unmarshal failure")
+				log.Error().Str("body", string(actualBody)).Msg(semLogContext + " body unmarshal failure")
 				return err
 			}
 		} else {
