@@ -26,6 +26,9 @@ const (
 
 	WorkModeMsg   = "msg-mode"
 	WorkModeBatch = "batch-mode"
+
+	EventJsonModeCanonical = "canonical"
+	EventJsonModeRelaxed   = "relaxed"
 )
 
 const (
@@ -64,21 +67,23 @@ func (p *PathDefinition) IsZero() bool {
 	return false
 }
 
+// OnErrors            []OnErrorPolicy                     `yaml:"on-errors,omitempty" mapstructure:"on-errors,omitempty" json:"on-errors,omitempty"`
+
 type Definition struct {
-	Id            string `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id,omitempty"`
-	En            string `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty"`
-	Description   string `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
-	WorkMode      string `yaml:"work-mode,omitempty" mapstructure:"work-mode,omitempty" json:"work-mode,omitempty"`
-	NumPartitions string `yaml:"num-partitions,omitempty" mapstructure:"num-partitions,omitempty" json:"num-partitions,omitempty"`
-	// OnErrors            []OnErrorPolicy                     `yaml:"on-errors,omitempty" mapstructure:"on-errors,omitempty" json:"on-errors,omitempty"`
-	TickInterval        string                           `yaml:"tick-interval,omitempty" mapstructure:"tick-interval,omitempty" json:"tick-interval,omitempty"`
-	RefMetrics          *promutil.MetricsConfigReference `yaml:"ref-metrics"  mapstructure:"ref-metrics"  json:"ref-metrics"`
-	SpanName            string                           `yaml:"tracing-span-name,omitempty" mapstructure:"tracing-span-name,omitempty" json:"tracing-span-name,omitempty"`
-	DeadLetterTopic     string                           `json:"dead-letter-topic,omitempty" yaml:"dead-letter-topic,omitempty" mapstructure:"dead-letter-topic,omitempty"`
-	Paths               []PathDefinition                 `json:"paths,omitempty" yaml:"paths,omitempty" mapstructure:"paths,omitempty"`
-	Sinks               []SinkStageDefinitionReference   `json:"sink-stages,omitempty" yaml:"sink-stages,omitempty" mapstructure:"sink-stages,omitempty"`
-	Consumer            changestream.Config              `yaml:"consumer,omitempty" mapstructure:"consumer,omitempty" json:"consumer,omitempty"`
-	CheckPointSvcConfig factory.Config                   `yaml:"checkpoint-svc,omitempty" mapstructure:"checkpoint-svc,omitempty" json:"checkpoint-svc,omitempty"`
+	Id                         string                           `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id,omitempty"`
+	En                         string                           `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty"`
+	Description                string                           `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
+	WorkMode                   string                           `yaml:"work-mode,omitempty" mapstructure:"work-mode,omitempty" json:"work-mode,omitempty"`
+	EventJsonSerializationMode string                           `yaml:"event-json-ser-mode,omitempty" mapstructure:"event-json-ser-mode,omitempty" json:"event-json-ser-mode,omitempty"`
+	NumPartitions              string                           `yaml:"num-partitions,omitempty" mapstructure:"num-partitions,omitempty" json:"num-partitions,omitempty"`
+	TickInterval               string                           `yaml:"tick-interval,omitempty" mapstructure:"tick-interval,omitempty" json:"tick-interval,omitempty"`
+	RefMetrics                 *promutil.MetricsConfigReference `yaml:"ref-metrics"  mapstructure:"ref-metrics"  json:"ref-metrics"`
+	SpanName                   string                           `yaml:"tracing-span-name,omitempty" mapstructure:"tracing-span-name,omitempty" json:"tracing-span-name,omitempty"`
+	DeadLetterTopic            string                           `json:"dead-letter-topic,omitempty" yaml:"dead-letter-topic,omitempty" mapstructure:"dead-letter-topic,omitempty"`
+	Paths                      []PathDefinition                 `json:"paths,omitempty" yaml:"paths,omitempty" mapstructure:"paths,omitempty"`
+	Sinks                      []SinkStageDefinitionReference   `json:"sink-stages,omitempty" yaml:"sink-stages,omitempty" mapstructure:"sink-stages,omitempty"`
+	Consumer                   changestream.Config              `yaml:"consumer,omitempty" mapstructure:"consumer,omitempty" json:"consumer,omitempty"`
+	CheckPointSvcConfig        factory.Config                   `yaml:"checkpoint-svc,omitempty" mapstructure:"checkpoint-svc,omitempty" json:"checkpoint-svc,omitempty"`
 }
 
 func (d *Definition) Enabled() bool {
