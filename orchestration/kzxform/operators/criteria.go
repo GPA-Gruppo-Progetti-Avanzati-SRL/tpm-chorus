@@ -2,6 +2,7 @@ package operators
 
 import (
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/commons"
 	"github.com/PaesslerAG/gval"
 	"github.com/qntfy/jsonparser"
 	"github.com/qntfy/kazaam/transform"
@@ -183,7 +184,7 @@ func (c evalCriterionImpl) IsAccepted(value []byte, vars map[string]interface{})
 
 	rc := false
 
-	mapOfVars := GetFuncMap(vars)
+	mapOfVars := commons.GetFuncMap(vars)
 	for _, v := range c.Vars {
 		varValue, dataType, _, err := jsonparser.Get(value, v.With.Keys...)
 		if err != nil {
@@ -211,7 +212,7 @@ func (c evalCriterionImpl) IsAccepted(value []byte, vars map[string]interface{})
 		case jsonparser.String:
 			mapOfVars[v.As] = string(varValue)
 		default:
-			expressionVariable := NewExpressionVariable(varValue, dataType)
+			expressionVariable := commons.NewExpressionVariable(varValue, dataType)
 			mapOfVars[v.As] = expressionVariable
 		}
 	}

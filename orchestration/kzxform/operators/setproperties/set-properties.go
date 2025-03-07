@@ -3,6 +3,7 @@ package setproperties
 import (
 	"errors"
 	"fmt"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/commons"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform/operators"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/qntfy/jsonparser"
@@ -111,17 +112,23 @@ func propertyValue(data []byte, pcfg *OperatorParams) ([]byte, jsonparser.ValueT
 		var res interface{}
 		res, err = pcfg.Expression.Eval(data, nil)
 		if err == nil {
-			val = []byte(fmt.Sprintf("%v", res))
-			switch res.(type) {
+			// val = []byte(fmt.Sprintf("%v", res))
+			switch typedRes := res.(type) {
 			case string:
-				val = []byte(fmt.Sprintf("\"%s\"", val))
+				val = []byte(fmt.Sprintf("\"%s\"", res))
 				vt = jsonparser.String
 			case bool:
 				vt = jsonparser.Boolean
+				val = []byte(fmt.Sprintf("%t", typedRes))
 			case int:
 				vt = jsonparser.Number
+				val = []byte(fmt.Sprintf("%d", typedRes))
 			case float64:
 				vt = jsonparser.Number
+				val = []byte(fmt.Sprintf("%v", res))
+			case commons.ExpressionVariable:
+				val = typedRes.Val
+				vt = typedRes.Dt
 			default:
 				vt = jsonparser.Unknown
 			}

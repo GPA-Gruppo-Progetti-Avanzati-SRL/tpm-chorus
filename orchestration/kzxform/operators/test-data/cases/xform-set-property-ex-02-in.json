@@ -1,11 +1,19 @@
 {
   "property-string": "value of property",
-  "property-array": [
+  "property-array2": [
     {
-      "item-property": "value of item-1-property"
+      "item-property": "array-2: value of item-2-property"
     },
     {
-      "item-property": "value of item-2-property"
+      "item-property": "array-2: value of item-1-property"
+    }
+  ],
+  "property-array1": [
+    {
+      "item-property": "array-1: value of item-2-property"
+    },
+    {
+      "item-property": "array-1: value of item-1-property"
     }
   ]
 }

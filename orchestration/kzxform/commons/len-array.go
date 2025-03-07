@@ -1,21 +1,10 @@
-package operators
+package commons
 
 import (
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs"
 	"github.com/qntfy/jsonparser"
 	"github.com/rs/zerolog/log"
 )
-
-func GetFuncMap(current map[string]interface{}) map[string]interface{} {
-	if current == nil {
-		current = make(map[string]interface{})
-	}
-
-	current["_lenArray"] = LenArray
-	current["_regexMatchSetMatchAndExtract"] = purefuncs.RegexSetMatchAndExtract
-	return current
-}
 
 const (
 	LenFunctionFormatNumber = "number"

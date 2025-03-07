@@ -1,6 +1,10 @@
-package operators
+package commons
 
 import "github.com/qntfy/jsonparser"
+
+var NullVar = ExpressionVariable{Dt: jsonparser.Null}
+var EmptyArrayVar = ExpressionVariable{Dt: jsonparser.Array, Val: []byte(`[]`)}
+var EmptyObjectVar = ExpressionVariable{Dt: jsonparser.Array, Val: []byte(`{}`)}
 
 type ExpressionVariable struct {
 	Val []byte

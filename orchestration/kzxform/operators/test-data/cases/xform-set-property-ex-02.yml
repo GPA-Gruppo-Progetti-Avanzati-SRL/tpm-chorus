@@ -3,25 +3,45 @@ rules:
   - operation: set-properties
     spec:
       properties:
-        - name-ref: property-array[i].new-item-property
+        - name-ref: property-array1[i].new-item-property
           value: hello new item property
-        - name-ref: property-array[i].copied-property
+        - name-ref: property-array1[i].copied-property
           path: item-property
-        - name-ref: property-array[i].property-from-absolute-path
+        - name-ref: property-array1[i].property-from-absolute-path
           path: /property-string
-        - name-ref: len-of-property-array
+        - name-ref: len-of-property-array1
           expression:
             vars:
-              - with: property-array
+              - with: property-array1
                 as: arr
             text: _lenArray(arr, "number")
-        - name-ref: property-array[i].new-item-property-with-expression
+        - name-ref: len-of-property-array2
+          expression:
+            vars:
+              - with: property-array2
+                as: arr
+            text: _lenArray(arr, "number")
+        - name-ref: property-arrays-merged
+          expression:
+            vars:
+              - with: property-array1
+                as: arr1
+              - with: property-array2
+                as: arr2
+            text: _mergeArrays(arr2, arr1)
+        - name-ref: property-arrays-merged-sorted
+          expression:
+            vars:
+              - with: property-arrays-merged
+                as: arr
+            text: _sortArray(arr, "item-property")
+        - name-ref: property-array1[i].new-item-property-with-expression
           expression:
             vars:
               - with: new-item-property
                 as: p1
             text: "1"
-        - name-ref: property-array[i].not-existent-var-with-expression
+        - name-ref: property-array1[i].not-existent-var-with-expression
           expression:
             vars:
               - with: not-existent-item-property
