@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
+	"github.com/rs/zerolog/log"
 	"strings"
 	"time"
 )
@@ -133,6 +135,7 @@ type Activity struct {
 	BndryFlag       bool                            `yaml:"is-boundary,omitempty" mapstructure:"is-boundary,omitempty" json:"is-boundary,omitempty"`
 	ProcessVars     []ProcessVar                    `yaml:"process-vars,omitempty" mapstructure:"process-vars,omitempty" json:"process-vars,omitempty"`
 	En              string                          `yaml:"enabled,omitempty" mapstructure:"enabled,omitempty" json:"enabled,omitempty"`
+	EstimatedTim    string                          `yaml:"estimated-time,omitempty" mapstructure:"estimated-time,omitempty" json:"estimated-time,omitempty"`
 	MetricsCfg      promutil.MetricsConfigReference `yaml:"ref-metrics,omitempty" mapstructure:"ref-metrics,omitempty" json:"ref-metrics,omitempty"`
 	Definition      string                          `yaml:"ref-definition,omitempty" mapstructure:"ref-definition,omitempty" json:"ref-definition,omitempty"`
 	ExprContextName string                          `yaml:"input-source,omitempty" mapstructure:"input-source,omitempty" json:"input-source,omitempty"`
@@ -153,6 +156,7 @@ func (c *Activity) Dup(newName string) Activity {
 		Actr:            c.Actr,
 		BndryName:       c.BndryName,
 		BndryFlag:       c.BndryFlag,
+		EstimatedTim:    c.EstimatedTim,
 		ProcessVars:     pv,
 		En:              c.En,
 		MetricsCfg:      c.MetricsCfg,
@@ -219,6 +223,24 @@ func (c *Activity) IsBoundary() bool {
 func (c *Activity) MetricsConfig() promutil.MetricsConfigReference {
 	r := promutil.CoalesceMetricsConfig(c.MetricsCfg, DefaultMetricsCfg)
 	return r
+}
+
+func (c *Activity) EstimatedTime() time.Duration {
+	return util.ParseDuration(c.EstimatedTim, time.Duration(0))
+}
+
+func (c *Activity) WfCaseDeadlineExceeded(currentTiming, reqDeadline time.Duration) error {
+	const semLogContext = "activity::wfc-deadline-exceeded"
+	activityEstimatedTime := c.EstimatedTime()
+	if reqDeadline != 0 {
+		if currentTiming+activityEstimatedTime > reqDeadline {
+			err := errors.New("request deadline exceeded")
+			log.Error().Err(err).Float64("ete.s", activityEstimatedTime.Seconds()).Float64("wfc-timing.s", currentTiming.Seconds()).Float64("deadline.s", reqDeadline.Seconds()).Msg(semLogContext)
+			return err
+		}
+	}
+
+	return nil
 }
 
 // ActivityDefaultExpressionContextName To be aligned with wfcase.InitialRequestHarEntryId

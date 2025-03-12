@@ -97,6 +97,17 @@ func (a *ResponseActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
+	err = cfg.WfCaseDeadlineExceeded(wfc.RequestTiming, wfc.RequestDeadline)
+	if err != nil {
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+	}
+
+	activityBegin := time.Now()
+	defer func(begin time.Time) {
+		wfc.RequestTiming += time.Since(begin)
+		log.Info().Str(constants.SemLogActivity, a.Name()).Float64("wfc-timing.s", wfc.RequestTiming.Seconds()).Float64("deadline.s", wfc.RequestDeadline.Seconds()).Msg(semLogContext + " - wfc timing")
+	}(activityBegin)
+
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 
 	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())

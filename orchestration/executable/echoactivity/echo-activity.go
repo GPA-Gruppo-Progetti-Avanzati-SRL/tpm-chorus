@@ -14,6 +14,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"net/http"
 	"reflect"
+	"time"
 )
 
 type EchoActivity struct {
@@ -63,6 +64,17 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 		log.Error().Err(err).Msg(semLogContext)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
+
+	err = tcfg.WfCaseDeadlineExceeded(wfc.RequestTiming, wfc.RequestDeadline)
+	if err != nil {
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+	}
+
+	activityBegin := time.Now()
+	defer func(begin time.Time) {
+		wfc.RequestTiming += time.Since(begin)
+		log.Info().Str(constants.SemLogActivity, a.Name()).Float64("wfc-timing.s", wfc.RequestTiming.Seconds()).Float64("deadline.s", wfc.RequestDeadline.Seconds()).Msg(semLogContext + " - wfc timing")
+	}(activityBegin)
 
 	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
 	if err != nil {

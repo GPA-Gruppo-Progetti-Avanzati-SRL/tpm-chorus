@@ -55,6 +55,9 @@ type WfCase struct {
 	Span        opentracing.Span
 
 	ExpressionEvaluator *wfexpressions.Evaluator
+
+	RequestDeadline time.Duration
+	RequestTiming   time.Duration
 }
 
 func NewWorkflowCase(id string, version, sha string, descr string, dicts config.Dictionaries, refs config.DataReferences, systemVars map[string]interface{}, span opentracing.Span) (*WfCase, error) {
@@ -137,13 +140,25 @@ func (wfc *WfCase) NewChild(expressionCtx HarEntryReference, id string, version,
 }
 
 /*
-func (wfc *WfCase) AddEndpointData(id string, body []byte, headers http.Header, params gin.Params) error {
-	epData := EndpointData{Id: id, Body: body, Headers: headers, Params: params}
-	wfc.EpInfo[epData.Id] = epData
+	func (wfc *WfCase) AddEndpointData(id string, body []byte, headers http.Header, params gin.Params) error {
+		epData := EndpointData{Id: id, Body: body, Headers: headers, Params: params}
+		wfc.EpInfo[epData.Id] = epData
 
-	return nil
-}
+		return nil
+	}
 */
+
+func (wfc *WfCase) DeadlineExceeded(additionalTiming time.Duration) bool {
+	const semLogContext = "wf-case::get-request-id"
+
+	if wfc.RequestDeadline != 0 {
+		if wfc.RequestTiming+additionalTiming > wfc.RequestDeadline {
+			return true
+		}
+	}
+
+	return false
+}
 
 func (wfc *WfCase) GetRequestId() string {
 	const semLogContext = "wf-case::get-request-id"

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config/repo"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -121,9 +122,9 @@ type ExecBoundary struct {
  */
 const (
 	OrchestrationPropertyPathSelectionPolicy = "selection-path-policy"
-
-	ExactlyOne = "exactly-one"
-	AtLeastOne = "at-least-one"
+	OrchestrationPropertyRequestDeadline     = "request-deadline"
+	ExactlyOne                               = "exactly-one"
+	AtLeastOne                               = "at-least-one"
 )
 
 type Orchestration struct {
@@ -254,13 +255,33 @@ func (o *Orchestration) GetProperty(n string, defaultValue any) any {
 }
 
 func (o *Orchestration) GetPropertyAsString(n string, defaultValue string) string {
-	const semLogContext = "config::orchestration-get-property"
+	const semLogContext = "config::orchestration-get-property-as-string"
 	if v, ok := o.Properties[n]; ok {
 		log.Info().Interface(n, v).Msg(semLogContext)
 		return fmt.Sprint(v)
 	}
 
 	return defaultValue
+}
+
+func (o *Orchestration) GetPropertyAsDuration(n string, defaultValue time.Duration) time.Duration {
+	const semLogContext = "config::orchestration-get-property-as-duration"
+
+	val := defaultValue
+	if v, ok := o.Properties[n]; ok {
+		log.Info().Interface(n, v).Msg(semLogContext)
+		switch vt := v.(type) {
+		case time.Duration:
+			val = vt
+		case string:
+			dur := util.ParseDuration(vt, defaultValue)
+			val = dur
+		default:
+			log.Warn().Interface("value", v).Str("of-type", fmt.Sprintf("%T", v)).Msg(semLogContext)
+		}
+	}
+
+	return val
 }
 
 func (o *Orchestration) ToJSON() ([]byte, error) {

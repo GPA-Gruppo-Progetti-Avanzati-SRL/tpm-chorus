@@ -77,6 +77,17 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
+	err = tcfg.WfCaseDeadlineExceeded(wfc.RequestTiming, wfc.RequestDeadline)
+	if err != nil {
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+	}
+
+	activityBegin := time.Now()
+	defer func(begin time.Time) {
+		wfc.RequestTiming += time.Since(begin)
+		log.Info().Str(constants.SemLogActivity, a.Name()).Float64("wfc-timing.s", wfc.RequestTiming.Seconds()).Float64("deadline.s", wfc.RequestDeadline.Seconds()).Msg(semLogContext + " - wfc timing")
+	}(activityBegin)
+
 	_, _, err = a.MetricsGroup()
 	if err != nil {
 		log.Error().Err(err).Interface("metrics-config", a.Cfg.MetricsConfig()).Msg(semLogContext + " cannot found metrics group")
@@ -121,6 +132,13 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		metricsLabels[MetricIdStatusCode] = "500"
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+	}
+
+	wfcChild.RequestDeadline = a.orchestration.Cfg.GetPropertyAsDuration(config.OrchestrationPropertyRequestDeadline, time.Duration(0))
+	if wfcChild.RequestDeadline != 0 {
+		log.Info().Float64("deadline-secs", wfcChild.RequestDeadline.Seconds()).Msg(semLogContext + " - setting workflow case request deadline")
+	} else {
+		log.Info().Msg(semLogContext + " - no workflow case request deadline has been set")
 	}
 
 	err = a.executeNestedOrchestration(wfcChild)

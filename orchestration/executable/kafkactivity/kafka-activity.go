@@ -122,13 +122,6 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
-	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
-	if err != nil {
-		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
-		return err
-	}
-	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext)
-
 	cfg, ok := a.Cfg.(*config.KafkaActivity)
 	if !ok {
 		err = fmt.Errorf("this is weird %T is not %s config type", a.Cfg, config.KafkaActivityType)
@@ -136,6 +129,24 @@ func (a *KafkaActivity) Execute(wfc *wfcase.WfCase) error {
 		log.Error().Err(err).Msg(semLogContext)
 		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
+
+	err = cfg.WfCaseDeadlineExceeded(wfc.RequestTiming, wfc.RequestDeadline)
+	if err != nil {
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+	}
+
+	activityBegin := time.Now()
+	defer func(begin time.Time) {
+		wfc.RequestTiming += time.Since(begin)
+		log.Info().Str(constants.SemLogActivity, a.Name()).Float64("wfc-timing.s", wfc.RequestTiming.Seconds()).Float64("deadline.s", wfc.RequestDeadline.Seconds()).Msg(semLogContext + " - wfc timing")
+	}(activityBegin)
+
+	expressionCtx, err := wfc.ResolveHarEntryReferenceByName(a.Cfg.ExpressionContextNameStringReference())
+	if err != nil {
+		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+		return err
+	}
+	log.Trace().Str(constants.SemLogActivity, a.Name()).Str("expr-scope", expressionCtx.Name).Msg(semLogContext)
 
 	//if len(cfg.ProcessVars) > 0 {
 	err = wfc.SetVars(expressionCtx, cfg.ProcessVars, "", false)
