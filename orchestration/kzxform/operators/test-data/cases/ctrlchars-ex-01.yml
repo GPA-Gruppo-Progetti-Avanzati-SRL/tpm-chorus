@@ -1,0 +1,18 @@
+id: ctrlchars-ex-01
+rules:
+  - operation: default
+    spec:
+      op: insert
+      before: null
+  - operation: shift
+    spec:
+      source.db: ns.db
+      source.collection: ns.coll
+      source.ts_ms: clustertime.$timestamp.t
+      source.ord: clustertime.$timestamp.i
+      updateDescription.removedFields: updatedescription.removedFields
+      updateDescription.updatedFields: updatedescription.updatedFields
+      after: fulldocument
+      documentkey: documentkey
+      before: before
+      op: op

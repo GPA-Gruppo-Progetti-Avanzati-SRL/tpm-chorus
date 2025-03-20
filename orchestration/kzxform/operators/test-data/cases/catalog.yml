@@ -39,3 +39,13 @@
 - rule: xform-reduce-array-ex-01.yml
   in: xform-reduce-array-ex-01-in.json
   out: xform-reduce-array-ex-01-out.json
+# ctrl-chars
+- rule: ctrlchars-ex-01.yml
+  in: ctrlchars-ex-01-in.json
+  out: ctrlchars-ex-01-out.json
+- rule: ctrlchars-ex-01.yml
+  in: ctrlchars-ex-02-in.json
+  out: ctrlchars-ex-02-out.json
+- rule: ctrlchars-ex-03.yml
+  in: ctrlchars-ex-01-in.json
+  out: ctrlchars-ex-03-out.json

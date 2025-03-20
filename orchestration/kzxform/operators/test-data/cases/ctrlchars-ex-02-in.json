@@ -1,0 +1,34 @@
+{
+  "clustertime": {
+    "$timestamp": {
+      "i": 87,
+      "t": 1742082439
+    }
+  },
+  "documentkey": {
+    "_id": {
+      "$oid": "63cc513b44d065497e18763f"
+    },
+    "ndg": "10273137"
+  },
+  "fulldocumentbeforechange": null,
+  "headers": {
+    "X-Kyr-Pipeline-Id": "cdc-anag",
+    "X-Kyr-Request-Id": "fad34c63-9ce8-443d-97ec-a761cd018332"
+  },
+  "id": {
+    "data": "8267D61187000000572B022C0100296E5A1004FDCBF41D91A0440AB6A2FFFD242B3C5C463C6E6467003C313032373331333700645F6964006463CC513B44D065497E18763F0004"
+  },
+  "lsid": null,
+  "ns": {
+    "coll": "cliente_denorm",
+    "db": "anagrafeGenerale"
+  },
+  "operationdescription": null,
+  "optype": "update",
+  "resumetok": {
+    "at": "2025-03-18T08:40:20.523986626+01:00",
+    "value": "8267D61187000000572B022C0100296E5A1004FDCBF41D91A0440AB6A2FFFD242B3C5C463C6E6467003C313032373331333700645F6964006463CC513B44D065497E18763F0004"
+  },
+  "span": null
+}

@@ -1,0 +1,259 @@
+{
+  "clustertime": {
+    "$timestamp": {
+      "i": 87,
+      "t": 1742082439
+    }
+  },
+  "documentkey": {
+    "_id": {
+      "$oid": "63cc513b44d065497e18763f"
+    },
+    "ndg": "10273137"
+  },
+  "fulldocument": {
+    "_id": {
+      "$oid": "63cc513b44d065497e18763f"
+    },
+    "anagrafica": {
+      "intestazioneRidotta": "MORABITO MARIANGELA MONTELEONE ANTO",
+      "personaGiuridica": {
+        "ragioneSociale": "MORABITO MARIANGELA MONTELEONE ANTONINO"
+      }
+    },
+    "bankit": {
+      "cin": "6",
+      "localita": "16300",
+      "provincia1": "452",
+      "provincia2": "163"
+    },
+    "dataCensimento": "20020517",
+    "indirizzoLegale": {
+      "cap": "89100",
+      "indirizzo": "VIALE MORO TRAV SCORDINO 2\u001a N.6",
+      "localita": "REGGIO CALABRIA",
+      "nazione": " ",
+      "provincia": "RC"
+    },
+    "indirizzoPostale": {
+      "cap": "89100",
+      "indirizzo": "VIALE MORO TRAV SCORDINO 2\u001a N.6",
+      "intestazione": "MORABITO MARIANGELA MONTELEONE ANTONINO",
+      "localita": "REGGIO CALABRIA",
+      "nazione": " ",
+      "provincia": "RC",
+      "tipoSpedizione": "0"
+    },
+    "infoTecniche": {
+      "dataOra": "20020517001715",
+      "dataValDa": "20020517",
+      "filiale": "MIGRA",
+      "job": "DSTAGE",
+      "operatore": "MIGRANT",
+      "program": "DSTAGE",
+      "terminale": "MIGR",
+      "tipoOperazione": "UPSERT",
+      "ufficio": "MA"
+    },
+    "legati": [
+      {
+        "cliente": {
+          "codiceFiscale": "MRBMNG72H56H224W",
+          "cognome": "MORABITO",
+          "natura": "PF",
+          "ndg": "8843725",
+          "nome": "MARIANGELA SILVANA"
+        },
+        "dataInserimento": "20020517",
+        "infoTecniche": {
+          "dataOra": "20020517001715",
+          "dataOraAlimentazione": "2022-11-01 00:00:00.00001",
+          "dataValDa": "0",
+          "filiale": "MIGRA",
+          "job": "DSTAGE",
+          "operatore": "MIGRANT",
+          "program": "DSTAGE",
+          "terminale": "MIGR",
+          "tipoOperazione": "UPSERT",
+          "ufficio": "MA"
+        },
+        "stato": "A",
+        "tipoLegame": "101"
+      },
+      {
+        "cliente": {
+          "codiceFiscale": "MNTNNN68A16H224Y",
+          "cognome": "MONTELEONE",
+          "natura": "PF",
+          "ndg": "8841067",
+          "nome": "ANTONINO"
+        },
+        "dataInserimento": "20020517",
+        "infoTecniche": {
+          "dataOra": "20020517001715",
+          "dataOraAlimentazione": "2022-11-01 00:00:00.00001",
+          "dataValDa": "0",
+          "filiale": "MIGRA",
+          "job": "DSTAGE",
+          "operatore": "MIGRANT",
+          "program": "DSTAGE",
+          "terminale": "MIGR",
+          "tipoOperazione": "UPSERT",
+          "ufficio": "MA"
+        },
+        "stato": "A",
+        "tipoLegame": "101"
+      }
+    ],
+    "natura": "COI",
+    "ndg": "10273137",
+    "profilo": {
+      "attivitaEconomica": {
+        "ciae": {
+          "valore": "6093"
+        },
+        "rae": {
+          "valore": "0000"
+        },
+        "sae": {
+          "valore": "0600"
+        }
+      },
+      "regimeAV": "0"
+    },
+    "radicamento": {
+      "banca": "00000",
+      "filiale": "53203",
+      "settore": "1",
+      "sottoSettore": "0"
+    },
+    "rapporti": [
+      {
+        "categoria": "2110",
+        "codiceValuta": "EUR",
+        "date": {
+          "apertura": "19990101",
+          "estinzione": "20250317",
+          "intestazione": "19990101"
+        },
+        "filiale": "53203",
+        "iban": {
+          "codice": "IT04Q0760103384000009462786"
+        },
+        "indirizzoRecapito": {
+          "cap": "89100",
+          "indirizzo": "VIALE MORO TRAV SCORDINO 2 N.6",
+          "intestazione": "MORABITO MARIANGELA MONTELEONE ANTONINO",
+          "localita": "REGGIO CALABRIA",
+          "provincia": "RC",
+          "tipoSpedizione": "0"
+        },
+        "infoTecniche": {
+          "dataAggiornamento": "20250317",
+          "dataOra": "20250316004651",
+          "dataOraAlimentazione": "2025-03-16 00:46:52.643293000000",
+          "dataValDa": "19990101",
+          "filiale": "DIREZ",
+          "job": "FIAAB170",
+          "operatore": "AMG247",
+          "program": "CLDMPB01",
+          "terminale": "BATC",
+          "tipoOperazione": "U",
+          "ufficio": "DI",
+          "ultimaOperazioneBusiness": "estinzione"
+        },
+        "numero": "9462786",
+        "servizio": "DR",
+        "stato": {
+          "dettaglio": {
+            "estinto": "SI",
+            "trasferito": "NO"
+          },
+          "stato": "E"
+        }
+      }
+    ],
+    "stato": "C",
+    "sysInfo": {
+      "dbLastUpdate": {
+        "$date": "2025-03-15T23:47:19.356Z"
+      },
+      "dbUpsertedCount": 2
+    }
+  },
+  "fulldocumentbeforechange": null,
+  "headers": {
+    "X-Kyr-Pipeline-Id": "cdc-anag",
+    "X-Kyr-Request-Id": "fad34c63-9ce8-443d-97ec-a761cd018332"
+  },
+  "id": {
+    "data": "8267D61187000000572B022C0100296E5A1004FDCBF41D91A0440AB6A2FFFD242B3C5C463C6E6467003C313032373331333700645F6964006463CC513B44D065497E18763F0004"
+  },
+  "lsid": null,
+  "ns": {
+    "coll": "cliente_denorm",
+    "db": "anagrafeGenerale"
+  },
+  "operationdescription": null,
+  "optype": "update",
+  "resumetok": {
+    "at": "2025-03-18T08:40:20.523986626+01:00",
+    "value": "8267D61187000000572B022C0100296E5A1004FDCBF41D91A0440AB6A2FFFD242B3C5C463C6E6467003C313032373331333700645F6964006463CC513B44D065497E18763F0004"
+  },
+  "span": null,
+  "updatedescription": {
+    "removedFields": [],
+    "updatedFields": {
+      "rapporti": [
+        {
+          "categoria": "2110",
+          "codiceValuta": "EUR",
+          "date": {
+            "apertura": "19990101",
+            "estinzione": "20250317",
+            "intestazione": "19990101"
+          },
+          "filiale": "53203",
+          "iban": {
+            "codice": "IT04Q0760103384000009462786"
+          },
+          "indirizzoRecapito": {
+            "cap": "89100",
+            "indirizzo": "VIALE MORO TRAV SCORDINO 2 N.6",
+            "intestazione": "MORABITO MARIANGELA MONTELEONE ANTONINO",
+            "localita": "REGGIO CALABRIA",
+            "provincia": "RC",
+            "tipoSpedizione": "0"
+          },
+          "infoTecniche": {
+            "dataAggiornamento": "20250317",
+            "dataOra": "20250316004651",
+            "dataOraAlimentazione": "2025-03-16 00:46:52.643293000000",
+            "dataValDa": "19990101",
+            "filiale": "DIREZ",
+            "job": "FIAAB170",
+            "operatore": "AMG247",
+            "program": "CLDMPB01",
+            "terminale": "BATC",
+            "tipoOperazione": "U",
+            "ufficio": "DI",
+            "ultimaOperazioneBusiness": "estinzione"
+          },
+          "numero": "9462786",
+          "servizio": "DR",
+          "stato": {
+            "dettaglio": {
+              "estinto": "SI",
+              "trasferito": "NO"
+            },
+            "stato": "E"
+          }
+        }
+      ],
+      "sysInfo.dbLastUpdate": {
+        "$date": "2025-03-15T23:47:19.356Z"
+      },
+      "sysInfo.dbUpsertedCount": 2
+    }
+  }
+}

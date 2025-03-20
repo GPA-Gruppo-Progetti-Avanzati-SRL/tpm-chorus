@@ -1,0 +1,16 @@
+id: transform-upsert-kazaam
+rules:
+  - operation: shift
+    spec:
+      source.db: ns.db
+      source.collection: ns.coll
+      source.ts_ms: clustertime.$timestamp.t
+      source.ord: clustertime.$timestamp.i
+      updateDescription.removedFields: updatedescription.removedFields
+      documentkey: documentkey
+  - operation: default
+    spec:
+      before: null
+      after: ""
+      op: 'u'
+      updateDescription.updatedFields: "{\"rapporti\":[{\"categoria\":\"2110\",\"codiceValuta\":\"EUR\",\"date\":{\"apertura\":\"19990101\",\"estinzione\":\"20250317\",\"intestazione\":\"19990101\"},\"filiale\":\"53203\",\"iban\":{\"codice\":\"IT04Q0760103384000009462786\"},\"indirizzoRecapito\":{\"cap\":\"89100\",\"indirizzo\":\"VIALE MORO TRAV SCORDINO 2 N.6\",\"intestazione\":\"MORABITO MARIANGELA MONTELEONE ANTONINO\",\"localita\":\"REGGIO CALABRIA\",\"provincia\":\"RC\",\"tipoSpedizione\":\"0\"},\"infoTecniche\":{\"dataAggiornamento\":\"20250317\",\"dataOra\":\"20250316004651\",\"dataOraAlimentazione\":\"2025-03-16 00:46:52.643293000000\",\"dataValDa\":\"19990101\",\"filiale\":\"DIREZ\",\"job\":\"FIAAB170\",\"operatore\":\"AMG247\",\"program\":\"CLDMPB01\",\"terminale\":\"BATC\",\"tipoOperazione\":\"U\",\"ufficio\":\"DI\",\"ultimaOperazioneBusiness\":\"estinzione\"},\"numero\":\"9462786\",\"servizio\":\"DR\",\"stato\":{\"dettaglio\":{\"estinto\":\"SI\",\"trasferito\":\"NO\"},\"stato\":\"E\"}}],\"sysInfo.dbLastUpdate\":{\"$date\":\"2025-03-15T23:47:19.356Z\"},\"sysInfo.dbUpsertedCount\":2}"
