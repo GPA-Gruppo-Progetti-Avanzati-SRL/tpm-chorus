@@ -35,6 +35,9 @@
 - rule: xform-shift-array-items-ex-04.yml
   in: xform-shift-array-items-ex-04-in.json
   out: xform-shift-array-items-ex-04-out.json
+- rule: xform-shift-array-items-ex-05.yml
+  in: xform-shift-array-items-ex-05-in.json
+  out: xform-shift-array-items-ex-05-out.json
 # reduce-array
 - rule: xform-reduce-array-ex-01.yml
   in: xform-reduce-array-ex-01-in.json

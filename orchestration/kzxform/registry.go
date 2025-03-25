@@ -155,7 +155,7 @@ func (r Registry) Get(id string) (Transformation, error) {
 
 	t, ok := r[id]
 	if !ok {
-		log.Error().Err(XFormNotFound).Str("id", id).Msg(semLogContext)
+		log.Warn().Err(XFormNotFound).Str("id", id).Msg(semLogContext)
 		return Transformation{}, XFormNotFound
 	}
 

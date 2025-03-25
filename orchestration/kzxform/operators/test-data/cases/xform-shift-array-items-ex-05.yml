@@ -1,0 +1,28 @@
+id: "xform-shift-array-items-ex-05"
+rules:
+  - operation: shift-array-items
+    spec:
+      source-ref: property-array
+      target-ref: property-array-converted
+      sub-rules:
+        - operation: set-properties
+          spec:
+            properties:
+              - name-ref: len-of-item-nested-array
+                expression:
+                  text: _lenArray(itemNestedArray, "number")
+                  vars:
+                    - with: item-nested-array
+                      as: itemNestedArray
+              - name-ref: item-date-is-date
+                expression:
+                  text: _isDate(arg1, "2006-01-02", "2006-01-02T15:04:05Z")
+                  vars:
+                    - with: item-date
+                      as: arg1
+              - name-ref: item-date-converted
+                expression:
+                  text: _parseAndFormatDate(arg1, "Local", "20060102", "2006-01-02", "2006-01-02T15:04:05Z")
+                  vars:
+                    - with: item-date
+                      as: arg1

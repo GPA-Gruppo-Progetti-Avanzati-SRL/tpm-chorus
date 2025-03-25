@@ -56,7 +56,7 @@ func RegexExtractFirstWithDefault(pattern string, value string, defaultVal strin
 }
 
 func RegexSetMatchAndExtract(value string, ifMatchButNoExtractionValue string, ifNoMatchValue string, patterns ...string) string {
-	const semLogContext = "orchestration-funcs::regex-extract-first"
+	const semLogContext = "orchestration-funcs::regex-set-match-extract-first"
 
 	for _, pattern := range patterns {
 		re, err := regexp.Compile(pattern)
