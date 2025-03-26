@@ -77,6 +77,7 @@ type Definition struct {
 	EventJsonSerializationMode string                           `yaml:"event-json-ser-mode,omitempty" mapstructure:"event-json-ser-mode,omitempty" json:"event-json-ser-mode,omitempty"`
 	NumPartitions              string                           `yaml:"num-partitions,omitempty" mapstructure:"num-partitions,omitempty" json:"num-partitions,omitempty"`
 	TickInterval               string                           `yaml:"tick-interval,omitempty" mapstructure:"tick-interval,omitempty" json:"tick-interval,omitempty"`
+	MaxBatchSize               int                              `yaml:"max-batch-size,omitempty" mapstructure:"max-batch-size,omitempty" json:"max-batch-size,omitempty"`
 	RefMetrics                 *promutil.MetricsConfigReference `yaml:"ref-metrics"  mapstructure:"ref-metrics"  json:"ref-metrics"`
 	SpanName                   string                           `yaml:"tracing-span-name,omitempty" mapstructure:"tracing-span-name,omitempty" json:"tracing-span-name,omitempty"`
 	DeadLetterTopic            string                           `json:"dead-letter-topic,omitempty" yaml:"dead-letter-topic,omitempty" mapstructure:"dead-letter-topic,omitempty"`
