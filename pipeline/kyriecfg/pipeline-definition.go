@@ -74,6 +74,8 @@ type Definition struct {
 	En                         string                           `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty"`
 	Description                string                           `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
 	WorkMode                   string                           `yaml:"work-mode,omitempty" mapstructure:"work-mode,omitempty" json:"work-mode,omitempty"`
+	WithChannel                bool                             `yaml:"with-channel,omitempty" mapstructure:"with-channel,omitempty" json:"with-channel,omitempty"`
+	WithChannelSize            int                              `yaml:"with-channel-size,omitempty" mapstructure:"with-channel-size,omitempty" json:"with-channel-size,omitempty"`
 	EventJsonSerializationMode string                           `yaml:"event-json-ser-mode,omitempty" mapstructure:"event-json-ser-mode,omitempty" json:"event-json-ser-mode,omitempty"`
 	NumPartitions              string                           `yaml:"num-partitions,omitempty" mapstructure:"num-partitions,omitempty" json:"num-partitions,omitempty"`
 	TickInterval               string                           `yaml:"tick-interval,omitempty" mapstructure:"tick-interval,omitempty" json:"tick-interval,omitempty"`

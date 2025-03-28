@@ -43,7 +43,7 @@ func (g AssetGroup) ReadRefsData(resource string) ([]byte, error) {
 
 	ndx := g.Refs.IndexByPath(resource)
 	if ndx < 0 {
-		err = errors.New("cannot find schema file")
+		err = errors.New("cannot find resource-file file")
 		log.Error().Err(err).Str("resource-file", resource).Msg(semLogContext)
 		return nil, err
 	}
