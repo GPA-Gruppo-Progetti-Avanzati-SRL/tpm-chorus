@@ -132,6 +132,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 	}
 
+	var mongoError int
 	if harResponse == nil || harResponse.Status != http.StatusOK {
 		statementConfig, err := a.definition.LoadStatementConfig(a.Refs)
 		if err != nil {
@@ -161,17 +162,23 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 
 		_ = wfc.SetHarEntryRequest(a.Name(), req, tcfg.PII)
 
-		harResponse, err = a.Invoke(wfc, op)
+		harResponse, mongoError, err = a.Invoke(wfc, op)
 		if err != nil {
-			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-			metricsLabels[MetricIdStatusCode] = "500"
-			// See defer a.SetMetrics(beginOf, metricsLabels)
-			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+			log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 		}
+
+		/*
+			if err != nil {
+				wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+				metricsLabels[MetricIdStatusCode] = fmt.Sprint(mongoError)
+				// See defer a.SetMetrics(beginOf, metricsLabels)
+				return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+			}
+		*/
 
 		if harResponse != nil {
 			_ = wfc.SetHarEntryResponse(a.Name(), harResponse, tcfg.PII)
-			metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
+			metricsLabels[MetricIdStatusCode] = fmt.Sprint(mongoError)
 
 			if cacheEnabled && harResponse.Status == http.StatusOK {
 				err = a.saveResponseToCache(cacheCfg, harResponse.Content.Data)
@@ -184,8 +191,12 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 	}
 
+	statusToRemap := harResponse.Status
+	if harResponse.Status != http.StatusOK && mongoError != 0 {
+		statusToRemap = mongoError
+	}
 	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(
-		harResponse.Status, a.Name(), a.Name(), wfc, nil, wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, a.definition.OnResponseActions, false)
+		statusToRemap, a.Name(), a.Name(), wfc, nil, wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, a.definition.OnResponseActions, false)
 	if remappedStatusCode > 0 {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 	}
@@ -249,13 +260,13 @@ func (a *MongoActivity) resolveStatementParts(wfc *wfcase.WfCase, m map[jsonops.
 	return newMap, nil
 }
 
-func (a *MongoActivity) Invoke(wfc *wfcase.WfCase, op jsonops.Operation) (*har.Response, error) {
+func (a *MongoActivity) Invoke(wfc *wfcase.WfCase, op jsonops.Operation) (*har.Response, int, error) {
 
 	const semLogContext = "mongo-activity::invoke"
 	lks, err := mongolks.GetLinkedService(context.Background(), a.definition.LksName)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
-		return nil, err
+		return nil, -1, err
 	}
 
 	sc, resp, err := op.Execute(lks, a.definition.CollectionId)
@@ -264,8 +275,8 @@ func (a *MongoActivity) Invoke(wfc *wfcase.WfCase, op jsonops.Operation) (*har.R
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
 		err = util.NewError(strconv.Itoa(sc.StatusCode), err)
-		r = har.NewResponse(sc.StatusCode, http.StatusText(sc.StatusCode), "text/plain", []byte(err.Error()), nil)
-		return r, err
+		r = har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
+		return r, sc.StatusCode, err
 	}
 
 	on200ActionNdx := a.definition.OnResponseActions.FindByStatusCode(http.StatusOK)
@@ -307,7 +318,7 @@ func (a *MongoActivity) Invoke(wfc *wfcase.WfCase, op jsonops.Operation) (*har.R
 		},
 	}
 
-	return r, nil
+	return r, 0, nil
 }
 
 func (a *MongoActivity) newRequestDefinition(wfc *wfcase.WfCase, op jsonops.Operation) (*har.Request, error) {

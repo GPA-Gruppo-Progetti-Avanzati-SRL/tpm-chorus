@@ -109,6 +109,10 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 	_ = wfc.SetHarEntryRequest(a.Name(), req, tcfg.PII)
 
 	harResponse, err := a.Invoke(wfc, expressionCtx)
+	if err != nil {
+		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+	}
+
 	if harResponse != nil {
 		_ = wfc.SetHarEntryResponse(a.Name(), harResponse, tcfg.PII)
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
