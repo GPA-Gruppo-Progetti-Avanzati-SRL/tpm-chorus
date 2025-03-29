@@ -1,4 +1,4 @@
-package rhpcfg
+package plconfig
 
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
@@ -13,15 +13,15 @@ import (
 )
 
 const (
-	DefinitionFileName = "tpm-rhapsody-pipeline.yml"
+	RhpPipelineDefinitionFileName = "tpm-rhapsody-pipeline.yml"
 )
 
-type EventDefinitionType struct {
+type RhpPipelineEventDefinitionType struct {
 	ContentType string `json:"content-type,omitempty" yaml:"content-type,omitempty" mapstructure:"content-type,omitempty"`
 	Schema      string `json:"schema,omitempty" yaml:"schema,omitempty" mapstructure:"schema,omitempty"`
 }
 
-func (p *EventDefinitionType) IsZero() bool {
+func (p *RhpPipelineEventDefinitionType) IsZero() bool {
 	if p.ContentType == "" && p.Schema == "" {
 		return true
 	}
@@ -29,12 +29,12 @@ func (p *EventDefinitionType) IsZero() bool {
 	return false
 }
 
-type EventDefinition struct {
-	Key  EventDefinitionType `json:"key,omitempty" yaml:"key,omitempty" mapstructure:"key,omitempty"`
-	Body EventDefinitionType `json:"body,omitempty" yaml:"body,omitempty" mapstructure:"body,omitempty"`
+type RhpPipelineEventDefinition struct {
+	Key  RhpPipelineEventDefinitionType `json:"key,omitempty" yaml:"key,omitempty" mapstructure:"key,omitempty"`
+	Body RhpPipelineEventDefinitionType `json:"body,omitempty" yaml:"body,omitempty" mapstructure:"body,omitempty"`
 }
 
-func (p *EventDefinition) IsZero() bool {
+func (p *RhpPipelineEventDefinition) IsZero() bool {
 	if p.Body.IsZero() && p.Key.IsZero() {
 		return true
 	}
@@ -42,18 +42,18 @@ func (p *EventDefinition) IsZero() bool {
 	return false
 }
 
-type Destination struct {
+type RhpPipelineDestination struct {
 	SingStage string `json:"sink-stage,omitempty" yaml:"sink-stage,omitempty" mapstructure:"sink-stage,omitempty"`
 	Guard     string `json:"guard,omitempty" yaml:"guard,omitempty" mapstructure:"guard,omitempty"`
 }
 
-type PathDefinition struct {
-	OrchestrationFolder string          `json:"orchestration-folder,omitempty" yaml:"orchestration-folder,omitempty" mapstructure:"orchestration-folder,omitempty"`
-	EventInfo           EventDefinition `json:"event,omitempty" yaml:"event,omitempty" mapstructure:"event,omitempty"`
-	Destinations        []Destination   `json:"destinations,omitempty" yaml:"destinations,omitempty" mapstructure:"destinations,omitempty"`
+type RhpPipelinePathDefinition struct {
+	OrchestrationFolder string                     `json:"orchestration-folder,omitempty" yaml:"orchestration-folder,omitempty" mapstructure:"orchestration-folder,omitempty"`
+	EventInfo           RhpPipelineEventDefinition `json:"event,omitempty" yaml:"event,omitempty" mapstructure:"event,omitempty"`
+	Destinations        []RhpPipelineDestination   `json:"destinations,omitempty" yaml:"destinations,omitempty" mapstructure:"destinations,omitempty"`
 }
 
-func (p *PathDefinition) IsZero() bool {
+func (p *RhpPipelinePathDefinition) IsZero() bool {
 	if p.OrchestrationFolder == "" && len(p.Destinations) == 0 && p.EventInfo.IsZero() {
 		return true
 	}
@@ -61,7 +61,7 @@ func (p *PathDefinition) IsZero() bool {
 	return false
 }
 
-type Definition struct {
+type RhpPipelineDefinition struct {
 	Id                           string                           `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id,omitempty"`
 	En                           string                           `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty"`
 	Description                  string                           `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
@@ -80,13 +80,13 @@ type Definition struct {
 	RefMetrics                   *promutil.MetricsConfigReference `yaml:"ref-metrics"  mapstructure:"ref-metrics"  json:"ref-metrics"`
 	SpanName                     string                           `yaml:"tracing-span-name,omitempty" mapstructure:"tracing-span-name,omitempty" json:"tracing-span-name,omitempty"`
 	DeadLetterTopic              string                           `json:"dead-letter-topic,omitempty" yaml:"dead-letter-topic,omitempty" mapstructure:"dead-letter-topic,omitempty"`
-	Paths                        []PathDefinition                 `json:"paths,omitempty" yaml:"paths,omitempty" mapstructure:"paths,omitempty"`
+	Paths                        []RhpPipelinePathDefinition      `json:"paths,omitempty" yaml:"paths,omitempty" mapstructure:"paths,omitempty"`
 	Sinks                        []SinkStageDefinitionReference   `json:"sink-stages,omitempty" yaml:"sink-stages,omitempty" mapstructure:"sink-stages,omitempty"`
 	WithSynchDelivery            string                           `yaml:"with-synch-delivery,omitempty" mapstructure:"with-synch-delivery,omitempty" json:"with-synch-delivery,omitempty"`
 	NoAbortOnAsyncDeliveryFailed string                           `yaml:"no-abort-on-async-delivery-failed,omitempty" mapstructure:"no-abort-on-async-delivery-failed,omitempty" json:"no-abort-on-async-delivery-failed,omitempty"`
 }
 
-func (d *Definition) GetMaxPollTimeoutMsAsInt() int {
+func (d *RhpPipelineDefinition) GetMaxPollTimeoutMsAsInt() int {
 	const semLogContext = "pipeline-definition::get-max-poll-timeout"
 	if d.MaxPollTimeoutMs != "" {
 		if tm, err := strconv.Atoi(d.MaxPollTimeoutMs); err == nil {
@@ -99,7 +99,7 @@ func (d *Definition) GetMaxPollTimeoutMsAsInt() int {
 	return d.MaxPollTimeout
 }
 
-func (d *Definition) Enabled() bool {
+func (d *RhpPipelineDefinition) Enabled() bool {
 	if d.En == "" || d.En == "true" {
 		return true
 	}
@@ -107,11 +107,11 @@ func (d *Definition) Enabled() bool {
 	return false
 }
 
-func (d *Definition) ErrorPolicyForError(err error) string {
+func (d *RhpPipelineDefinition) ErrorPolicyForError(err error) string {
 	return tprod.ErrorPolicyForError(err, d.OnErrors)
 }
 
-func (d *Definition) NumPartitionsAsInt() int {
+func (d *RhpPipelineDefinition) NumPartitionsAsInt() int {
 	const semLogContext = "pipeline-definition::num-partitions"
 
 	if d.NumPartitions == "" {
@@ -127,10 +127,10 @@ func (d *Definition) NumPartitionsAsInt() int {
 	return n
 }
 
-func DeserializeFromYAMLFile(fn string) (Definition, error) {
+func DeserializeRhpPipelineDefinitionFromYAMLFile(fn string) (RhpPipelineDefinition, error) {
 
 	const semLogContext = "pipeline-definition::deserialize-from-yaml-file"
-	pl := Definition{}
+	pl := RhpPipelineDefinition{}
 
 	b, err := util.ReadFileAndResolveEnvVars(fn)
 	if err != nil {
@@ -158,9 +158,9 @@ func DeserializeFromYAMLFile(fn string) (Definition, error) {
 	return pl, err
 }
 
-func (d *Definition) WriteToFolder(folderName string, writeOpts ...fileutil.WriteOption) error {
+func (d *RhpPipelineDefinition) WriteToFolder(folderName string, writeOpts ...fileutil.WriteOption) error {
 	const semLogContext = "pipeline-definition::write-to-file"
-	fn := filepath.Join(folderName, DefinitionFileName)
+	fn := filepath.Join(folderName, RhpPipelineDefinitionFileName)
 	log.Info().Str("file-name", fn).Msg(semLogContext)
 	b, err := yaml.Marshal(d)
 	if err != nil {

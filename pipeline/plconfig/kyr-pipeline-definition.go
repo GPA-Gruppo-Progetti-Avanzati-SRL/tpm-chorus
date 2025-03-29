@@ -1,4 +1,4 @@
-package kyriecfg
+package plconfig
 
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
@@ -32,15 +32,15 @@ const (
 )
 
 const (
-	DefinitionFileName = "tpm-kyrie-pipeline.yml"
+	KyrPipelineDefinitionFileName = "tpm-kyrie-pipeline.yml"
 )
 
-type EventDefinition struct {
+type KyrPipelineEventDefinition struct {
 	ContentType string `json:"content-type,omitempty" yaml:"content-type,omitempty" mapstructure:"content-type,omitempty"`
 	Schema      string `json:"schema,omitempty" yaml:"schema,omitempty" mapstructure:"schema,omitempty"`
 }
 
-func (p *EventDefinition) IsZero() bool {
+func (p *KyrPipelineEventDefinition) IsZero() bool {
 	if p.ContentType == "" && p.Schema == "" {
 		return true
 	}
@@ -48,18 +48,18 @@ func (p *EventDefinition) IsZero() bool {
 	return false
 }
 
-type Destination struct {
+type KyrPipelineDestination struct {
 	SingStage string `json:"sink-stage,omitempty" yaml:"sink-stage,omitempty" mapstructure:"sink-stage,omitempty"`
 	Guard     string `json:"guard,omitempty" yaml:"guard,omitempty" mapstructure:"guard,omitempty"`
 }
 
-type PathDefinition struct {
-	OrchestrationFolder string          `json:"orchestration-folder,omitempty" yaml:"orchestration-folder,omitempty" mapstructure:"orchestration-folder,omitempty"`
-	EventInfo           EventDefinition `json:"event,omitempty" yaml:"event,omitempty" mapstructure:"event,omitempty"`
-	Destinations        []Destination   `json:"destinations,omitempty" yaml:"destinations,omitempty" mapstructure:"destinations,omitempty"`
+type KyrPipelinePathDefinition struct {
+	OrchestrationFolder string                     `json:"orchestration-folder,omitempty" yaml:"orchestration-folder,omitempty" mapstructure:"orchestration-folder,omitempty"`
+	EventInfo           KyrPipelineEventDefinition `json:"event,omitempty" yaml:"event,omitempty" mapstructure:"event,omitempty"`
+	Destinations        []KyrPipelineDestination   `json:"destinations,omitempty" yaml:"destinations,omitempty" mapstructure:"destinations,omitempty"`
 }
 
-func (p *PathDefinition) IsZero() bool {
+func (p *KyrPipelinePathDefinition) IsZero() bool {
 	if p.OrchestrationFolder == "" && len(p.Destinations) == 0 && p.EventInfo.IsZero() {
 		return true
 	}
@@ -69,7 +69,7 @@ func (p *PathDefinition) IsZero() bool {
 
 // OnErrors            []OnErrorPolicy                     `yaml:"on-errors,omitempty" mapstructure:"on-errors,omitempty" json:"on-errors,omitempty"`
 
-type Definition struct {
+type KyrPipelineDefinition struct {
 	Id                         string                           `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id,omitempty"`
 	En                         string                           `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty"`
 	Description                string                           `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
@@ -83,13 +83,13 @@ type Definition struct {
 	RefMetrics                 *promutil.MetricsConfigReference `yaml:"ref-metrics"  mapstructure:"ref-metrics"  json:"ref-metrics"`
 	SpanName                   string                           `yaml:"tracing-span-name,omitempty" mapstructure:"tracing-span-name,omitempty" json:"tracing-span-name,omitempty"`
 	DeadLetterTopic            string                           `json:"dead-letter-topic,omitempty" yaml:"dead-letter-topic,omitempty" mapstructure:"dead-letter-topic,omitempty"`
-	Paths                      []PathDefinition                 `json:"paths,omitempty" yaml:"paths,omitempty" mapstructure:"paths,omitempty"`
+	Paths                      []KyrPipelinePathDefinition      `json:"paths,omitempty" yaml:"paths,omitempty" mapstructure:"paths,omitempty"`
 	Sinks                      []SinkStageDefinitionReference   `json:"sink-stages,omitempty" yaml:"sink-stages,omitempty" mapstructure:"sink-stages,omitempty"`
 	Consumer                   changestream.Config              `yaml:"consumer,omitempty" mapstructure:"consumer,omitempty" json:"consumer,omitempty"`
 	CheckPointSvcConfig        factory.Config                   `yaml:"checkpoint-svc,omitempty" mapstructure:"checkpoint-svc,omitempty" json:"checkpoint-svc,omitempty"`
 }
 
-func (d *Definition) Enabled() bool {
+func (d *KyrPipelineDefinition) Enabled() bool {
 	if d.En == "" || d.En == "true" {
 		return true
 	}
@@ -101,7 +101,7 @@ func (d *Definition) Enabled() bool {
 //	return ErrorPolicyForError(err, d.OnErrors)
 //}
 
-func (d *Definition) NumPartitionsAsInt() int {
+func (d *KyrPipelineDefinition) NumPartitionsAsInt() int {
 	const semLogContext = "pipeline-definition::num-partitions"
 
 	if d.NumPartitions == "" {
@@ -117,10 +117,10 @@ func (d *Definition) NumPartitionsAsInt() int {
 	return n
 }
 
-func DeserializeFromYAMLFile(fn string) (Definition, error) {
+func DeserializeKyrPipelineFromYAMLFile(fn string) (KyrPipelineDefinition, error) {
 
 	const semLogContext = "pipeline-definition::deserialize-from-yaml-file"
-	pl := Definition{}
+	pl := KyrPipelineDefinition{}
 
 	b, err := util.ReadFileAndResolveEnvVars(fn)
 	if err != nil {
@@ -159,9 +159,9 @@ func DeserializeFromYAMLFile(fn string) (Definition, error) {
 	return pl, err
 }
 
-func (d *Definition) WriteToFolder(folderName string, writeOpts ...fileutil.WriteOption) error {
+func (d *KyrPipelineDefinition) WriteToFolder(folderName string, writeOpts ...fileutil.WriteOption) error {
 	const semLogContext = "pipeline-definition::write-to-file"
-	fn := filepath.Join(folderName, DefinitionFileName)
+	fn := filepath.Join(folderName, KyrPipelineDefinitionFileName)
 	log.Info().Str("file-name", fn).Msg(semLogContext)
 	b, err := yaml.Marshal(d)
 	if err != nil {
@@ -178,12 +178,12 @@ func (d *Definition) WriteToFolder(folderName string, writeOpts ...fileutil.Writ
 	return nil
 }
 
-type OnErrorPolicy struct {
+type KyrPipelineOnErrorPolicy struct {
 	ErrLevel string `yaml:"level,omitempty" mapstructure:"level,omitempty" json:"level,omitempty"`
 	Policy   string `yaml:"policy,omitempty" mapstructure:"policy,omitempty" json:"policy,omitempty"`
 }
 
-func ErrorPolicyForError(err error, onErrors []OnErrorPolicy) string {
+func KyrPipelineErrorPolicyForError(err error, onErrors []KyrPipelineOnErrorPolicy) string {
 
 	level := OnErrorLevelFatal
 	//var tprodErr *TransformerProducerError

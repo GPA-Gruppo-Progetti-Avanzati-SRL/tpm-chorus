@@ -1,4 +1,4 @@
-package kyriecfg
+package plconfig
 
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"

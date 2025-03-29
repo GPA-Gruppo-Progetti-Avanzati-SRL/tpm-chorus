@@ -1,4 +1,4 @@
-package mongosink
+package plconfig
 
 import (
 	"errors"
