@@ -31,9 +31,11 @@ func InitRegistry(cfg *Config) error {
 		return err
 	}
 
-	_, err = cachelksregistry.Initialize(*cfg.Redis)
-	if err != nil {
-		return err
+	if cfg.Redis != nil {
+		_, err = cachelksregistry.Initialize(*cfg.Redis)
+		if err != nil {
+			return err
+		}
 	}
 
 	_, err = mongolks.Initialize(cfg.MongoDb)

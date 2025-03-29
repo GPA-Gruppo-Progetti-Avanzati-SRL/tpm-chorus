@@ -140,6 +140,10 @@ func DeserializeFromYAMLFile(fn string) (Definition, error) {
 		pl.Consumer.OnErrorPolicy = consumerproducer.OnErrorExit
 	}
 
+	if pl.WithChannel && pl.WithChannelSize <= 0 {
+		pl.WithChannelSize = 2
+	}
+
 	/*
 		if len(pl.OnErrors) == 0 {
 			log.Warn().Msg(semLogContext + " - please set OnErrors property using exit for all levels")

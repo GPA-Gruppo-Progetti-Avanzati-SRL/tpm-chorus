@@ -12,6 +12,7 @@ import (
 
 const (
 	SinkTypeKafka        = "kafka"
+	SinkTypeRawKafka     = "kafka-raw"
 	MessageKeyHeaderName = "X-Kafka-Key"
 
 	// from pipeline package not to have cyclic issues
