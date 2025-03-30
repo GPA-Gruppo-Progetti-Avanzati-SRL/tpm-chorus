@@ -18,6 +18,8 @@ github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.82 h1:pQfKjhc+
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.82/go.mod h1:o0CLazDfwNuCFKzJ6WeheJ/vnWAoD9kHInOu4coaDYk=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.63 h1:XEalpulVNR8XCvtK/pC8daN/oQbnxtW+XwIawh2ufPQ=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.63/go.mod h1:cmp63wI/3whXiH86BGP1+B0ztkGtyyzcOB0XOsxTziQ=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.64 h1:URRtTw62IUd41/IfaRmudj4fOoKaBA5f9MATCTyI0j4=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.64/go.mod h1:6lXbZjPrlHN3AnDrrCqDVcE5TXxwbZmej/5sDuEjdBA=
 github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0rYXWg0=
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
