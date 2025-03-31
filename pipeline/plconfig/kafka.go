@@ -49,7 +49,7 @@ type KafkaSinkDefinition struct {
 	OnNotCompleted            KafkaSinkOnNotCompleted               `yaml:"on-not-completed,omitempty"  mapstructure:"on-not-completed,omitempty"  json:"on-not-completed,omitempty"`
 	WithSynchDlv              string                                `yaml:"with-synch-delivery,omitempty" mapstructure:"with-synch-delivery,omitempty" json:"with-synch-delivery,omitempty"`
 	FlushConfig               KafkaSinkStageMessageQueueFlushConfig `yaml:"flush-config,omitempty"  mapstructure:"flush-config,omitempty" json:"flush-config,omitempty"`
-	WithRandomError           int                                   `yaml:"with-random-error,omitempty" mapstructure:"with-random-error,omitempty" json:"with-random-error,omitempty"`
+	WithRandomError           string                                `yaml:"with-random-error,omitempty" mapstructure:"with-random-error,omitempty" json:"with-random-error,omitempty"`
 	MessageProducerBufferSize int                                   `yaml:"mp-buffer-size,omitempty" mapstructure:"mp-buffer-size,omitempty" json:"mp-buffer-size,omitempty"`
 	// Guard      string               `json:"guard" yaml:"guard" mapstructure:"guard"`
 }

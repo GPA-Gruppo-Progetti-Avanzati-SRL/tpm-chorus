@@ -94,7 +94,7 @@ func (stat *StatsInfo) Log(semLogContext string, expectedCompleted bool) {
 		evt = log.Error().Err(err)
 	} else if !stat.IsComplete() && expectedCompleted {
 		err = errors.New("kafka stage not completed, but should be")
-		evt = log.Info().Err(err)
+		evt = log.Error().Err(err)
 	} else {
 		evt = log.Trace()
 	}
