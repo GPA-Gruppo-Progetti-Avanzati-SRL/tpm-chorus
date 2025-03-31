@@ -24,9 +24,9 @@ const (
 
 	OnEofExit = "exit"
 
-	WorkModeMsg   = "msg-mode"
-	WorkModeBatch = "batch-mode"
-
+	WorkModeMsg            = "msg-mode"
+	WorkModeBatch          = "batch-mode"
+	WorkModeBatchFF        = "batch-mode-ff"
 	EventJsonModeCanonical = "canonical"
 	EventJsonModeRelaxed   = "relaxed"
 )
@@ -156,7 +156,60 @@ func DeserializeKyrPipelineFromYAMLFile(fn string) (KyrPipelineDefinition, error
 	*/
 
 	log.Info().Int("num-partitions", pl.NumPartitionsAsInt()).Msg(semLogContext)
+	if pl.isPipelineEligible4RawProcessing() {
+		pl.WorkMode = WorkModeBatchFF
+		log.Warn().Str("pipeline-mode", pl.WorkMode).Msg(semLogContext)
+	}
+
 	return pl, err
+}
+
+func (d *KyrPipelineDefinition) isPipelineEligible4RawProcessing() bool {
+	const semLogContext = "pipeline-definition::is-pipeline-eligible-4-bulk-processing"
+
+	if d.WorkMode != WorkModeBatch {
+		log.Info().Msg(semLogContext + " - for this scenario work-mode should be set to " + WorkModeBatch)
+		return false
+	}
+
+	if len(d.Paths) > 1 {
+		log.Info().Msg(semLogContext + " - only one path is supported for raw scenario")
+		return false
+	}
+
+	for _, path := range d.Paths {
+		if path.OrchestrationFolder != "" {
+			log.Info().Msg(semLogContext + " - orchestrations are not supported for raw scenario")
+			return false
+		}
+
+		if len(path.Destinations) > 1 {
+			log.Info().Msg(semLogContext + " - the single path scenario admits at maximum only one destination")
+			return false
+		}
+
+		for _, dest := range path.Destinations {
+			if dest.Guard != "" && dest.Guard != "true" {
+				log.Info().Msg(semLogContext + " - the single destination has to be const enabled")
+				return false
+			}
+		}
+	}
+
+	if len(d.Sinks) > 1 {
+		log.Info().Msg(semLogContext + " - only one sink is supported for raw scenario")
+		return false
+	}
+
+	for _, sink := range d.Sinks {
+		if sink.Typ != SinkTypeKafkaFF {
+			log.Info().Msg(semLogContext + " - only kafka-ff sink is supported for raw scenario")
+			return false
+		}
+	}
+
+	log.Info().Msg(semLogContext + " - pipeline is eligible for batch raw processing")
+	return true
 }
 
 func (d *KyrPipelineDefinition) WriteToFolder(folderName string, writeOpts ...fileutil.WriteOption) error {
