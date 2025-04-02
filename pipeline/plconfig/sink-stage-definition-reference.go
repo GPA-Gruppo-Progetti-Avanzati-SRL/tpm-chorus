@@ -3,8 +3,17 @@ package plconfig
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"github.com/rs/zerolog/log"
 )
+
+const (
+	DefaultSinksMetricsGroupId = "sinks"
+)
+
+var DefaultSinksMetricsCfg = promutil.MetricsConfigReference{
+	GId: DefaultSinksMetricsGroupId,
+}
 
 type SinkStageDefinitionReference struct {
 	StageId        string `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id,omitempty"`

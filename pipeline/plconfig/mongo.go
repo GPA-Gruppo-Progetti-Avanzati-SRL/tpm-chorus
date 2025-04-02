@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config/repo"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/jsonops"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -20,8 +21,17 @@ type MongoSinkDefinition struct {
 	OpType         jsonops.MongoJsonOperationType                     `yaml:"-" json:"-" mapstructure:"-"`
 	LksName        string                                             `yaml:"lks-name,omitempty" json:"lks-name,omitempty" mapstructure:"lks-name,omitempty"`
 	CollectionId   string                                             `yaml:"collection-id,omitempty" json:"collection-id,omitempty" mapstructure:"collection-id,omitempty"`
+	RefMetrics     *promutil.MetricsConfigReference                   `yaml:"ref-metrics,omitempty"  mapstructure:"ref-metrics,omitempty"  json:"ref-metrics,omitempty"`
 	Statement      map[jsonops.MongoJsonOperationStatementPart]string `yaml:"statement,omitempty" json:"statement,omitempty" mapstructure:"statement,omitempty"`
-	StatementParts map[jsonops.MongoJsonOperationStatementPart][]byte
+	StatementParts map[jsonops.MongoJsonOperationStatementPart][]byte `yaml:"-" json:"-" mapstructure:"-"`
+}
+
+func (def *MongoSinkDefinition) MetricsConfigGroupId() string {
+	if def.RefMetrics != nil && def.RefMetrics.GId != "" {
+		return def.RefMetrics.GId
+	}
+
+	return DefaultSinksMetricsCfg.GId
 }
 
 func (def *MongoSinkDefinition) WriteToFile(folderName string, fileName string, writeOpts ...fileutil.WriteOption) error {
