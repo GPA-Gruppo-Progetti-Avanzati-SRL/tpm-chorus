@@ -4,10 +4,10 @@ go 1.23.3
 
 require (
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.23
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.79
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.80
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.19
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.19
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.83
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.84
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.78
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/PaesslerAG/jsonpath v0.1.1
@@ -21,7 +21,7 @@ require (
 	github.com/prometheus/client_golang v1.20.5
 	github.com/qntfy/jsonparser v1.0.2
 	github.com/qntfy/kazaam v3.4.9+incompatible
-	github.com/rs/zerolog v1.33.0
+	github.com/rs/zerolog v1.34.0
 	github.com/santhosh-tekuri/jsonschema v1.2.4
 	github.com/stretchr/testify v1.10.0
 	go.mongodb.org/mongo-driver v1.17.2
