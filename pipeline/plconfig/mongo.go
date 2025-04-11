@@ -18,12 +18,13 @@ const (
 )
 
 type MongoSinkDefinition struct {
-	OpType         jsonops.MongoJsonOperationType                     `yaml:"-" json:"-" mapstructure:"-"`
-	LksName        string                                             `yaml:"lks-name,omitempty" json:"lks-name,omitempty" mapstructure:"lks-name,omitempty"`
-	CollectionId   string                                             `yaml:"collection-id,omitempty" json:"collection-id,omitempty" mapstructure:"collection-id,omitempty"`
-	RefMetrics     *promutil.MetricsConfigReference                   `yaml:"ref-metrics,omitempty"  mapstructure:"ref-metrics,omitempty"  json:"ref-metrics,omitempty"`
-	Statement      map[jsonops.MongoJsonOperationStatementPart]string `yaml:"statement,omitempty" json:"statement,omitempty" mapstructure:"statement,omitempty"`
-	StatementParts map[jsonops.MongoJsonOperationStatementPart][]byte `yaml:"-" json:"-" mapstructure:"-"`
+	OpType          jsonops.MongoJsonOperationType                     `yaml:"-" json:"-" mapstructure:"-"`
+	LksName         string                                             `yaml:"lks-name,omitempty" json:"lks-name,omitempty" mapstructure:"lks-name,omitempty"`
+	CollectionId    string                                             `yaml:"collection-id,omitempty" json:"collection-id,omitempty" mapstructure:"collection-id,omitempty"`
+	RefMetrics      *promutil.MetricsConfigReference                   `yaml:"ref-metrics,omitempty"  mapstructure:"ref-metrics,omitempty"  json:"ref-metrics,omitempty"`
+	OrderedBlkWrite string                                             `yaml:"ordered-write,omitempty" json:"ordered-write,omitempty" mapstructure:"ordered-write,omitempty"`
+	Statement       map[jsonops.MongoJsonOperationStatementPart]string `yaml:"statement,omitempty" json:"statement,omitempty" mapstructure:"statement,omitempty"`
+	StatementParts  map[jsonops.MongoJsonOperationStatementPart][]byte `yaml:"-" json:"-" mapstructure:"-"`
 }
 
 func (def *MongoSinkDefinition) MetricsConfigGroupId() string {
@@ -32,6 +33,16 @@ func (def *MongoSinkDefinition) MetricsConfigGroupId() string {
 	}
 
 	return DefaultSinksMetricsCfg.GId
+}
+
+func (def *MongoSinkDefinition) BulkWriteOrdered() bool {
+	const semLogContext = "mongo-sink-definition::bulk-write-ordered"
+
+	if def.OrderedBlkWrite == "false" {
+		return false
+	}
+
+	return true
 }
 
 func (def *MongoSinkDefinition) WriteToFile(folderName string, fileName string, writeOpts ...fileutil.WriteOption) error {

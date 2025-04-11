@@ -4,6 +4,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"github.com/rs/zerolog/log"
 	"go.mongodb.org/mongo-driver/mongo"
+	"time"
 )
 
 type StatsInfo struct {
@@ -24,6 +25,7 @@ type StatsInfo struct {
 	WriteErrsCountMetric     promutil.CollectorWithLabels
 	WriteBulkSizeGaugeMetric promutil.CollectorWithLabels
 	SinkDiscardedCountMetric promutil.CollectorWithLabels
+	WriteDurationHistMetric  promutil.CollectorWithLabels
 	metricErrors             bool
 }
 
@@ -40,13 +42,14 @@ func (stat *StatsInfo) Clear() *StatsInfo {
 }
 
 const (
-	WriteBulkOpsMetric       = "mdb-writes-ops"
-	WriteErrsMetric          = "mdb-write-errors"
-	WriteBulkSizeGaugeMetric = "mdb-write-bulk-size"
-	SinkDiscardedCountMetric = "mdb-sink-discarded-count"
-	MetricLabelStageId       = "name"
-	MetricLabelPipelineId    = "pipeline-id"
-	MetricLabelOpCounter     = "oper"
+	WriteDurationHistogramMetric = "mdb-write-duration"
+	WriteBulkOpsMetric           = "mdb-writes-ops"
+	WriteErrsMetric              = "mdb-write-errors"
+	WriteBulkSizeGaugeMetric     = "mdb-write-bulk-size"
+	SinkDiscardedCountMetric     = "mdb-sink-discarded-count"
+	MetricLabelStageId           = "name"
+	MetricLabelPipelineId        = "pipeline-id"
+	MetricLabelOpCounter         = "oper"
 )
 
 func NewStatsInfo(pipelineId, stageId, collectionName string, metricGroupId string) *StatsInfo {
@@ -138,6 +141,15 @@ func NewStatsInfo(pipelineId, stageId, collectionName string, metricGroupId stri
 			stat.metricErrors = true
 			return stat
 		}
+
+		stat.WriteDurationHistMetric, err = mg.CollectorByIdWithLabels(WriteDurationHistogramMetric, map[string]string{
+			MetricLabelPipelineId: pipelineId,
+			MetricLabelStageId:    stageId,
+		})
+		if err != nil {
+			stat.metricErrors = true
+			return stat
+		}
 	}
 
 	return stat
@@ -166,7 +178,7 @@ func (stat *StatsInfo) IncErrors(errs int64) {
 	}
 }
 
-func (stat *StatsInfo) Update(result *mongo.BulkWriteResult) {
+func (stat *StatsInfo) Update(result *mongo.BulkWriteResult, writeDuration time.Duration) {
 	stat.DeletedCount += result.DeletedCount
 	stat.InsertedCount += result.InsertedCount
 	stat.MatchedCount += result.MatchedCount
@@ -179,5 +191,6 @@ func (stat *StatsInfo) Update(result *mongo.BulkWriteResult) {
 		stat.WriteInsertedCountMetric.SetMetric(float64(result.InsertedCount))
 		stat.WriteUpsertedCountMetric.SetMetric(float64(result.UpsertedCount))
 		stat.WriteDeletedCountMetric.SetMetric(float64(result.DeletedCount))
+		stat.WriteDurationHistMetric.SetMetric(writeDuration.Seconds())
 	}
 }
