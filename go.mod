@@ -3,7 +3,7 @@ module github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus
 go 1.23.3
 
 require (
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.23
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.24
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.80
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.19
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.19
@@ -60,7 +60,7 @@ require (
 	github.com/prometheus/client_model v0.6.1 // indirect
 	github.com/prometheus/common v0.59.1 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
-	github.com/redis/go-redis/v9 v9.6.1 // indirect
+	github.com/redis/go-redis/v9 v9.7.3 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/secure-systems-lab/go-securesystemslib v0.8.0 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
