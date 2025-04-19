@@ -28,6 +28,7 @@ const (
 	ScriptActivityType              Type = "script-activity"
 	JsonSchemaActivityType          Type = "json-schema-activity"
 	LoopActivityType                Type = "loop-activity"
+	CacheActivityType               Type = "cache-activity"
 
 	MongoDbActor    = "MongoDB"
 	WebServiceActor = "WebService"
@@ -53,6 +54,7 @@ var activityTypeRegistry = map[Type]ActivityTypeRegistryEntry{
 	ScriptActivityType:              {Tp: ScriptActivityType, UnmarshallFromJSON: NewScriptActivityFromJSON, UnmarshalFromYAML: NewScriptActivityFromYAML},
 	JsonSchemaActivityType:          {Tp: JsonSchemaActivityType, UnmarshallFromJSON: NewJsonSchemaActivityFromJSON, UnmarshalFromYAML: NewJsonSchemaActivityFromYAML},
 	LoopActivityType:                {Tp: LoopActivityType, UnmarshallFromJSON: NewLoopActivityFromJSON, UnmarshalFromYAML: NewLoopActivityFromYAML},
+	CacheActivityType:               {Tp: CacheActivityType, UnmarshallFromJSON: NewCacheActivityFromJSON, UnmarshalFromYAML: NewCacheActivityFromYAML},
 }
 
 type Guarded interface {

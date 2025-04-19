@@ -121,7 +121,7 @@ func UnmarshalJsonSchemaActivityDefinition(schemaNamespace, def string, refs Dat
 		data, ok := refs.Find(def)
 		if len(data) == 0 || !ok {
 			err = errors.New("cannot find activity definition")
-			log.Error().Err(err).Msg(semLogContext)
+			log.Error().Err(err).Str("def", def).Msg(semLogContext)
 			return maDef, err
 		}
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/cacheactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/echoactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/endpointactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/jsonschemaactivity"
@@ -73,6 +74,8 @@ func NewOrchestration(cfg *config.Orchestration) (Orchestration, error) {
 			ex, err = jsonschemaactivity.NewJsonSchemaActivity(cfgItem, cfg.References)
 		case config.LoopActivityType:
 			ex, err = NewLoopActivity(cfgItem, cfg.References, mapOfNestedOrcs)
+		case config.CacheActivityType:
+			ex, err = cacheactivity.NewCacheActivity(cfgItem, cfg.References)
 		default:
 			panic(fmt.Errorf("this should not happen %s, unrecognized sctivity type", cfgItem.Type()))
 		}
