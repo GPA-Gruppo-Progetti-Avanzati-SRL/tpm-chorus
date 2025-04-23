@@ -485,7 +485,14 @@ func (pvr *Evaluator) EvaluateTemplate(tmpl string, funcMap template.FuncMap) ([
 
 func isJsonPathUnknownKey(err error) bool {
 	if err != nil {
-		return strings.HasPrefix(err.Error(), "unknown key")
+
+		s := err.Error()
+		switch {
+		case strings.HasPrefix(s, "unknown key"):
+			return true
+		case strings.HasPrefix(s, "unsupported value type <nil> for select"):
+			return true
+		}
 	}
 
 	return false
