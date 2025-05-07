@@ -141,7 +141,8 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		log.Info().Msg(semLogContext + " - no workflow case request deadline has been set")
 	}
 
-	err = a.executeNestedOrchestration(wfcChild)
+	var st int
+	st, err = a.executeNestedOrchestration(wfcChild)
 	harData := wfcChild.GetHarData(wfcase.ReportLogHAR, nil)
 	if harData != nil {
 		entryId := wfc.ComputeFirstAvailableIndexedHarEntryId(a.Name())
@@ -155,7 +156,6 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 	}
 
-	st := http.StatusOK
 	if err != nil {
 		st = http.StatusInternalServerError
 	}
@@ -173,8 +173,9 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 	return nil
 }
 
-func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfCase) error {
+func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfCase) (int, error) {
 	const semLogContext = string(config.NestedOrchestrationActivityType) + "::execute-orchestration"
+	nestedStatusCode := http.StatusInternalServerError
 
 	var orchestrationErr error
 
@@ -197,6 +198,7 @@ func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfC
 			)
 			_ = wfc.SetHarEntryResponse("request", harResponse, a.orchestration.Cfg.PII)
 			log.Info().Str("response", string(resp.Content.Data)).Msg(semLogContext)
+			nestedStatusCode = resp.Status
 		}
 	}
 
@@ -214,6 +216,7 @@ func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfC
 		} else {
 			log.Error().Str("response", string(resp)).Msg(semLogContext)
 		}
+		nestedStatusCode = sc
 	}
 
 	bndry, ok := a.orchestration.Cfg.FindBoundaryByName(config.DefaultActivityBoundary)
@@ -226,7 +229,7 @@ func (a *NestedOrchestrationActivity) executeNestedOrchestration(wfc *wfcase.WfC
 		orchestrationErr = util.CoalesceError(orchestrationErr, err)
 	}
 
-	return orchestrationErr
+	return nestedStatusCode, orchestrationErr
 }
 
 func produceNestedActivityErrorResponse(err error) (int, string, []byte) {
