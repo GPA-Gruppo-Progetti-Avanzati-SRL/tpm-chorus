@@ -166,7 +166,7 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 	}
 	if err != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithErrorMessage(err.Error()))
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithError(err))
 	}
 
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
