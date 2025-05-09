@@ -103,7 +103,7 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 	if err != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		metricsLabels[MetricIdStatusCode] = "500"
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
 	_ = wfc.SetHarEntryRequest(a.Name(), req, tcfg.PII)

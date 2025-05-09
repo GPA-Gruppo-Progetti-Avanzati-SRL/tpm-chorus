@@ -274,7 +274,7 @@ func (a *LoopActivity) Execute(wfc *wfcase.WfCase) error {
 	if err != nil {
 		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 		metricsLabels[MetricIdStatusCode] = "500"
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithErrorMessage(err.Error()))
 	}
 
 	_ = wfc.SetHarEntryRequest(a.Name(), req, config.PersonallyIdentifiableInformation{})
@@ -292,7 +292,7 @@ func (a *LoopActivity) Execute(wfc *wfcase.WfCase) error {
 		if err != nil {
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 			metricsLabels[MetricIdStatusCode] = "500"
-			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}
 
 		wfcChild, err := wfc.NewChild(
@@ -310,7 +310,7 @@ func (a *LoopActivity) Execute(wfc *wfcase.WfCase) error {
 		if err != nil {
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 			metricsLabels[MetricIdStatusCode] = "500"
-			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}
 
 		wfcChild.RequestDeadline = a.bodyOrchestration.Cfg.GetPropertyAsDuration(config.OrchestrationPropertyRequestDeadline, time.Duration(0))

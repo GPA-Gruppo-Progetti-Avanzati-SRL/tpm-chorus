@@ -157,7 +157,7 @@ func (a *MongoActivity) Execute(wfc *wfcase.WfCase) error {
 			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
 			metricsLabels[MetricIdStatusCode] = "500"
 			// See defer a.SetMetrics(beginOf, metricsLabels)
-			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithCode("MONGO"), smperror.WithErrorMessage(err.Error()))
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithErrorMessage(err.Error()))
 		}
 
 		_ = wfc.SetHarEntryRequest(a.Name(), req, tcfg.PII)
