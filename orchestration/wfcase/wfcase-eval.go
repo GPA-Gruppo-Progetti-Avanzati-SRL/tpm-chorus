@@ -170,14 +170,14 @@ func (wfc *WfCase) SetVarsFromCase(sourceWfc *WfCase, resolverContext HarEntryRe
 			// Was isExpression(val) but in doing this I use the evaluated value and I depend on the value of the variables  with potentially weird values.
 			var varValue interface{} = val
 			if isExpr && val != "" {
-				varValue, err = gval.Evaluate(val, sourceWfc.Vars)
+				varValue, err = gval.Evaluate(val, sourceWfc.Vars.V)
 				if err != nil {
 					log.Error().Err(err).Str("var", val).Msg(semLogContext)
 					return err
 				}
 			}
 
-			err = wfc.Vars.Set(resolvedName, varValue, v.GlobalScope, v.Ttl)
+			err = wfc.Vars.Set(resolvedName, varValue, v.GlobalScope, v.Ttl, v.DltHeader)
 			if err != nil {
 				log.Error().Err(err).Msg(semLogContext)
 				return err

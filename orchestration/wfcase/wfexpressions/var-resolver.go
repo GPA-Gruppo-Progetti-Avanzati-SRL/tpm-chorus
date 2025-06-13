@@ -25,7 +25,7 @@ type EvaluatorOption func(r *Evaluator) error
 type Evaluator struct {
 	Name string
 
-	vars        ProcessVars
+	vars        *ProcessVars
 	body        interface{}
 	headers     har.NameValuePairs
 	queryParams har.NameValuePairs
@@ -44,7 +44,7 @@ func (pvr *Evaluator) VariableLookup(varName string, defaultValue string) (inter
 
 	var varValue interface{}
 	var ok bool
-	if len(pvr.vars) > 0 {
+	if len(pvr.vars.V) > 0 {
 		varValue, ok = pvr.vars.Lookup(varName, defaultValue)
 	}
 	/*
@@ -105,10 +105,10 @@ func (pvr *Evaluator) BodyAsByteArray() ([]byte, error) {
 	}
 }
 
-func (pvr *Evaluator) WithTemporaryProcessVars(tempVars ProcessVars) {
-	for n, v := range tempVars {
+func (pvr *Evaluator) WithTemporaryProcessVars(tempVars *ProcessVars) {
+	for n, v := range tempVars.V {
 		pvr.tempVarsw = append(pvr.tempVarsw, n)
-		pvr.vars[n] = v
+		pvr.vars.V[n] = v
 	}
 }
 
@@ -142,14 +142,14 @@ func (pvr *Evaluator) WithBody(ct string, aBody []byte, transformationId string)
 	return nil
 }
 
-func WithTemporaryProcessVars(prcVars ProcessVars) EvaluatorOption {
+func WithTemporaryProcessVars(prcVars *ProcessVars) EvaluatorOption {
 	return func(r *Evaluator) error {
 		r.WithTemporaryProcessVars(prcVars)
 		return nil
 	}
 }
 
-func WithProcessVars(prcVars ProcessVars) EvaluatorOption {
+func WithProcessVars(prcVars *ProcessVars) EvaluatorOption {
 	return func(r *Evaluator) error {
 		r.vars = prcVars
 		return nil
@@ -294,7 +294,7 @@ func (pvr *Evaluator) Eval(s string) (interface{}, error) {
 	const semLogContext = "wf-evaluator::eval"
 
 	if s != "" {
-		varValue, err := gval.Evaluate(s, pvr.vars)
+		varValue, err := gval.Evaluate(s, pvr.vars.V)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 		}
@@ -308,7 +308,7 @@ func (pvr *Evaluator) EvalToBool(s string) (bool, error) {
 	boolVal := true
 
 	if s != "" {
-		exprValue, err := gval.Evaluate(s, pvr.vars)
+		exprValue, err := gval.Evaluate(s, pvr.vars.V)
 		if err != nil {
 			return false, err
 		}
@@ -441,11 +441,11 @@ func (pvr *Evaluator) VarResolverFunc(_, s string) (string, bool) {
 
 	if variable.IsTagPresent(varResolver.FormatOptWithTempVar) {
 		newName := fmt.Sprintf("%s_%s", "TMP", strings.Replace(uuid.New().String(), "-", "_", -1))
-		if pvr.vars == nil {
-			pvr.vars = make(map[string]interface{})
+		if pvr.vars.V == nil {
+			pvr.vars.V = make(map[string]interface{})
 		}
 		pvr.tempVarsw = append(pvr.tempVarsw, newName)
-		pvr.vars[newName] = varValue
+		pvr.vars.V[newName] = varValue
 		varValue = newName
 	}
 	s, err = variable.ToString(varValue, doEscape, skipVariableOpts)
@@ -621,7 +621,7 @@ func (pvr *Evaluator) getPrefix(s string) (string, error) {
 			isValid = true
 		}
 	case "v:":
-		if pvr.vars != nil {
+		if pvr.vars.V != nil {
 			isValid = true
 		}
 	case "g:":

@@ -68,6 +68,7 @@ type ProcessVar struct {
 	Type        string        `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
 	Guard       string        `yaml:"guard,omitempty" mapstructure:"guard,omitempty" json:"guard,omitempty"`
 	GlobalScope bool          `yaml:"global,omitempty" mapstructure:"global,omitempty" json:"global,omitempty"`
+	DltHeader   bool          `yaml:"dlt-header,omitempty" mapstructure:"dlt-header,omitempty" json:"dlt-header,omitempty"`
 	Ttl         time.Duration `yaml:"ttl,omitempty" mapstructure:"ttl,omitempty" json:"ttl,omitempty"`
 
 	// ParsedExpr ProcessVarDefinitionValueExpression `mapstructure:"-" yaml:"-" json:"-"`

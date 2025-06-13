@@ -10,10 +10,11 @@ import (
 )
 
 type EchoActivityDefinition struct {
-	Message      string `yaml:"message,omitempty" json:"message,omitempty" mapstructure:"message,omitempty"`
-	IncludeInHar bool   `yaml:"in-har,omitempty" json:"in-har,omitempty" mapstructure:"in-har,omitempty"`
-	WithVars     bool   `yaml:"with-vars,omitempty" json:"with-vars,omitempty" mapstructure:"with-vars,omitempty"`
-	WithGoCache  string `yaml:"with-go-cache,omitempty" json:"with-go-cache,omitempty" mapstructure:"with-go-cache,omitempty"`
+	Message           string             `yaml:"message,omitempty" json:"message,omitempty" mapstructure:"message,omitempty"`
+	IncludeInHar      bool               `yaml:"in-har,omitempty" json:"in-har,omitempty" mapstructure:"in-har,omitempty"`
+	WithVars          bool               `yaml:"with-vars,omitempty" json:"with-vars,omitempty" mapstructure:"with-vars,omitempty"`
+	WithGoCache       string             `yaml:"with-go-cache,omitempty" json:"with-go-cache,omitempty" mapstructure:"with-go-cache,omitempty"`
+	OnResponseActions []OnResponseAction `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
 }
 
 func (d *EchoActivityDefinition) IsZero() bool {

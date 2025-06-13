@@ -157,12 +157,12 @@ func (a *ScriptActivity) Execute(wfc *wfcase.WfCase) error {
 
 	scriptTengoOutVars := compiled.GetAll()
 
-	var scriptOutVars map[string]interface{}
+	var scriptOutVars *wfexpressions.ProcessVars
 	if len(scriptTengoOutVars) > 0 {
-		scriptOutVars = make(map[string]interface{})
+		scriptOutVars = wfexpressions.NewProcessVars()
 		for _, v := range scriptTengoOutVars {
 			if isValueTypeSupportedType(v.ValueType()) {
-				scriptOutVars[v.Name()] = v.Value()
+				scriptOutVars.V[v.Name()] = v.Value()
 			}
 		}
 	}
@@ -184,8 +184,8 @@ func (a *ScriptActivity) Execute(wfc *wfcase.WfCase) error {
 	return nil
 }
 
-func (a *ScriptActivity) newResponseDefinition(scriptVars wfexpressions.ProcessVars) (*har.Response, error) {
-	b, err := json.Marshal(scriptVars)
+func (a *ScriptActivity) newResponseDefinition(scriptVars *wfexpressions.ProcessVars) (*har.Response, error) {
+	b, err := json.Marshal(scriptVars.V)
 	if err != nil {
 		return nil, nil
 	}
@@ -280,7 +280,7 @@ func (a *ScriptActivity) processResponseActions(
 	ambitName, stepName string,
 	wfc *wfcase.WfCase,
 	actions config.OnResponseActions,
-	scriptVars wfexpressions.ProcessVars,
+	scriptVars *wfexpressions.ProcessVars,
 ) (int, error) {
 
 	const semLogContext = "script-activity::process-response-action-by-status-code"
@@ -312,7 +312,7 @@ func (a *ScriptActivity) processResponseActions(
 					return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambitName), smperror.WithStep(stepName), smperror.WithCode("500"), smperror.WithErrorMessage("error selecting transformation"), smperror.WithDescription(err.Error()))
 				}
 
-				err = wfc.Vars.Set(v.Name, val, v.GlobalScope, v.Ttl)
+				err = wfc.Vars.Set(v.Name, val, v.GlobalScope, v.Ttl, v.DltHeader)
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext)
 					return 500, smperror.NewExecutableError(smperror.WithErrorStatusCode(500), smperror.WithErrorAmbit(ambitName), smperror.WithStep(stepName), smperror.WithCode("500"), smperror.WithErrorMessage("error selecting transformation"), smperror.WithDescription(err.Error()))

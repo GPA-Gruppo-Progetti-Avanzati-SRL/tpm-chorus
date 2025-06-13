@@ -51,7 +51,7 @@ func (cf *LoopControlFlow) HasNext(wfc *wfcase.WfCase) bool {
 func (cf *LoopControlFlow) Next(wfc *wfcase.WfCase, evaluator *wfexpressions.Evaluator) ([]byte, error) {
 	const semLogContext = "loop-activity::loop-control-flow-next"
 
-	_ = wfc.Vars.Set(ChorusLoopActivityIteratorValueVarName, cf.current, false, 0)
+	_ = wfc.Vars.Set(ChorusLoopActivityIteratorValueVarName, cf.current, false, 0, false)
 
 	var b []byte
 	if cf.cfg.XForm.Id != "" {

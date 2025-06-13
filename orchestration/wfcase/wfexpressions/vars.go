@@ -18,42 +18,76 @@ import (
 
 var IsIdentifierRegexp = regexp.MustCompile("^[a-zA-Z_0-9]+(\\.[a-zA-Z_0-9]+)*$")
 
+/*
 type ProcessVar struct {
 	Name        string      `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
 	Value       interface{} `yaml:"value,omitempty" mapstructure:"value,omitempty" json:"value,omitempty"`
 	IsTemporary bool        `yaml:"is-temp,omitempty" mapstructure:"is-temp,omitempty" json:"is-temp,omitempty"`
 }
+*/
 
-type ProcessVars map[string]interface{}
+type PVMetadata struct {
+	DltHeader bool
+}
 
-func (vs ProcessVars) ClearTemporary(temps []string) {
-	for _, n := range temps {
-		delete(vs, n)
+type ProcessVars struct {
+	V PVValues
+	M map[string]PVMetadata
+}
+type PVValues map[string]interface{}
+
+func NewProcessVars() *ProcessVars {
+	return &ProcessVars{
+		M: make(map[string]PVMetadata),
+		V: make(map[string]interface{}),
 	}
 }
 
-func (vs ProcessVars) ShowVars(sorted bool) {
+func (vs *ProcessVars) ClearTemporary(temps []string) {
+	if len(vs.V) > 0 {
+		for _, n := range temps {
+			delete(vs.V, n)
+		}
+	}
 
-	if len(vs) == 0 {
+}
+
+func (vs *ProcessVars) GetDltHeaders() PVValues {
+	var dltVars PVValues
+	for n, v := range vs.M {
+		if v.DltHeader {
+			if dltVars == nil {
+				dltVars = make(map[string]interface{})
+				dltVars[n] = vs.V[n]
+			}
+		}
+	}
+
+	return dltVars
+}
+
+func (vs *ProcessVars) ShowVars(sorted bool) {
+
+	if len(vs.V) == 0 {
 		return
 	}
 
 	var varNames []string
 	if sorted {
 		log.Warn().Msg("please disable sorting of process variables")
-		for n, _ := range vs {
+		for n, _ := range vs.V {
 			varNames = append(varNames, n)
 		}
 
 		sort.Strings(varNames)
 		for _, n := range varNames {
-			i := vs[n]
+			i := vs.V[n]
 			if reflect.ValueOf(i).Kind() != reflect.Func {
 				log.Trace().Str("name", n).Interface("value", i).Msg("case variable")
 			}
 		}
 	} else {
-		for n, v := range vs {
+		for n, v := range vs.V {
 			if reflect.ValueOf(v).Kind() != reflect.Func {
 				log.Trace().Str("name", n).Interface("value", v).Msg("case variable")
 			}
@@ -97,13 +131,18 @@ func (vs ProcessVars) InterpolateEvaluateAndSet(n string, expr string, resolver 
 	}
 */
 
-func (vs ProcessVars) Set(n string, value interface{}, globalScope bool, ttl time.Duration) error {
+func (vs *ProcessVars) Set(n string, value interface{}, globalScope bool, ttl time.Duration, asDltHeader bool) error {
 	var err error
 
 	if globalScope {
 		err = globals.SetGlobalVar("", n, value, ttl)
 	} else {
-		vs[n] = value
+		vs.V[n] = value
+		if asDltHeader {
+			vs.M[n] = PVMetadata{DltHeader: asDltHeader}
+		} else {
+			delete(vs.M, n)
+		}
 	}
 
 	return err
@@ -111,16 +150,16 @@ func (vs ProcessVars) Set(n string, value interface{}, globalScope bool, ttl tim
 
 type EvaluationMode string
 
-func (vs ProcessVars) Eval(v string) (interface{}, error) {
-	return gval.Evaluate(v, vs)
+func (vs *ProcessVars) Eval(v string) (interface{}, error) {
+	return gval.Evaluate(v, vs.V)
 }
 
-func (vs ProcessVars) Lookup(v string, defaultValue interface{}) (interface{}, bool) {
+func (vs *ProcessVars) Lookup(v string, defaultValue interface{}) (interface{}, bool) {
 	if v == "" {
 		return defaultValue, false
 	}
 
-	res, ok := vs[v]
+	res, ok := vs.V[v]
 	if !ok {
 		return defaultValue, false
 	}
@@ -128,13 +167,13 @@ func (vs ProcessVars) Lookup(v string, defaultValue interface{}) (interface{}, b
 	return res, true
 }
 
-func (vs ProcessVars) EvalToBool(v string) (bool, error) {
+func (vs *ProcessVars) EvalToBool(v string) (bool, error) {
 
 	// The empty expression evaluates to true.
 	boolVal := true
 
 	if v != "" {
-		exprValue, err := gval.Evaluate(v, vs)
+		exprValue, err := gval.Evaluate(v, vs.V)
 		if err != nil {
 			return false, err
 		}
@@ -148,11 +187,11 @@ func (vs ProcessVars) EvalToBool(v string) (bool, error) {
 	return boolVal, nil
 }
 
-func (vs ProcessVars) EvalToString(v string) (string, error) {
+func (vs *ProcessVars) EvalToString(v string) (string, error) {
 	const semLogContext = "process-vars::eval-2-string"
 	s := ""
 	if v != "" {
-		exprValue, err := gval.Evaluate(v, vs)
+		exprValue, err := gval.Evaluate(v, vs.V)
 		if err != nil {
 			return s, err
 		}
@@ -169,15 +208,15 @@ func (vs ProcessVars) EvalToString(v string) (string, error) {
 	return "", nil
 }
 
-func (vs ProcessVars) IndexOfTheOnlyOneTrueExpression(varExpressions []string) (int, error) {
+func (vs *ProcessVars) IndexOfTheOnlyOneTrueExpression(varExpressions []string) (int, error) {
 	return vs.evalExpressionSetToBool(varExpressions, config.ExactlyOne)
 }
 
-func (vs ProcessVars) IndexOfFirstTrueExpression(varExpressions []string) (int, error) {
+func (vs *ProcessVars) IndexOfFirstTrueExpression(varExpressions []string) (int, error) {
 	return vs.evalExpressionSetToBool(varExpressions, config.AtLeastOne)
 }
 
-func (vs ProcessVars) evalExpressionSetToBool(varExpressions []string, mode EvaluationMode) (int, error) {
+func (vs *ProcessVars) evalExpressionSetToBool(varExpressions []string, mode EvaluationMode) (int, error) {
 
 	foundNdx := -1
 	for ndx, v := range varExpressions {

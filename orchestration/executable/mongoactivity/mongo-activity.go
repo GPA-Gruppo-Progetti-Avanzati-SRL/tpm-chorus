@@ -283,23 +283,23 @@ func (a *MongoActivity) Invoke(wfc *wfcase.WfCase, op jsonops.Operation) (*har.R
 	if on200ActionNdx >= 0 && len(a.definition.OnResponseActions[on200ActionNdx].Properties) > 0 {
 		onResponseProperties := a.definition.OnResponseActions[on200ActionNdx].Properties
 		if varName, ok := onResponseProperties[config.MongoOperationResultMatchedCountPropertyVarName]; ok {
-			wfc.Vars[varName] = sc.MatchedCount
+			wfc.Vars.V[varName] = sc.MatchedCount
 		}
 
 		if varName, ok := onResponseProperties[config.MongoOperationResultUpsertedCountPropertyVarNName]; ok {
-			wfc.Vars[varName] = sc.UpsertedCount
+			wfc.Vars.V[varName] = sc.UpsertedCount
 		}
 
 		if varName, ok := onResponseProperties[config.MongoOperationResultModifiedCountPropertyVarName]; ok {
-			wfc.Vars[varName] = sc.ModifiedCount
+			wfc.Vars.V[varName] = sc.ModifiedCount
 		}
 
 		if varName, ok := onResponseProperties[config.MongoOperationResultDeletedCountPropertyVarName]; ok {
-			wfc.Vars[varName] = sc.DeletedCount
+			wfc.Vars.V[varName] = sc.DeletedCount
 		}
 
 		if varName, ok := onResponseProperties[config.MongoOperationResultObjectIDPropertyVarName]; ok {
-			wfc.Vars[varName] = sc.ObjectID
+			wfc.Vars.V[varName] = sc.ObjectID
 		}
 	}
 

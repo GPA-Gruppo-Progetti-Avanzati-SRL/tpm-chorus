@@ -47,7 +47,7 @@ type WfCase struct {
 	Browser     *har.Creator
 	Description string
 	StartAt     time.Time
-	Vars        wfexpressions.ProcessVars
+	Vars        *wfexpressions.ProcessVars
 	Entries     map[string]*har.Entry
 	Dicts       config.Dictionaries
 	Refs        config.DataReferences
@@ -86,13 +86,13 @@ func NewWorkflowCase(id string, version, sha string, descr string, dicts config.
 		Refs:        refs,
 		Span:        span}
 
-	v := wfexpressions.ProcessVars(make(map[string]interface{}))
+	v := wfexpressions.NewProcessVars()
 	for fn, fb := range GetFuncMap(c) {
-		v[fn] = fb
+		v.V[fn] = fb
 	}
 
 	for n, val := range systemVars {
-		v[n] = val
+		v.V[n] = val
 		log.Info().Str("name", n).Interface("value", val).Msg(semLogContext + " - setting system variable")
 	}
 

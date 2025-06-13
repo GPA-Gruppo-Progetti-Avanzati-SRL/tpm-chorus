@@ -106,6 +106,12 @@ func (a *EchoActivity) Execute(wfc *wfcase.WfCase) error {
 		_ = wfc.SetHarEntryResponse(a.Name(), resp, config.PersonallyIdentifiableInformation{})
 	}
 
+	_, err = a.ProcessResponseActionByStatusCode(http.StatusOK, a.Name(), a.Name(), wfc, nil, wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, a.definition.OnResponseActions, true)
+	if err != nil {
+		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+		return smperror.NewExecutableServerError(smperror.WithError(err), smperror.WithErrorAmbit(a.Name()))
+	}
+
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 	return nil
 }
@@ -175,7 +181,7 @@ func (a *EchoActivity) computeBody(wfc *wfcase.WfCase) (string, []byte, error) {
 	body["message"] = a.definition.Message
 	if a.definition.WithVars {
 		caseVariables := make(map[string]interface{})
-		for n, v := range wfc.Vars {
+		for n, v := range wfc.Vars.V {
 			if reflect.ValueOf(v).Kind() != reflect.Func {
 				caseVariables[n] = v
 			}

@@ -53,7 +53,7 @@ var j = []byte(`
 
 func TestNewProcessVarResolver(t *testing.T) {
 
-	pvs := wfexpressions.ProcessVars(make(map[string]interface{}))
+	pvs := wfexpressions.NewProcessVars()
 	resolver, err := wfexpressions.NewEvaluator("no-name", wfexpressions.WithBody(constants.ContentTypeApplicationJson, j, ""))
 	require.NoError(t, err)
 
@@ -84,7 +84,7 @@ func TestNewProcessVarResolver(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ndx, 1)
 
-	pvs["map"] = func(s ...string) string {
+	pvs.V["map"] = func(s ...string) string {
 		return strings.Join(s, " ")
 	}
 
@@ -99,7 +99,7 @@ type GValEvaluator struct {
 
 func TestGVal(t *testing.T) {
 
-	pvs := wfexpressions.ProcessVars(make(map[string]interface{}))
+	pvs := wfexpressions.NewProcessVars()
 	resolver, err := wfexpressions.NewEvaluator("no-name", wfexpressions.WithBody(constants.ContentTypeApplicationJson, j, ""))
 	require.NoError(t, err)
 
@@ -133,7 +133,7 @@ func TestGVal(t *testing.T) {
 	require.Equal(t, "hello", exprValue)
 }
 
-func interpolateEvaluateAndSet(pvs map[string]interface{}, n string, expr string, resolver *wfexpressions.Evaluator, globalScope bool, ttl time.Duration) error {
+func interpolateEvaluateAndSet(pvs *wfexpressions.ProcessVars, n string, expr string, resolver *wfexpressions.Evaluator, globalScope bool, ttl time.Duration) error {
 
 	val, _, err := varResolver.ResolveVariables(expr, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 	if err != nil {
@@ -145,7 +145,7 @@ func interpolateEvaluateAndSet(pvs map[string]interface{}, n string, expr string
 	// Was isExpression(val) but in doing this I use the evaluated value and I depend on the value of the variables  with potentially weird values.
 	var varValue interface{} = val
 	if isExpr && val != "" {
-		varValue, err = gval.Evaluate(val, pvs)
+		varValue, err = gval.Evaluate(val, pvs.V)
 		if err != nil {
 			return err
 		}
@@ -154,7 +154,7 @@ func interpolateEvaluateAndSet(pvs map[string]interface{}, n string, expr string
 	if globalScope {
 		err = globals.SetGlobalVar("", n, varValue, ttl)
 	} else {
-		pvs[n] = varValue
+		pvs.V[n] = varValue
 	}
 
 	return nil
