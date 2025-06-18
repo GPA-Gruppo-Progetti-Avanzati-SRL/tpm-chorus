@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+func ReplaceAll(elem interface{}, oldString string, newString string) string {
+	s := fmt.Sprintf("%v", elem)
+	return strings.ReplaceAll(s, oldString, newString)
+}
+
 func StringIn(elem interface{}, csvList string, caseInsensitive bool) bool {
 	s := fmt.Sprintf("%v", elem)
 	if caseInsensitive {

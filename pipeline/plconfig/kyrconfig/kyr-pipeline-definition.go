@@ -1,6 +1,7 @@
-package plconfig
+package kyrconfig
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/pipeline/plconfig/sinkconfig"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
@@ -70,23 +71,23 @@ func (p *KyrPipelinePathDefinition) IsZero() bool {
 // OnErrors            []OnErrorPolicy                     `yaml:"on-errors,omitempty" mapstructure:"on-errors,omitempty" json:"on-errors,omitempty"`
 
 type KyrPipelineDefinition struct {
-	Id                         string                           `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id,omitempty"`
-	En                         string                           `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty"`
-	Description                string                           `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
-	WorkMode                   string                           `yaml:"work-mode,omitempty" mapstructure:"work-mode,omitempty" json:"work-mode,omitempty"`
-	WithChannel                bool                             `yaml:"with-channel,omitempty" mapstructure:"with-channel,omitempty" json:"with-channel,omitempty"`
-	WithChannelSize            int                              `yaml:"with-channel-size,omitempty" mapstructure:"with-channel-size,omitempty" json:"with-channel-size,omitempty"`
-	EventJsonSerializationMode string                           `yaml:"event-json-ser-mode,omitempty" mapstructure:"event-json-ser-mode,omitempty" json:"event-json-ser-mode,omitempty"`
-	NumPartitions              string                           `yaml:"num-partitions,omitempty" mapstructure:"num-partitions,omitempty" json:"num-partitions,omitempty"`
-	TickInterval               string                           `yaml:"tick-interval,omitempty" mapstructure:"tick-interval,omitempty" json:"tick-interval,omitempty"`
-	MaxBatchSize               int                              `yaml:"max-batch-size,omitempty" mapstructure:"max-batch-size,omitempty" json:"max-batch-size,omitempty"`
-	RefMetrics                 *promutil.MetricsConfigReference `yaml:"ref-metrics"  mapstructure:"ref-metrics"  json:"ref-metrics"`
-	SpanName                   string                           `yaml:"tracing-span-name,omitempty" mapstructure:"tracing-span-name,omitempty" json:"tracing-span-name,omitempty"`
-	DeadLetterTopic            string                           `json:"dead-letter-topic,omitempty" yaml:"dead-letter-topic,omitempty" mapstructure:"dead-letter-topic,omitempty"`
-	Paths                      []KyrPipelinePathDefinition      `json:"paths,omitempty" yaml:"paths,omitempty" mapstructure:"paths,omitempty"`
-	Sinks                      []SinkStageDefinitionReference   `json:"sink-stages,omitempty" yaml:"sink-stages,omitempty" mapstructure:"sink-stages,omitempty"`
-	Consumer                   consumerproducer.ConsumerConfig  `yaml:"consumer,omitempty" mapstructure:"consumer,omitempty" json:"consumer,omitempty"`
-	CheckPointSvcConfig        factory.Config                   `yaml:"checkpoint-svc,omitempty" mapstructure:"checkpoint-svc,omitempty" json:"checkpoint-svc,omitempty"`
+	Id                         string                                    `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id,omitempty"`
+	En                         string                                    `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty"`
+	Description                string                                    `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
+	WorkMode                   string                                    `yaml:"work-mode,omitempty" mapstructure:"work-mode,omitempty" json:"work-mode,omitempty"`
+	WithChannel                bool                                      `yaml:"with-channel,omitempty" mapstructure:"with-channel,omitempty" json:"with-channel,omitempty"`
+	WithChannelSize            int                                       `yaml:"with-channel-size,omitempty" mapstructure:"with-channel-size,omitempty" json:"with-channel-size,omitempty"`
+	EventJsonSerializationMode string                                    `yaml:"event-json-ser-mode,omitempty" mapstructure:"event-json-ser-mode,omitempty" json:"event-json-ser-mode,omitempty"`
+	NumPartitions              string                                    `yaml:"num-partitions,omitempty" mapstructure:"num-partitions,omitempty" json:"num-partitions,omitempty"`
+	TickInterval               string                                    `yaml:"tick-interval,omitempty" mapstructure:"tick-interval,omitempty" json:"tick-interval,omitempty"`
+	MaxBatchSize               int                                       `yaml:"max-batch-size,omitempty" mapstructure:"max-batch-size,omitempty" json:"max-batch-size,omitempty"`
+	RefMetrics                 *promutil.MetricsConfigReference          `yaml:"ref-metrics"  mapstructure:"ref-metrics"  json:"ref-metrics"`
+	SpanName                   string                                    `yaml:"tracing-span-name,omitempty" mapstructure:"tracing-span-name,omitempty" json:"tracing-span-name,omitempty"`
+	DeadLetterTopic            string                                    `json:"dead-letter-topic,omitempty" yaml:"dead-letter-topic,omitempty" mapstructure:"dead-letter-topic,omitempty"`
+	Paths                      []KyrPipelinePathDefinition               `json:"paths,omitempty" yaml:"paths,omitempty" mapstructure:"paths,omitempty"`
+	Sinks                      []sinkconfig.SinkStageDefinitionReference `json:"sink-stages,omitempty" yaml:"sink-stages,omitempty" mapstructure:"sink-stages,omitempty"`
+	Consumer                   consumerproducer.ConsumerConfig           `yaml:"consumer,omitempty" mapstructure:"consumer,omitempty" json:"consumer,omitempty"`
+	CheckPointSvcConfig        factory.Config                            `yaml:"checkpoint-svc,omitempty" mapstructure:"checkpoint-svc,omitempty" json:"checkpoint-svc,omitempty"`
 }
 
 func (d *KyrPipelineDefinition) Enabled() bool {
@@ -202,7 +203,7 @@ func (d *KyrPipelineDefinition) isPipelineEligible4RawProcessing() bool {
 	}
 
 	for _, sink := range d.Sinks {
-		if sink.Typ != SinkTypeKafkaFF {
+		if sink.Typ != sinkconfig.SinkTypeKafkaFF {
 			log.Info().Msg(semLogContext + " - only kafka-ff sink is supported for raw scenario")
 			return false
 		}

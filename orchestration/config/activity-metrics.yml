@@ -1,0 +1,42 @@
+namespace: tpm_chorus
+subsystem: activity
+collectors:
+  - help: numero richieste
+    id: activity-counter
+    labels:
+      - default-value: N/A
+        id: type
+        name: type
+      - default-value: N/A
+        id: name
+        name: name
+      - default-value: N/A
+        id: endpoint
+        name: endpoint
+      - default-value: N/A
+        id: status-code
+        name: status_code
+    name: counter
+    type: counter
+  - buckets:
+      count: 10
+      start: 0.5
+      type: linear
+      width-factor: 0.5
+    help: durata lavorazione richiesta
+    id: activity-duration
+    labels:
+      - default-value: N/A
+        id: type
+        name: type
+      - default-value: N/A
+        id: name
+        name: name
+      - default-value: N/A
+        id: endpoint
+        name: endpoint
+      - default-value: N/A
+        id: status-code
+        name: status_code
+    name: duration
+    type: histogram

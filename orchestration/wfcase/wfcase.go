@@ -23,6 +23,11 @@ const (
 	KyrieRequestIdHeaderName     = "X-Kyr-Request-Id"
 	KyriePipelineDescrProcessVar = "kyr_pipeline_descr"
 
+	TubaMirumPipelineIdProcessVar    = "tbm_pipeline_id"
+	TubaMirumPipelineIdHeaderName    = "X-Tbm-Pipeline-Id"
+	TubaMirumRequestIdHeaderName     = "X-Tbm-Request-Id"
+	TubaMirumPipelineDescrProcessVar = "tbm_pipeline_descr"
+
 	SymphonyOrchestrationIdProcessVar          = "smp_orchestration_id"
 	SymphonyOrchestrationDescriptionProcessVar = "smp_orchestration_descr"
 )

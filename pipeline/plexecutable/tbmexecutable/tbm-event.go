@@ -1,13 +1,13 @@
-package executable
+package tbmexecutable
 
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/orchestration"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/changestream/events"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/jobs/taskconsumer/datasource"
 )
 
-type KyrEvent struct {
-	ChangeEvent       *events.ChangeEvent
+type TbmEvent struct {
+	Event             *datasource.Event
 	BatchPosition     int
 	BatchPartition    int
 	WfCase            *wfcase.WfCase `yaml:"-" mapstructure:"-" json:"-"`

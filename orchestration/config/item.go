@@ -1,6 +1,7 @@
 package config
 
 import (
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"github.com/rs/zerolog/log"
+	"gopkg.in/yaml.v3"
 	"strings"
 	"time"
 )
@@ -96,9 +98,10 @@ func NewActivityFromYAML(t Type, b []byte /* m interface{} */) (Configurable, er
 }
 
 const (
-	DefaultMetricsGroupId = "activity"
-	DefaultCounterId      = "activity-counter"
-	DefaultHistogramId    = "activity-duration"
+	ActivityMetricsGroupId = "activity"
+	DefaultMetricsGroupId  = "activity"
+	DefaultCounterId       = "activity-counter"
+	DefaultHistogramId     = "activity-duration"
 
 	DefaultActivityBoundary = "global"
 )
@@ -107,6 +110,30 @@ var DefaultMetricsCfg = promutil.MetricsConfigReference{
 	GId:         DefaultMetricsGroupId,
 	CounterId:   DefaultCounterId,
 	HistogramId: DefaultHistogramId,
+}
+
+//go:embed activity-metrics.yml
+var activityMetrics []byte
+
+func ActivityMetrics(groupId string) (promutil.MetricGroupConfig, error) {
+	var cfg promutil.MetricGroupConfig
+	err := yaml.Unmarshal(activityMetrics, &cfg)
+	if err != nil {
+		return promutil.MetricGroupConfig{}, err
+	}
+
+	cfg.GroupId = groupId
+	return cfg, nil
+}
+
+func MustActivityMetrics(groupId string) promutil.MetricGroupConfig {
+	const semLogContext = "activity::metrics-configs"
+	cfg, err := ActivityMetrics(ActivityMetricsGroupId)
+	if err != nil {
+		log.Fatal().Err(err).Str("group-id", ActivityMetricsGroupId).Msg(semLogContext)
+	}
+
+	return cfg
 }
 
 type ActivityProperty struct {

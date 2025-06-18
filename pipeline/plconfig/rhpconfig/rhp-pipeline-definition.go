@@ -1,6 +1,7 @@
-package plconfig
+package rhpconfig
 
 import (
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/pipeline/plconfig/sinkconfig"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
@@ -61,29 +62,31 @@ func (p *RhpPipelinePathDefinition) IsZero() bool {
 	return false
 }
 
+//
+
 type RhpPipelineDefinition struct {
-	Id                           string                           `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id,omitempty"`
-	En                           string                           `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty"`
-	Description                  string                           `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
-	BrokerName                   string                           `yaml:"broker-name,omitempty" mapstructure:"broker-name,omitempty" json:"broker-name,omitempty"`
-	SourceTopic                  string                           `json:"source-topic,omitempty" yaml:"source-topic,omitempty" mapstructure:"source-topic,omitempty"`
-	WorkMode                     string                           `yaml:"work-mode,omitempty" mapstructure:"work-mode,omitempty" json:"work-mode,omitempty"`
-	MessageProducerBufferSize    int                              `yaml:"mp-buffer-size,omitempty" mapstructure:"mp-buffer-size,omitempty" json:"mp-buffer-size,omitempty"`
-	NumPartitions                string                           `yaml:"num-partitions,omitempty" mapstructure:"num-partitions,omitempty" json:"num-partitions,omitempty"`
-	OnErrors                     []tprod.OnErrorPolicy            `yaml:"on-errors,omitempty" mapstructure:"on-errors,omitempty" json:"on-errors,omitempty"`
-	CommitMode                   string                           `yaml:"commit-mode,omitempty" mapstructure:"commit-mode,omitempty" json:"commit-mode,omitempty"`
-	GroupId                      string                           `yaml:"consumer-group-id,omitempty" mapstructure:"consumer-group-id,omitempty" json:"consumer-group-id,omitempty"`
-	ProducerId                   string                           `yaml:"producer-tx-id,omitempty" mapstructure:"producer-tx-id,omitempty" json:"producer-tx-id,omitempty"`
-	MaxPollTimeout               int                              `yaml:"max-poll-timeout,omitempty" mapstructure:"max-poll-timeout,omitempty" json:"max-poll-timeout,omitempty"`
-	MaxPollTimeoutMs             string                           `yaml:"max-poll-timeout-ms,omitempty" mapstructure:"max-poll-timeout-ms,omitempty" json:"max-poll-timeout-ms,omitempty"`
-	TickInterval                 string                           `yaml:"tick-interval,omitempty" mapstructure:"tick-interval,omitempty" json:"tick-interval,omitempty"`
-	RefMetrics                   *promutil.MetricsConfigReference `yaml:"ref-metrics"  mapstructure:"ref-metrics"  json:"ref-metrics"`
-	SpanName                     string                           `yaml:"tracing-span-name,omitempty" mapstructure:"tracing-span-name,omitempty" json:"tracing-span-name,omitempty"`
-	DeadLetterTopic              string                           `json:"dead-letter-topic,omitempty" yaml:"dead-letter-topic,omitempty" mapstructure:"dead-letter-topic,omitempty"`
-	Paths                        []RhpPipelinePathDefinition      `json:"paths,omitempty" yaml:"paths,omitempty" mapstructure:"paths,omitempty"`
-	Sinks                        []SinkStageDefinitionReference   `json:"sink-stages,omitempty" yaml:"sink-stages,omitempty" mapstructure:"sink-stages,omitempty"`
-	WithSynchDelivery            string                           `yaml:"with-synch-delivery,omitempty" mapstructure:"with-synch-delivery,omitempty" json:"with-synch-delivery,omitempty"`
-	NoAbortOnAsyncDeliveryFailed string                           `yaml:"no-abort-on-async-delivery-failed,omitempty" mapstructure:"no-abort-on-async-delivery-failed,omitempty" json:"no-abort-on-async-delivery-failed,omitempty"`
+	Id                           string                                    `json:"id,omitempty" yaml:"id,omitempty" mapstructure:"id,omitempty"`
+	En                           string                                    `json:"enabled,omitempty" yaml:"enabled,omitempty" mapstructure:"enabled,omitempty"`
+	Description                  string                                    `json:"description,omitempty" yaml:"description,omitempty" mapstructure:"description,omitempty"`
+	BrokerName                   string                                    `yaml:"broker-name,omitempty" mapstructure:"broker-name,omitempty" json:"broker-name,omitempty"`
+	SourceTopic                  string                                    `json:"source-topic,omitempty" yaml:"source-topic,omitempty" mapstructure:"source-topic,omitempty"`
+	MessageProducerBufferSize    int                                       `yaml:"mp-buffer-size,omitempty" mapstructure:"mp-buffer-size,omitempty" json:"mp-buffer-size,omitempty"`
+	WorkMode                     string                                    `yaml:"work-mode,omitempty" mapstructure:"work-mode,omitempty" json:"work-mode,omitempty"`
+	NumPartitions                string                                    `yaml:"num-partitions,omitempty" mapstructure:"num-partitions,omitempty" json:"num-partitions,omitempty"`
+	OnErrors                     []tprod.OnErrorPolicy                     `yaml:"on-errors,omitempty" mapstructure:"on-errors,omitempty" json:"on-errors,omitempty"`
+	CommitMode                   string                                    `yaml:"commit-mode,omitempty" mapstructure:"commit-mode,omitempty" json:"commit-mode,omitempty"`
+	GroupId                      string                                    `yaml:"consumer-group-id,omitempty" mapstructure:"consumer-group-id,omitempty" json:"consumer-group-id,omitempty"`
+	ProducerId                   string                                    `yaml:"producer-tx-id,omitempty" mapstructure:"producer-tx-id,omitempty" json:"producer-tx-id,omitempty"`
+	MaxPollTimeout               int                                       `yaml:"max-poll-timeout,omitempty" mapstructure:"max-poll-timeout,omitempty" json:"max-poll-timeout,omitempty"`
+	MaxPollTimeoutMs             string                                    `yaml:"max-poll-timeout-ms,omitempty" mapstructure:"max-poll-timeout-ms,omitempty" json:"max-poll-timeout-ms,omitempty"`
+	TickInterval                 string                                    `yaml:"tick-interval,omitempty" mapstructure:"tick-interval,omitempty" json:"tick-interval,omitempty"`
+	RefMetrics                   *promutil.MetricsConfigReference          `yaml:"ref-metrics"  mapstructure:"ref-metrics"  json:"ref-metrics"`
+	SpanName                     string                                    `yaml:"tracing-span-name,omitempty" mapstructure:"tracing-span-name,omitempty" json:"tracing-span-name,omitempty"`
+	DeadLetterTopic              string                                    `json:"dead-letter-topic,omitempty" yaml:"dead-letter-topic,omitempty" mapstructure:"dead-letter-topic,omitempty"`
+	Paths                        []RhpPipelinePathDefinition               `json:"paths,omitempty" yaml:"paths,omitempty" mapstructure:"paths,omitempty"`
+	Sinks                        []sinkconfig.SinkStageDefinitionReference `json:"sink-stages,omitempty" yaml:"sink-stages,omitempty" mapstructure:"sink-stages,omitempty"`
+	WithSynchDelivery            string                                    `yaml:"with-synch-delivery,omitempty" mapstructure:"with-synch-delivery,omitempty" json:"with-synch-delivery,omitempty"`
+	NoAbortOnAsyncDeliveryFailed string                                    `yaml:"no-abort-on-async-delivery-failed,omitempty" mapstructure:"no-abort-on-async-delivery-failed,omitempty" json:"no-abort-on-async-delivery-failed,omitempty"`
 }
 
 func (d *RhpPipelineDefinition) GetMaxPollTimeoutMsAsInt() int {

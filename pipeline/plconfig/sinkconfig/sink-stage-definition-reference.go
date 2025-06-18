@@ -1,4 +1,4 @@
-package plconfig
+package sinkconfig
 
 import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"

@@ -1,4 +1,4 @@
-package plconfig
+package sinkconfig
 
 import (
 	"errors"
