@@ -14,12 +14,17 @@ github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.81 h1:GH6d6pe+pZ8+HI
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.81/go.mod h1:4WYfJ0LgWLu38TukgFrFN4/zLePQ1BhFkpH/k28zRlA=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.19 h1:orhZDY8bYze16N7Dq3cGcMI/5csZ6IlWHl6gEoIMmSU=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.19/go.mod h1:q0Dv5QpnNBvM6iDrwMPuUZm0JRPMQz6JX4o6PeI24yk=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.20/go.mod h1:beSXzcnVA7dn1TAqc/9HO5rxyrqW00/IfQa8JFFLnxk=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.19 h1:+wxm7F+gm3c2QNSTJ3qarH8ykab4mzM0yWwdYTaUnk8=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.19/go.mod h1:I9m6Njhx/AatwQXm1Yd7/KJ35TqXRISRLklZgg8eclU=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.20 h1:cBuCN0MlvrkDiaGWLmPHPjaRdukbXFmed2xvrQniZyU=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.20/go.mod h1:1NqHTAlLixR/4nghhb61lw80xG4G7BijiftmKNT0GP0=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.86 h1:CO48MSg2mhFGMUtDyb1cTyaTCmWzJ8rkJuX5K3nhEw0=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.86/go.mod h1:fNz/odlY/dxJDbSXoZxfXR347vCPfo6wfgS8H1+hpuY=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.80-RCN h1:/9V8567mOeYsbr3h+rIv011AtjxEma/4cEKajZBs5o4=
 github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.80-RCN/go.mod h1:5IWaT0i8hC08KUrc7Jv5CQTfbeg6fyV/qI+rf/lWcKA=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.80-RCP h1:mO6A9EX8lyyc4FrnOv6yoPPa7Lb2gWi1ieboGwc8nmo=
+github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.80-RCP/go.mod h1:5IWaT0i8hC08KUrc7Jv5CQTfbeg6fyV/qI+rf/lWcKA=
 github.com/Masterminds/semver/v3 v3.2.1 h1:RN9w6+7QoMeJVGyfmbcgs28Br8cvmnucEXnY0rYXWg0=
 github.com/Masterminds/semver/v3 v3.2.1/go.mod h1:qvl/7zhW3nngYb5+80sSMF+FG2BjYrf8m9wsX0PNOMQ=
 github.com/Microsoft/go-winio v0.6.2 h1:F2VQgta7ecxGYO8k3ZZz3RS8fVIXVxONVUPlNERoyfY=
@@ -493,6 +498,8 @@ github.com/uber/jaeger-lib v2.4.1+incompatible h1:td4jdvLcExb4cBISKIpHuGoVXh+dVK
 github.com/uber/jaeger-lib v2.4.1+incompatible/go.mod h1:ComeNDZlWwrWnDv8aPp0Ba6+uUTzImX/AauajbLI56U=
 github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65EE=
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
+github.com/ugorji/go/codec v1.3.0 h1:Qd2W2sQawAfG8XSvzwhBeoGq71zXOC/Q1E9y/wUcsUA=
+github.com/ugorji/go/codec v1.3.0/go.mod h1:pRBVtBSKl77K30Bv8R2P+cLSGaTtex6fsA2Wjqmfxj4=
 github.com/xdg-go/pbkdf2 v1.0.0 h1:Su7DPu48wXMwC3bs7MCNG+z4FhcyEuz5dlvchbq0B0c=
 github.com/xdg-go/pbkdf2 v1.0.0/go.mod h1:jrpuAogTd400dnrH08LKmI/xc1MbPOebTwRqcT5RDeI=
 github.com/xdg-go/scram v1.0.2/go.mod h1:1WAq6h33pAW+iRreB34OORO2Nf7qel3VV3fjBj+hCSs=

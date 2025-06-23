@@ -5,10 +5,10 @@ go 1.23.3
 require (
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.25
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.81
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.19
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.19
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.20
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.20
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.2.86
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.80-RCN
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.0.80-RCP
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/PaesslerAG/jsonpath v0.1.1
 	github.com/confluentinc/confluent-kafka-go/v2 v2.6.1
@@ -69,7 +69,7 @@ require (
 	github.com/shopspring/decimal v1.3.1 // indirect
 	github.com/spf13/cobra v1.9.1 // indirect
 	github.com/spf13/pflag v1.0.6 // indirect
-	github.com/ugorji/go/codec v1.2.12 // indirect
+	github.com/ugorji/go/codec v1.3.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.2 // indirect
 	github.com/xdg-go/stringprep v1.0.4 // indirect
