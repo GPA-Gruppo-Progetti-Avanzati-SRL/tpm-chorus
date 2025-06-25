@@ -171,3 +171,36 @@ func DateDiff(value1, value2 interface{}, outputUnit string, inputLayouts ...str
 
 	return out
 }
+
+func DateAdd(value interface{}, years int, months int, days int, hours int, minutes int, seconds int, layouts ...string) interface{} {
+
+	const semLogContext = "orchestration-funcs::date-add"
+
+	var tm time.Time
+	var err error
+
+	switch t := value.(type) {
+	case time.Time:
+		tm = value.(time.Time)
+	case string:
+		for _, layout := range layouts {
+			if tm, err = time.Parse(layout, t); err == nil {
+				break
+			}
+		}
+	}
+
+	if tm.IsZero() {
+		return nil
+	}
+
+	tm = tm.AddDate(years, months, days)
+	tm = tm.Add(time.Duration(hours) * time.Hour)
+	tm = tm.Add(time.Duration(minutes) * time.Minute)
+	tm = tm.Add(time.Duration(seconds) * time.Second)
+
+	params := fmt.Sprintf("YY:%v,MM:%v,DD:%v,HH:%v,mm:%v,ss:%v", years, months, days, hours, minutes, seconds)
+	log.Trace().Str("params", params).Str("NewValue", tm.String()).Interface("OldValue", value).Msg(semLogContext)
+
+	return tm
+}

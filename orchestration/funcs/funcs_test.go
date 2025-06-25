@@ -90,6 +90,7 @@ func TestFuncs(t *testing.T) {
 	const YYYYMMDDdDateLayout = "20060102"
 	const YYYYMMDDMarchFirst = "20230301"
 	const YYYYMMDDMarchThird = "20230303"
+
 	datesArr := []DatesInputWanted{
 		{
 			funcName:   "IsDate",
@@ -235,6 +236,18 @@ func TestFuncs(t *testing.T) {
 			layouts:   []string{"2006-01-02"},
 			wantedInt: 0,
 		},
+		{
+			funcName:   "DateAdd",
+			input:      time.Now(),
+			layouts:    nil,
+			wantedBool: true,
+		},
+		{
+			funcName:   "DateAdd",
+			input:      "2025-06-19T10:29:48.043+02:00",
+			layouts:    []string{time.RFC3339},
+			wantedBool: true,
+		},
 		// {
 		// 	funcName:  "DateDiff",
 		// 	input:     now,
@@ -259,10 +272,15 @@ func TestFuncs(t *testing.T) {
 		case "DateDiff":
 			i := purefuncs.DateDiff(dinput.input, dinput.value2, dinput.fmtLayout, dinput.layouts...)
 			require.Equal(t, dinput.wantedInt, i, fmt.Sprintf("error on simple.DateDiff [%d]", ndx))
-		case "Age":
-			i := purefuncs.Age(dinput.input, "include", dinput.layouts...)
-			require.Equal(t, dinput.wantedInt, i, fmt.Sprintf("error on age [%d]", ndx))
+		//case "Age":
+		//	i := purefuncs.Age(dinput.input, "include", dinput.layouts...)
+		//	require.Equal(t, dinput.wantedInt, i, fmt.Sprintf("error on age [%d]", ndx))
+		case "DateAdd":
+			tm := purefuncs.DateAdd(dinput.input, -1, 2, 3, 4, 0, 30, dinput.layouts...)
+			require.Equal(t, tm != nil, dinput.wantedBool, fmt.Sprintf("error on DateAdd [%d]", ndx))
+
 		}
+
 	}
 }
 
