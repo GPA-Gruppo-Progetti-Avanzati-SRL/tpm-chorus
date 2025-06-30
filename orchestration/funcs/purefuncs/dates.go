@@ -172,7 +172,7 @@ func DateDiff(value1, value2 interface{}, outputUnit string, inputLayouts ...str
 	return out
 }
 
-func DateAdd(value interface{}, years int, months int, days int, hours int, minutes int, seconds int, layouts ...string) interface{} {
+func DateAdd(value interface{}, years float64, months float64, days float64, hours float64, minutes float64, seconds float64, layouts ...string) interface{} {
 
 	const semLogContext = "orchestration-funcs::date-add"
 
@@ -194,12 +194,12 @@ func DateAdd(value interface{}, years int, months int, days int, hours int, minu
 		return nil
 	}
 
-	tm = tm.AddDate(years, months, days)
-	tm = tm.Add(time.Duration(hours) * time.Hour)
-	tm = tm.Add(time.Duration(minutes) * time.Minute)
-	tm = tm.Add(time.Duration(seconds) * time.Second)
+	tm = tm.AddDate(int(years), int(months), int(days))
+	tm = tm.Add(time.Duration(int(hours)) * time.Hour)
+	tm = tm.Add(time.Duration(int(minutes)) * time.Minute)
+	tm = tm.Add(time.Duration(int(seconds)) * time.Second)
 
-	params := fmt.Sprintf("YY:%v,MM:%v,DD:%v,HH:%v,mm:%v,ss:%v", years, months, days, hours, minutes, seconds)
+	params := fmt.Sprintf("YY:%v,MM:%v,DD:%v,HH:%v,mm:%v,ss:%v", int(years), int(months), int(days), int(hours), int(minutes), int(seconds))
 	log.Trace().Str("params", params).Str("NewValue", tm.String()).Interface("OldValue", value).Msg(semLogContext)
 
 	return tm
