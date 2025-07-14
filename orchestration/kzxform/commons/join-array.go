@@ -7,8 +7,8 @@ import (
 	"strings"
 )
 
-func ConcatStringArray(v any, delim string) interface{} {
-	const semLogContext = "operators-funcs::concat-string-array"
+func JoinArray(v any, delim string) interface{} {
+	const semLogContext = "operators-funcs::join-array"
 	rc := ""
 
 	switch param := v.(type) {
