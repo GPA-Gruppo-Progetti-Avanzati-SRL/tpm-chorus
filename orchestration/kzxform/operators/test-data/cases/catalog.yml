@@ -1,4 +1,8 @@
 # default
+- rule: concat-ex-01.yml
+  in: concat-ex-01-in.json
+  out: concat-ex-01-out.json
+# default
 - rule: xform-default-ex-01.yml
   in: xform-default-ex-01-in.json
   out: xform-default-ex-01-out.json

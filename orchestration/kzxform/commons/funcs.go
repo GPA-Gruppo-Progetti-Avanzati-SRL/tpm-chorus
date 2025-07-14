@@ -13,6 +13,7 @@ func GetFuncMap(current map[string]interface{}) map[string]interface{} {
 	current["_lenArray"] = LenArray
 	current["_mergeArrays"] = MergeArrays
 	current["_sortArray"] = SortArray
+	current["_concatStringArray"] = ConcatStringArray
 	current["_now"] = purefuncs.Now
 	current["_age"] = purefuncs.Age
 	current["_isDate"] = purefuncs.IsDate

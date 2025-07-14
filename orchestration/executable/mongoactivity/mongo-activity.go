@@ -266,7 +266,8 @@ func (a *MongoActivity) Invoke(wfc *wfcase.WfCase, op jsonops.Operation) (*har.R
 	lks, err := mongolks.GetLinkedService(context.Background(), a.definition.LksName)
 	if err != nil {
 		log.Error().Err(err).Msg(semLogContext)
-		return nil, -1, err
+		r := har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), "text/plain", []byte(err.Error()), nil)
+		return r, http.StatusInternalServerError, err
 	}
 
 	sc, resp, err := op.Execute(lks, a.definition.CollectionId)

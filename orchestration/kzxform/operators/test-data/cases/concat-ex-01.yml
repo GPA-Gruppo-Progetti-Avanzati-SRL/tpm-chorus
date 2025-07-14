@@ -1,0 +1,20 @@
+id: concat-ex-01
+rules:
+  - operation: shift
+    spec:
+      groupsArray: to_array[*].group_id
+#  - operation: concat
+#    spec:
+#      sources:
+#        - path: groups
+#      targetPath: csv_list
+#      delim: ","
+  - operation: set-properties
+    spec:
+      properties:
+        - name-ref: csv_list
+          expression:
+            text: _concatStringArray(groupsArray, ",")
+            vars:
+              - with: groupsArray
+                as: groupsArray
