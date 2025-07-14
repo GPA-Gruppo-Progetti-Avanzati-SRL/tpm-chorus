@@ -14,7 +14,7 @@ rules:
       properties:
         - name-ref: csv_list
           expression:
-            text: _concatStringArray(groupsArray, ",")
+            text: _joinArray(groupsArray, ",")
             vars:
               - with: groupsArray
                 as: groupsArray
