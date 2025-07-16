@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	SinkTypeKafka        = "kafka"
-	SinkTypeKafkaRaw     = "kafka-raw"
+	SinkTypeKafka = "kafka"
+	// SinkTypeKafkaRaw     = "kafka-raw"
 	SinkTypeKafkaFF      = "kafka-ff"
 	MessageKeyHeaderName = "X-Kafka-Key"
 
