@@ -16,6 +16,9 @@ const (
 	SinkTypeKafkaFF      = "kafka-ff"
 	MessageKeyHeaderName = "X-Kafka-Key"
 
+	FFFormatNone = "no-xform"
+	FFFormatNlq  = "nlq"
+
 	// from pipeline package not to have cyclic issues
 
 )
@@ -52,6 +55,7 @@ type KafkaSinkDefinition struct {
 	FlushTimeout              time.Duration                         `yaml:"flush-timeout,omitempty"  mapstructure:"flush-timeout,omitempty" json:"flush-timeout,omitempty"`
 	WithRandomError           string                                `yaml:"with-random-error,omitempty" mapstructure:"with-random-error,omitempty" json:"with-random-error,omitempty"`
 	MessageProducerBufferSize int                                   `yaml:"mp-buffer-size,omitempty" mapstructure:"mp-buffer-size,omitempty" json:"mp-buffer-size,omitempty"`
+	FFFormat                  string                                `json:"ff-format,omitempty" yaml:"ff-format,omitempty" mapstructure:"ff-format,omitempty"`
 	// Guard      string               `json:"guard" yaml:"guard" mapstructure:"guard"`
 }
 

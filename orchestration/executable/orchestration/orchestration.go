@@ -81,6 +81,7 @@ func NewOrchestration(cfg *config.Orchestration) (Orchestration, error) {
 		}
 
 		if err != nil {
+			log.Error().Err(err).Str("name", cfgItem.Name()).Msg(semLogContext)
 			return o, err
 		}
 
