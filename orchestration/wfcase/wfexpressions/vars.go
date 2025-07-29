@@ -44,7 +44,7 @@ func NewProcessVars() *ProcessVars {
 }
 
 func (vs *ProcessVars) ClearTemporary(temps []string) {
-	if len(vs.V) > 0 {
+	if vs != nil && len(vs.V) > 0 {
 		for _, n := range temps {
 			delete(vs.V, n)
 		}
