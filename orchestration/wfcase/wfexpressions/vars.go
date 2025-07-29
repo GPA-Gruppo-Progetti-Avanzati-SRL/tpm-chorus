@@ -68,7 +68,7 @@ func (vs *ProcessVars) GetDltHeaders() PVValues {
 
 func (vs *ProcessVars) ShowVars(sorted bool) {
 
-	if len(vs.V) == 0 {
+	if vs == nil || len(vs.V) == 0 {
 		return
 	}
 
