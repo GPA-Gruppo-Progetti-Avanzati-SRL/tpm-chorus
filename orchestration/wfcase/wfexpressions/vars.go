@@ -53,7 +53,12 @@ func (vs *ProcessVars) ClearTemporary(temps []string) {
 }
 
 func (vs *ProcessVars) GetDltHeaders() PVValues {
+
 	var dltVars PVValues
+	if vs == nil {
+		return dltVars
+	}
+
 	for n, v := range vs.M {
 		if v.DltHeader {
 			if dltVars == nil {
