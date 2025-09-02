@@ -2,11 +2,12 @@ package funcs_test
 
 import (
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs"
 	"os"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs"
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -151,6 +152,15 @@ func TestFuncs(t *testing.T) {
 			funcName:   "ParseDate",
 			input:      Dashed20230301,
 			layouts:    []string{YYYYMMDDdDateLayout, DashedDateLayout},
+			wantedBool: true,
+		},
+
+		{
+			funcName: "ParseDate",
+			input:    "2025-06-18T12:44:06.996Z",
+			layouts: []string{
+				"2006-01-02T15:04:05.000Z",
+			},
 			wantedBool: true,
 		},
 
