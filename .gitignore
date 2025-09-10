@@ -9,5 +9,5 @@ setEnv.sh
 /local-files/
 /.vscode
 /chart/Chart.lock
-/orchestration/kzxform/operators/test-data/outs/
+/orchestration/xforms/kz/operators/test-data/outs/
 /deps.txt

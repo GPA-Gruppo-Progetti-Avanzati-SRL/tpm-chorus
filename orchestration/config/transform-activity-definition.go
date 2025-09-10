@@ -3,17 +3,18 @@ package config
 import (
 	"errors"
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/kzxform"
+	"os"
+	"path/filepath"
+
+	kzxform2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
-	"os"
-	"path/filepath"
 )
 
 type TransformActivityDefinition struct {
-	Transforms        []kzxform.TransformReference `yaml:"transforms,omitempty"  json:"transforms,omitempty" mapstructure:"transforms,omitempty"`
-	OnResponseActions []OnResponseAction           `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
+	Transforms        []kzxform2.TransformReference `yaml:"transforms,omitempty"  json:"transforms,omitempty" mapstructure:"transforms,omitempty"`
+	OnResponseActions []OnResponseAction            `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
 }
 
 func (def *TransformActivityDefinition) WriteToFile(folderName string, fileName string, writeOpts ...fileutil.WriteOption) error {
@@ -121,7 +122,7 @@ func loadTemplateXForm(refs DataReferences, templateRef string) ([]byte, error) 
 	return trasDef, nil
 }
 
-func loadKazaamXForm(refs DataReferences, xform kzxform.TransformReference) ([]byte, error) {
+func loadKazaamXForm(refs DataReferences, xform kzxform2.TransformReference) ([]byte, error) {
 	const semLogContext = "transform-activity-definition::load-kazaam-xform"
 	trasDef, _ := refs.Find(xform.DefinitionRef)
 	if len(trasDef) == 0 {
@@ -133,14 +134,14 @@ func loadKazaamXForm(refs DataReferences, xform kzxform.TransformReference) ([]b
 	return trasDef, nil
 }
 
-func registerKazaamXForm(refs DataReferences, xform kzxform.TransformReference) error {
+func registerKazaamXForm(refs DataReferences, xform kzxform2.TransformReference) error {
 	const semLogContext = "transform-activity-definition::register-kazaam-xform"
 
 	if xform.Typ != XFormKazaam {
 		return nil
 	}
 
-	tReg := kzxform.GetRegistry()
+	tReg := kzxform2.GetRegistry()
 	if tReg == nil {
 		err := errors.New("transformation registry not initialized")
 		log.Error().Err(err).Msg(semLogContext)
