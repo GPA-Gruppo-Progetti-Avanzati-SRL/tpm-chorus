@@ -1,9 +1,10 @@
-package kzxform
+package kz
 
 import (
 	"errors"
 	"fmt"
 
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz/operators"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz/operators/addarrayitems"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz/operators/distinctarrayitems"
@@ -101,7 +102,7 @@ func GetRegistry() Registry {
 	return registry
 }
 
-func (r Registry) AddTransformation(ref TransformReference) error {
+func (r Registry) AddTransformation(ref xforms.TransformReference) error {
 	trsf := Config{}
 	err := yaml.Unmarshal(ref.Data, &trsf)
 	if err != nil {

@@ -1,0 +1,43 @@
+{
+  "arr1": [
+    {
+      "rapporto": "0123456",
+      "param1": "Afirst",
+      "param2": "Bfirst"
+    },
+    {
+      "rapporto": "0235680",
+      "param1": "Asecond",
+      "param2": "Bsecond"
+    },
+    {
+      "rapporto": "0555696",
+      "param1": "Athird",
+      "param2": "Bthird"
+    }
+  ],
+  "arr2": [
+    {
+      "rapporto": "0235680",
+      "param2": "Bsecondedit",
+      "param3": "Csecond"
+    },
+    {
+      "rapporto": "0123456",
+      "param2": "Bfirstedit",
+      "param3": "Cfirst"
+    },
+    {
+      "rapporto": "0555696",
+      "param2": "Bthirdedit",
+      "param3": "Cthird"
+    }
+  ],
+  "arr3": [
+    {
+      "rapporto": "0235680",
+      "param8": "Wsecond",
+      "param9": "Zsecond"
+    }
+  ]
+}

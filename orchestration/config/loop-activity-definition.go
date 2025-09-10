@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
@@ -17,12 +17,12 @@ const (
 )
 
 type LoopControlFlowDefinition struct {
-	Typ            string                     `yaml:"type,omitempty" json:"type,omitempty" mapstructure:"type,omitempty"`
-	Start          string                     `yaml:"start,omitempty" json:"start,omitempty" mapstructure:"start,omitempty"`
-	End            string                     `yaml:"end,omitempty" json:"end,omitempty" mapstructure:"end,omitempty"`
-	Step           string                     `yaml:"step,omitempty" json:"step,omitempty" mapstructure:"step,omitempty"`
-	BreakCondition string                     `yaml:"break-on,omitempty" json:"break-on,omitempty" mapstructure:"break-on,omitempty"`
-	XForm          kzxform.TransformReference `yaml:"x-form,omitempty"  json:"x-form,omitempty" mapstructure:"x-form,omitempty"`
+	Typ            string                    `yaml:"type,omitempty" json:"type,omitempty" mapstructure:"type,omitempty"`
+	Start          string                    `yaml:"start,omitempty" json:"start,omitempty" mapstructure:"start,omitempty"`
+	End            string                    `yaml:"end,omitempty" json:"end,omitempty" mapstructure:"end,omitempty"`
+	Step           string                    `yaml:"step,omitempty" json:"step,omitempty" mapstructure:"step,omitempty"`
+	BreakCondition string                    `yaml:"break-on,omitempty" json:"break-on,omitempty" mapstructure:"break-on,omitempty"`
+	XForm          xforms.TransformReference `yaml:"x-form,omitempty"  json:"x-form,omitempty" mapstructure:"x-form,omitempty"`
 }
 
 type LoopActivityDefinition struct {
@@ -87,6 +87,13 @@ func UnmarshalLoopActivityDefinition(def string, refs DataReferences) (LoopActiv
 
 	case XFormKazaam:
 		err = registerKazaamXForm(refs, maDef.ControlFlow.XForm)
+		if err != nil {
+			log.Error().Err(err).Msg(semLogContext)
+			return maDef, err
+		}
+
+	case XFormJQ:
+		err = registerJQXForm(refs, maDef.ControlFlow.XForm)
 		if err != nil {
 			log.Error().Err(err).Msg(semLogContext)
 			return maDef, err

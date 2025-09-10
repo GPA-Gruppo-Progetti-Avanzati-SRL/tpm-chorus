@@ -260,7 +260,7 @@ func TestMain(m *testing.M) {
 		log.Fatal().Err(err).Msg(semLogContext)
 	}
 
-	err = kzxform.InitializeKazaamRegistry()
+	err = kz.InitializeKazaamRegistry()
 	if nil != err {
 		log.Fatal().Err(err).Msg(semLogContext)
 	}

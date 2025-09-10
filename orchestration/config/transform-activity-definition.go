@@ -6,15 +6,17 @@ import (
 	"os"
 	"path/filepath"
 
-	kzxform2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/jq"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
 type TransformActivityDefinition struct {
-	Transforms        []kzxform2.TransformReference `yaml:"transforms,omitempty"  json:"transforms,omitempty" mapstructure:"transforms,omitempty"`
-	OnResponseActions []OnResponseAction            `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
+	Transforms        []xforms.TransformReference `yaml:"transforms,omitempty"  json:"transforms,omitempty" mapstructure:"transforms,omitempty"`
+	OnResponseActions []OnResponseAction          `yaml:"on-response,omitempty" json:"on-response,omitempty" mapstructure:"on-response,omitempty"`
 }
 
 func (def *TransformActivityDefinition) WriteToFile(folderName string, fileName string, writeOpts ...fileutil.WriteOption) error {
@@ -72,6 +74,14 @@ func UnmarshalTransformActivityDefinition(def string, refs DataReferences) (Tran
 				log.Error().Err(err).Msg(semLogContext)
 				return maDef, err
 			}
+
+		case XFormJQ:
+			err = registerJQXForm(refs, xForm)
+			if err != nil {
+				log.Error().Err(err).Msg(semLogContext)
+				return maDef, err
+			}
+
 		case XFormTemplate:
 			b, err = loadTemplateXForm(refs, xForm.DefinitionRef)
 			if err != nil {
@@ -122,7 +132,7 @@ func loadTemplateXForm(refs DataReferences, templateRef string) ([]byte, error) 
 	return trasDef, nil
 }
 
-func loadKazaamXForm(refs DataReferences, xform kzxform2.TransformReference) ([]byte, error) {
+func loadKazaamXForm(refs DataReferences, xform xforms.TransformReference) ([]byte, error) {
 	const semLogContext = "transform-activity-definition::load-kazaam-xform"
 	trasDef, _ := refs.Find(xform.DefinitionRef)
 	if len(trasDef) == 0 {
@@ -134,14 +144,45 @@ func loadKazaamXForm(refs DataReferences, xform kzxform2.TransformReference) ([]
 	return trasDef, nil
 }
 
-func registerKazaamXForm(refs DataReferences, xform kzxform2.TransformReference) error {
+func registerJQXForm(refs DataReferences, xform xforms.TransformReference) error {
+	const semLogContext = "transform-activity-definition::register-jq-xform"
+
+	if xform.Typ != XFormJQ {
+		return nil
+	}
+
+	tReg := jq.GetRegistry()
+	if tReg == nil {
+		err := errors.New("jq transformation registry not initialized")
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	trasDef, _ := refs.Find(xform.DefinitionRef)
+	if len(trasDef) == 0 {
+		err := fmt.Errorf("cannot find transformation %s definition from %s", xform.Id, xform.DefinitionRef)
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	xform.Data = trasDef
+	err := tReg.AddTransformation(xform)
+	if err != nil {
+		log.Error().Err(err).Msg(semLogContext)
+		return err
+	}
+
+	return nil
+}
+
+func registerKazaamXForm(refs DataReferences, xform xforms.TransformReference) error {
 	const semLogContext = "transform-activity-definition::register-kazaam-xform"
 
 	if xform.Typ != XFormKazaam {
 		return nil
 	}
 
-	tReg := kzxform2.GetRegistry()
+	tReg := kz.GetRegistry()
 	if tReg == nil {
 		err := errors.New("transformation registry not initialized")
 		log.Error().Err(err).Msg(semLogContext)

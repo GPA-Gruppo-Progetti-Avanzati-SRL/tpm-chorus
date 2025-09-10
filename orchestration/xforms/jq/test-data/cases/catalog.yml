@@ -1,0 +1,4 @@
+# default
+- rule: jq-001.txt
+  in: input-001.json
+  out: 01-out.json

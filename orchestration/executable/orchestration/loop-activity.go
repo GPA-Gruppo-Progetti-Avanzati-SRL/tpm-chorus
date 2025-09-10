@@ -14,7 +14,9 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/responseactivity"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
-	kzxform2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/jq"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
@@ -64,6 +66,9 @@ func (cf *LoopControlFlow) Next(wfc *wfcase.WfCase, evaluator *wfexpressions.Eva
 		case config.XFormKazaam:
 			b, err = evaluator.BodyAsByteArray()
 			b, err = cf.executeKazaamTransformation(cf.cfg.XForm.Id, b)
+		case config.XFormJQ:
+			b, err = evaluator.BodyAsByteArray()
+			b, err = cf.executeJQTransformation(cf.cfg.XForm.Id, b)
 		}
 
 		if err != nil {
@@ -83,10 +88,14 @@ func (cf *LoopControlFlow) Next(wfc *wfcase.WfCase, evaluator *wfexpressions.Eva
 }
 
 func (a *LoopControlFlow) executeKazaamTransformation(kazaamId string, data []byte) ([]byte, error) {
-	return kzxform2.GetRegistry().Transform(kazaamId, data)
+	return kz.GetRegistry().Transform(kazaamId, data)
 }
 
-func (a *LoopControlFlow) resolveAndExecuteKazaamTransformation(wfc *wfcase.WfCase, xForm *kzxform2.TransformReference, resolver *wfexpressions.Evaluator) ([]byte, error) {
+func (a *LoopControlFlow) executeJQTransformation(jqId string, data []byte) ([]byte, error) {
+	return jq.GetRegistry().Transform(jqId, data)
+}
+
+func (a *LoopControlFlow) resolveAndExecuteKazaamTransformation(wfc *wfcase.WfCase, xForm *xforms.TransformReference, resolver *wfexpressions.Evaluator) ([]byte, error) {
 	const semLogContext = "loop-activity::resolve-and-execute-kazaam-transformation"
 
 	// Missing template functions.
@@ -102,7 +111,7 @@ func (a *LoopControlFlow) resolveAndExecuteKazaamTransformation(wfc *wfcase.WfCa
 		return nil, err
 	}
 
-	return kzxform2.ApplyKazaamTransformation(resolvedTransformation, data)
+	return kz.ApplyKazaamTransformation(resolvedTransformation, data)
 }
 
 func InitLoopControlFlow(cfg config.LoopControlFlowDefinition, evaluator *wfexpressions.Evaluator) (*LoopControlFlow, error) {

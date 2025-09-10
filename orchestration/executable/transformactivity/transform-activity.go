@@ -10,7 +10,9 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
-	kzxform2 "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/jq"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
@@ -149,10 +151,14 @@ func (a *TransformActivity) Execute(wfc *wfcase.WfCase) error {
 }
 
 func (a *TransformActivity) executeKazaamTransformation(kazaamId string, data []byte) ([]byte, error) {
-	return kzxform2.GetRegistry().Transform(kazaamId, data)
+	return kz.GetRegistry().Transform(kazaamId, data)
 }
 
-func (a *TransformActivity) resolveAndExecuteKazaamTransformation(wfc *wfcase.WfCase, xForm *kzxform2.TransformReference, resolver *wfexpressions.Evaluator) ([]byte, error) {
+func (a *TransformActivity) executeJQTransformation(jqId string, data []byte) ([]byte, error) {
+	return jq.GetRegistry().Transform(jqId, data)
+}
+
+func (a *TransformActivity) resolveAndExecuteKazaamTransformation(wfc *wfcase.WfCase, xForm *xforms.TransformReference, resolver *wfexpressions.Evaluator) ([]byte, error) {
 	const semLogContext = "transform-activity::resolve-and-execute-kazaam-transformation"
 
 	resolvedTransformation, err := resolver.EvaluateTemplate(string(xForm.Data), wfc.TemplateFunctions())
@@ -167,7 +173,7 @@ func (a *TransformActivity) resolveAndExecuteKazaamTransformation(wfc *wfcase.Wf
 		return nil, err
 	}
 
-	return kzxform2.ApplyKazaamTransformation(resolvedTransformation, data)
+	return kz.ApplyKazaamTransformation(resolvedTransformation, data)
 }
 
 func (a *TransformActivity) executeJsonExt2JsonTransformation(data []byte) ([]byte, error) {
@@ -225,6 +231,9 @@ func (a *TransformActivity) Invoke(wfc *wfcase.WfCase, expressionCtx wfcase.HarE
 		case config.XFormKazaam:
 			b, err = resolver.BodyAsByteArray()
 			b, err = a.executeKazaamTransformation(xform.Id, b)
+		case config.XFormJQ:
+			b, err = resolver.BodyAsByteArray()
+			b, err = a.executeJQTransformation(xform.Id, b)
 		case config.XFormMerge:
 			b, err = resolver.BodyAsByteArray()
 			b, err = a.executeMergeTransformation(wfc, xform.Data, b)
@@ -373,7 +382,7 @@ func (a *TransformActivity) processResponseAction(wfc *wfcase.WfCase, activityNa
 	return 0, nil
 }
 
-func chooseTransformation(wfc *wfcase.WfCase, trs []kzxform2.TransformReference) (string, error) {
+func chooseTransformation(wfc *wfcase.WfCase, trs []xforms.TransformReference) (string, error) {
 	for _, t := range trs {
 
 		b := true

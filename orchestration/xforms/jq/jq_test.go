@@ -1,7 +1,8 @@
-package operators_test
+package jq_test
 
 import (
 	"embed"
+	_ "embed"
 	"errors"
 	"os"
 	"path"
@@ -9,13 +10,34 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/jq"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/stretchr/testify/require"
 	"gopkg.in/yaml.v3"
 )
+
+//go:embed test-data/cases/input-001.json
+var inputJson string
+
+//go:embed test-data/cases/jq-001.txt
+var jqText []byte
+
+func TestJQ(t *testing.T) {
+	dataOut, err := jq.ApplyJQTransformation(jqText, inputJson)
+	require.NoError(t, err)
+
+	t.Logf("dataOut: %#v", dataOut)
+}
+
+func TestXForms(t *testing.T) {
+	const semLogContext = "test-operators"
+	var err error
+
+	filterPrefix := ""
+	err = catalog.executeXForms(filterPrefix, true)
+	require.NoError(t, err)
+}
 
 type CatalogEntry struct {
 	Rule string `yaml:"rule,omitempty" mapstructure:"rule,omitempty" json:"rule,omitempty"`
@@ -38,7 +60,7 @@ func (c Catalog) executeXForms(prefix string, writeOutput bool) error {
 		}
 
 		if doIt {
-			_, err := c.executeXFormByEntryNdx(i, writeOutput)
+			err := c.executeXFormByEntryNdx(i, writeOutput)
 			if err != nil {
 				log.Error().Err(err).Str("rule", entry.Rule).Msg(semLogContext)
 				return err
@@ -49,54 +71,28 @@ func (c Catalog) executeXForms(prefix string, writeOutput bool) error {
 	return nil
 }
 
-func (c Catalog) executeXFormByRuleName(n string, writeOutput bool) ([]byte, error) {
-	ndx, err := c.findEntryIndexByRuleName(n)
-	if err != nil {
-		return nil, err
-	}
-
-	if ndx < 0 {
-		return nil, errors.New("invalid rule name")
-	}
-
-	return c.executeXFormByEntryNdx(ndx, writeOutput)
-}
-
-func (c Catalog) executeXFormByEntryNdx(ndx int, writeOutput bool) ([]byte, error) {
+func (c Catalog) executeXFormByEntryNdx(ndx int, writeOutput bool) error {
 
 	ruleData, inData, err := c.readTestDataByNdx(ndx)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	registry := kz.GetRegistry()
-
-	xform := kz.Config{}
-	err = yaml.Unmarshal(ruleData, &xform)
+	dataOut, err := jq.ApplyJQTransformationToJson(ruleData, inData)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	_, err = registry.Get(xform.Id)
-	if err != nil {
-		if errors.Is(err, kz.XFormNotFound) {
-			err = registry.Add3(xform)
-		}
-	}
-
-	dataOut, err := registry.Transform(xform.Id, inData)
-	if err != nil {
-		return nil, err
-	}
+	log.Info().Str("dataOut", string(dataOut)).Msg("dataOut")
 
 	if writeOutput {
 		err = os.WriteFile(filepath.Join(outRootFolder, c[ndx].Out), dataOut, os.ModePerm)
 		if err != nil {
-			return nil, err
+			return err
 		}
 	}
 
-	return dataOut, nil
+	return nil
 }
 
 func (c Catalog) findEntryIndexByRuleName(n string) (int, error) {
@@ -153,24 +149,6 @@ func TestMain(m *testing.M) {
 	os.Exit(exitVal)
 }
 
-func TestXForms(t *testing.T) {
-	const semLogContext = "test-operators"
-	var err error
-
-	filterPrefix := "concat" // """xform-set" // "xform-set" "xform-shift" "xform-red" "xform-default"  "xform-set-propert"
-	err = catalog.executeXForms(filterPrefix, true)
-	require.NoError(t, err)
-}
-
-func TestXFormByName(t *testing.T) {
-	const semLogContext = "test-operators"
-	var err error
-
-	ruleName := "xform-set-property-ex-03-rule.yml"
-	_, err = catalog.executeXFormByRuleName(ruleName, true)
-	require.NoError(t, err)
-}
-
 func readCatalog() (Catalog, error) {
 	catalogData, err := testCases.ReadFile(path.Join(EmbeddedRootFolder, "catalog.yml"))
 	if err != nil {
@@ -184,39 +162,4 @@ func readCatalog() (Catalog, error) {
 	}
 
 	return catalog, nil
-}
-
-func readSourceTemplates(templates embed.FS, rootFolder string) (map[string][]byte, error) {
-
-	entries, err := fileutil.FindEmbeddedFiles(
-		templates, rootFolder,
-		fileutil.WithFindOptionNavigateSubDirs() /*, fileutil.WithFindOptionExcludeRootFolderInNames() */, fileutil.WithFindOptionPreloadContent(),
-	)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if len(entries) == 0 {
-		return nil, err
-	}
-
-	treeNodes := map[string][]byte{}
-	for _, e := range entries {
-		if e.Info.IsDir() {
-			continue
-		}
-
-		fulln := e.Info.Name()
-		if e.Path != "" {
-			p := strings.TrimPrefix(e.Path, rootFolder)
-			if p != "" {
-				fulln = path.Join(p, fulln)
-			}
-		}
-
-		treeNodes[fulln] = e.Content
-	}
-
-	return treeNodes, nil
 }

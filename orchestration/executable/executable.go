@@ -7,7 +7,7 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/smperror"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"github.com/prometheus/client_golang/prometheus"
@@ -251,7 +251,7 @@ func (a *Activity) ProcessResponseActionByStatusCode(
 	return 0, nil
 }
 
-func (a *Activity) ChooseTransformation(wfc *wfcase.WfCase, trs []kzxform.TransformReference) (string, error) {
+func (a *Activity) ChooseTransformation(wfc *wfcase.WfCase, trs []xforms.TransformReference) (string, error) {
 	for _, t := range trs {
 
 		b := true

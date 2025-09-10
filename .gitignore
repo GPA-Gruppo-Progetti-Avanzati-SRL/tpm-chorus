@@ -11,3 +11,4 @@ setEnv.sh
 /chart/Chart.lock
 /orchestration/xforms/kz/operators/test-data/outs/
 /deps.txt
+/orchestration/xforms/jq/test-data/outs/

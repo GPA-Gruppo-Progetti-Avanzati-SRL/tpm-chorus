@@ -1,0 +1,7 @@
+{
+  arrRes: [
+    (.arr1 + .arr2 + .arr3)
+    | group_by(.rapporto)
+    | map(add)
+  ]
+}

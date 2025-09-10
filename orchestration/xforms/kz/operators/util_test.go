@@ -46,7 +46,7 @@ rules:
 `)
 
 func TestYamlDeserialization(t *testing.T) {
-	var m kzxform.Config
+	var m kz.Config
 	err := yaml.Unmarshal(yamlExample, &m)
 	require.NoError(t, err)
 	t.Log(m)

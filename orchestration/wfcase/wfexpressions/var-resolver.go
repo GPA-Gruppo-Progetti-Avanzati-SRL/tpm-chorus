@@ -120,7 +120,7 @@ func (pvr *Evaluator) WithBody(ct string, aBody []byte, transformationId string)
 		if strings.HasPrefix(ct, constants.ContentTypeApplicationJson) {
 			actualBody := aBody
 			if transformationId != "" {
-				actualBody, err = kzxform.GetRegistry().Transform(transformationId, aBody)
+				actualBody, err = kz.GetRegistry().Transform(transformationId, aBody)
 				if err != nil {
 					log.Error().Err(err).Msg(semLogContext + " body transformation failed")
 					return err
