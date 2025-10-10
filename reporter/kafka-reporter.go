@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"sync"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/jsonmask"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
@@ -11,7 +13,6 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
-	"sync"
 )
 
 const (
@@ -171,7 +172,8 @@ func (kr *KafkaReporter) monitorProducerEvents() {
 				kr.SetMetrics(metricLabels)
 			}
 		case kafka.Error:
-			log.Error().Bool("is-retriable", ev.IsRetriable()).Bool("is-fatal", ev.IsFatal()).Interface("error", ev.Error()).Interface("code", ev.Code()).Interface("text", ev.Code().String()).Msg(semLogContext)
+			//log.Error().Bool("is-retriable", ev.IsRetriable()).Bool("is-fatal", ev.IsFatal()).Interface("error", ev.Error()).Interface("code", ev.Code()).Interface("text", ev.Code().String()).Msg(semLogContext)
+			kr.logKafkaError(ev, semLogContext)
 			metricLabels[MetricIdStatusCode] = "503"
 			kr.SetMetrics(metricLabels)
 		}
@@ -245,4 +247,31 @@ func (a *KafkaReporter) MetricsLabels() prometheus.Labels {
 	}
 
 	return metricsLabels
+}
+
+// logKafkaError centralizza la logica di logging degli errori Kafka.
+func (kr *KafkaReporter) logKafkaError(ev kafka.Error, context string) {
+
+	logger := log.With().
+		Bool("is-retriable", ev.IsRetriable()).
+		Bool("is-fatal", ev.IsFatal()).
+		Interface("error", ev.Error()).
+		Interface("code", ev.Code()).
+		Str("text", ev.Code().String()).
+		Logger()
+
+	switch {
+	case ev.IsFatal():
+		// Errori fatali → livello Error
+		logger.Error().Msg(context)
+
+	case ev.IsRetriable():
+		// Errori retriabili → livello Warn (non bloccano, ma vanno monitorati)
+		logger.Warn().Msg(context)
+
+	default:
+		// Errori minori o transitori → livello Info
+		logger.Info().Msg(context)
+	}
+
 }
