@@ -3,10 +3,11 @@ package amt
 import (
 	"errors"
 	"fmt"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
-	"github.com/rs/zerolog/log"
 	"strconv"
 	"strings"
+
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/rs/zerolog/log"
 )
 
 var formatConversionMap = map[string]func(i int64, d string) string{
@@ -118,10 +119,10 @@ func splitString(ta string, sourceFormat string) (int64, string, bool, error) {
 		return 0, "", false, err
 	}
 
-	iPart := util.TrimPrefixCharacters(parts[0], "0")
+	iPart := util.TrimPrefixCharacters(parts[0], false, "0")
 	dPart := ""
 	if len(parts) == 2 {
-		dPart = util.TrimSuffixCharacters(parts[1], "0")
+		dPart = util.TrimSuffixCharacters(parts[1], false, "0")
 	}
 
 	intPart = 0

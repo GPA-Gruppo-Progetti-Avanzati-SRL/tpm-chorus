@@ -3,6 +3,7 @@ package kafkasink
 import (
 	"errors"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common/kafkautil"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common/tprod"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
@@ -156,21 +157,21 @@ func (p *KafkaSinkStageBufferedMessageQueue) Produce(msgs ...QueueMessage) error
 	if !p.isBuffered() {
 		err = p.produce2Topics(p.Kp, msgs)
 		if err != nil {
-			tprod.LogKafkaError(err).Msg(semLogContext)
+			kafkautil.LogKafkaError(err).Msg(semLogContext)
 		}
 	} else {
 		p.Items = append(p.Items, msgs...)
 		if p.isOverQuota() {
 			err = p.produce2Topics(p.Kp, p.Items)
 			if err != nil {
-				tprod.LogKafkaError(err).Msg(semLogContext)
+				kafkautil.LogKafkaError(err).Msg(semLogContext)
 			}
 			p.Items = nil
 		}
 	}
 
 	if err != nil {
-		tprod.LogKafkaError(err).Msg(semLogContext)
+		kafkautil.LogKafkaError(err).Msg(semLogContext)
 	}
 
 	return err
@@ -192,7 +193,7 @@ func (p *KafkaSinkStageBufferedMessageQueue) flushQueue() error {
 	if len(p.Items) > 0 {
 		err = p.produce2Topics(p.Kp, p.Items)
 		if err != nil {
-			tprod.LogKafkaError(err).Msg(semLogContext)
+			kafkautil.LogKafkaError(err).Msg(semLogContext)
 		}
 	}
 
@@ -277,7 +278,7 @@ func (p *KafkaSinkStageBufferedMessageQueue) MonitorProducerEvents(name string) 
 		switch ev := e.(type) {
 		case *kafka.Message:
 			if ev.TopicPartition.Error != nil {
-				logEvt := tprod.LogKafkaError(ev.TopicPartition.Error).Int64("offset", int64(ev.TopicPartition.Offset)).Int32("partition", ev.TopicPartition.Partition).Interface("topic", ev.TopicPartition.Topic)
+				logEvt := kafkautil.LogKafkaError(ev.TopicPartition.Error).Int64("offset", int64(ev.TopicPartition.Offset)).Int32("partition", ev.TopicPartition.Partition).Interface("topic", ev.TopicPartition.Topic)
 				logEvt.Msg(semLogContext + " delivery failed")
 				p.statsInfo.NumFailedMessages++
 
