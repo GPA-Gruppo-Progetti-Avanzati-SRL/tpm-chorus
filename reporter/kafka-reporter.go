@@ -10,9 +10,9 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/jsonmask"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common/kafkalks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common/kafkautil"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -173,7 +173,7 @@ func (kr *KafkaReporter) monitorProducerEvents() {
 				kr.SetMetrics(metricLabels)
 			}
 		case kafka.Error:
-			kr.logKafkaError(semLogContext, ev)
+			kafkautil.LogKafkaError(ev).Msg(semLogContext)
 			metricLabels[MetricIdStatusCode] = "503"
 			kr.SetMetrics(metricLabels)
 		}
@@ -249,29 +249,30 @@ func (a *KafkaReporter) MetricsLabels() prometheus.Labels {
 	return metricsLabels
 }
 
-func (kr *KafkaReporter) logKafkaError(logContext string, ev kafka.Error) {
-
-	var evt *zerolog.Event
-	switch {
-	case ev.IsFatal():
-		// Errori fatali → livello Error
-		evt = log.Error()
-
-	case ev.IsRetriable():
-		// Errori retriabili → livello Warn (non bloccano, ma vanno monitorati)
-		evt = log.Warn()
-
-	default:
-		// Errori minori o transitori → livello Info
-		evt = log.Info()
-	}
-
-	evt.
-		Bool("is-retriable", ev.IsRetriable()).
-		Bool("is-fatal", ev.IsFatal()).
-		Interface("error", ev.Error()).
-		Interface("code", ev.Code()).
-		Str("text", ev.Code().String()).
-		Msg(logContext)
-
-}
+//
+//func (kr *KafkaReporter) logKafkaError(logContext string, ev kafka.Error) {
+//
+//	var evt *zerolog.Event
+//	switch {
+//	case ev.IsFatal():
+//		// Errori fatali → livello Error
+//		evt = log.Error()
+//
+//	case ev.IsRetriable():
+//		// Errori retriabili → livello Warn (non bloccano, ma vanno monitorati)
+//		evt = log.Warn()
+//
+//	default:
+//		// Errori minori o transitori → livello Info
+//		evt = log.Info()
+//	}
+//
+//	evt.
+//		Bool("is-retriable", ev.IsRetriable()).
+//		Bool("is-fatal", ev.IsFatal()).
+//		Interface("error", ev.Error()).
+//		Interface("code", ev.Code()).
+//		Str("text", ev.Code().String()).
+//		Msg(logContext)
+//
+//}
