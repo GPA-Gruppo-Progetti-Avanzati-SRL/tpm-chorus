@@ -5,9 +5,9 @@ go 1.25.0
 require (
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common v0.0.25
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common v0.1.85
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.21
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.21
-	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.3.0
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive v0.1.22
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client v0.1.22
+	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common v0.3.1
 	github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common v0.1.7
 	github.com/PaesslerAG/gval v1.2.2
 	github.com/PaesslerAG/jsonpath v0.1.1
