@@ -3,6 +3,9 @@ package cacheactivity
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cacheoperation"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
@@ -15,8 +18,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
-	"net/http"
-	"time"
 )
 
 type CacheActivity struct {
@@ -131,15 +132,18 @@ func (a *CacheActivity) Execute(wfc *wfcase.WfCase) error {
 		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
 	}
 
-	if err != nil {
-		wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
-		metricsLabels[MetricIdStatusCode] = "500"
-		return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithErrorMessage(err.Error()))
-	}
-
 	if harResponse != nil {
+		if err != nil {
+			log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+		}
 		_ = wfc.SetHarEntryResponse(a.Name(), harResponse, config.PersonallyIdentifiableInformation{})
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(harResponse.Status)
+	} else {
+		if err != nil {
+			wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), err)
+			metricsLabels[MetricIdStatusCode] = "500"
+			return smperror.NewExecutableServerError(smperror.WithErrorAmbit(a.Name()), smperror.WithStep(a.Name()), smperror.WithErrorMessage(err.Error()))
+		}
 	}
 
 	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(harResponse.Status, a.Name(), a.Name(), wfc, nil, wfcase.HarEntryReference{Name: a.Name(), UseResponse: true}, a.definition.OnResponseActions, true)
