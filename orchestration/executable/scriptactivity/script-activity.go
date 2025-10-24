@@ -4,6 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
@@ -15,9 +19,6 @@ import (
 	"github.com/d5/tengo/v2/stdlib"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
-	"net/http"
-	"strings"
-	"time"
 )
 
 const (
@@ -138,39 +139,9 @@ func (a *ScriptActivity) Execute(wfc *wfcase.WfCase) error {
 		}
 	}
 
-	script, bdy, err := a.computeScript(wfc)
-	if err != nil {
-		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
-		return err
-	}
+	sc, scriptOutVars := a.executeScript(wfc, err, semLogContext)
 
-	req, _ := a.newRequestDefinition([]byte(bdy))
-	_ = wfc.SetHarEntryRequest(a.Name(), req, config.PersonallyIdentifiableInformation{})
-
-	compiled, err := script.RunContext(context.Background())
-	if err != nil {
-		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
-		resp := har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), constants.ContentTypeTextPlain, []byte(err.Error()), nil)
-		_ = wfc.SetHarEntryResponse(a.Name(), resp, config.PersonallyIdentifiableInformation{})
-		return err
-	}
-
-	scriptTengoOutVars := compiled.GetAll()
-
-	var scriptOutVars *wfexpressions.ProcessVars
-	if len(scriptTengoOutVars) > 0 {
-		scriptOutVars = wfexpressions.NewProcessVars()
-		for _, v := range scriptTengoOutVars {
-			if isValueTypeSupportedType(v.ValueType()) {
-				scriptOutVars.V[v.Name()] = v.Value()
-			}
-		}
-	}
-
-	resp, err := a.newResponseDefinition(scriptOutVars)
-	_ = wfc.SetHarEntryResponse(a.Name(), resp, config.PersonallyIdentifiableInformation{})
-
-	remappedStatusCode, err := a.processResponseActions(http.StatusOK, a.Name(), a.Name(), wfc, a.definition.OnResponseActions, scriptOutVars)
+	remappedStatusCode, err := a.processResponseActions(sc, a.Name(), a.Name(), wfc, a.definition.OnResponseActions, scriptOutVars)
 	if remappedStatusCode > 0 {
 		metricsLabels[MetricIdStatusCode] = fmt.Sprint(remappedStatusCode)
 	}
@@ -182,6 +153,41 @@ func (a *ScriptActivity) Execute(wfc *wfcase.WfCase) error {
 	wfc.AddBreadcrumb(a.Name(), a.Cfg.Description(), nil)
 
 	return nil
+}
+
+func (a *ScriptActivity) executeScript(wfc *wfcase.WfCase, err error, semLogContext string) (int, *wfexpressions.ProcessVars) {
+	script, bdy, err := a.computeScript(wfc)
+	if err != nil {
+		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+		return http.StatusInternalServerError, nil
+	}
+
+	req, _ := a.newRequestDefinition([]byte(bdy))
+	_ = wfc.SetHarEntryRequest(a.Name(), req, config.PersonallyIdentifiableInformation{})
+
+	compiled, err := script.RunContext(context.Background())
+	if err != nil {
+		log.Error().Err(err).Str(constants.SemLogActivity, a.Name()).Msg(semLogContext)
+		resp := har.NewResponse(http.StatusInternalServerError, http.StatusText(http.StatusInternalServerError), constants.ContentTypeTextPlain, []byte(err.Error()), nil)
+		_ = wfc.SetHarEntryResponse(a.Name(), resp, config.PersonallyIdentifiableInformation{})
+		return http.StatusInternalServerError, nil
+	}
+
+	scriptTengoOutVars := compiled.GetAll()
+	var scriptOutVars *wfexpressions.ProcessVars
+	if len(scriptTengoOutVars) > 0 {
+		scriptOutVars = wfexpressions.NewProcessVars()
+		for _, v := range scriptTengoOutVars {
+			if isValueTypeSupportedType(v.ValueType()) {
+				scriptOutVars.V[v.Name()] = v.Value()
+			}
+		}
+	}
+
+	resp, _ := a.newResponseDefinition(scriptOutVars)
+	_ = wfc.SetHarEntryResponse(a.Name(), resp, config.PersonallyIdentifiableInformation{})
+
+	return http.StatusOK, scriptOutVars
 }
 
 func (a *ScriptActivity) newResponseDefinition(scriptVars *wfexpressions.ProcessVars) (*har.Response, error) {
