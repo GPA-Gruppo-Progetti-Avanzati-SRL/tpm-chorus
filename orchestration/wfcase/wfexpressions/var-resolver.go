@@ -107,6 +107,10 @@ func (pvr *Evaluator) BodyAsByteArray() ([]byte, error) {
 }
 
 func (pvr *Evaluator) WithTemporaryProcessVars(tempVars *ProcessVars) {
+	if tempVars == nil {
+		return
+	}
+
 	for n, v := range tempVars.V {
 		pvr.tempVarsw = append(pvr.tempVarsw, n)
 		pvr.vars.V[n] = v
