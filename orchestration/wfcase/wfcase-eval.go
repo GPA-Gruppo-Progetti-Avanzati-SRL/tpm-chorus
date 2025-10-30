@@ -1,6 +1,8 @@
 package wfcase
 
 import (
+	"strings"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase/wfexpressions"
@@ -8,7 +10,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/PaesslerAG/gval"
 	"github.com/rs/zerolog/log"
-	"strings"
 )
 
 func (wfc *WfCase) GetEvaluatorByHarEntryReference(resolverContext HarEntryReference, withVars bool, withTransformationId string, ignoreNonApplicationJsonResponseContent bool) (*wfexpressions.Evaluator, error) {
@@ -159,13 +160,14 @@ func (wfc *WfCase) SetVarsFromCase(sourceWfc *WfCase, resolverContext HarEntryRe
 				}
 			}
 
-			val, _, err := varResolver.ResolveVariables(v.Value, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
+			// Invertito l'ordine di determinazione della espressione.
+			tempVal, isExpr := IsExpression(v.Value)
+
+			val, _, err := varResolver.ResolveVariables(tempVal, varResolver.SimpleVariableReference, resolver.VarResolverFunc, true)
 			if err != nil {
 				log.Error().Err(err).Str("var", v.Value).Msg(semLogContext)
 				return err
 			}
-
-			val, isExpr := IsExpression(val)
 
 			// Was isExpression(val) but in doing this I use the evaluated value and I depend on the value of the variables  with potentially weird values.
 			var varValue interface{} = val
