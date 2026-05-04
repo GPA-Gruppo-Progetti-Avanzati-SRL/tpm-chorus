@@ -1,10 +1,11 @@
 package mongosink
 
 import (
+	"time"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	"github.com/rs/zerolog/log"
-	"go.mongodb.org/mongo-driver/mongo"
-	"time"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 type StatsInfo struct {

@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config/repo"
@@ -15,11 +18,9 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/jsonops"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/mongolks"
 	"github.com/rs/zerolog/log"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"gopkg.in/yaml.v3"
-	"net/http"
-	"time"
 )
 
 var opTypes = map[jsonops.MongoJsonOperationType]struct{}{
@@ -152,7 +153,7 @@ func (stage *MongoSinkStage) Flush() (int, error) {
 			return 0, err
 		}
 
-		blkOpts := options.BulkWriteOptions{}
+		blkOpts := options.BulkWrite()
 		blkOpts.SetOrdered(stage.Definition.BulkWriteOrdered())
 		resp, err := c.BulkWrite(context.Background(), stage.batch)
 		if err != nil {
