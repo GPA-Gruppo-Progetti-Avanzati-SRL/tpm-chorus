@@ -2,15 +2,16 @@ package reporter
 
 import (
 	"errors"
+	"io/fs"
+	"os"
+	"sync"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/jsonmask"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
 	jsoniter "github.com/json-iterator/go"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
-	"io/fs"
-	"os"
-	"sync"
 )
 
 const (
@@ -20,7 +21,7 @@ const (
 )
 
 type DummyReporterConfig struct {
-	Filename string `mapstructure:"file-name"`
+	Filename string `mapstructure:"file-name" yaml:"file-name" json:"file-name"`
 }
 
 type DummyReporter struct {

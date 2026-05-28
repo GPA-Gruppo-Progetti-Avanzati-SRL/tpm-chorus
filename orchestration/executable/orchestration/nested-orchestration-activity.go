@@ -3,6 +3,10 @@ package orchestration
 import (
 	"errors"
 	"fmt"
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
@@ -13,9 +17,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-archive/har"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/rs/zerolog/log"
-	"net/http"
-	"strings"
-	"time"
 )
 
 type NestedOrchestrationActivity struct {
@@ -158,6 +159,10 @@ func (a *NestedOrchestrationActivity) Execute(wfc *wfcase.WfCase) error {
 
 	if err != nil {
 		st = http.StatusInternalServerError
+		var smpErr *smperror.SymphonyError
+		if errors.As(err, &smpErr) {
+			st = smpErr.StatusCode
+		}
 	}
 
 	remappedStatusCode, err := a.ProcessResponseActionByStatusCode(st, a.Name(), a.Name(), wfc, wfcChild, wfcase.HarEntryReference{Name: "request", UseResponse: true}, a.definition.OnResponseActions, false)

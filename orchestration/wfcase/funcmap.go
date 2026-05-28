@@ -3,13 +3,14 @@ package wfcase
 import (
 	"encoding/base64"
 	"encoding/json"
+	"strings"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs/amt"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/withenvfuncs"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/globals"
 	varResolver "github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/vars"
 	"github.com/rs/zerolog/log"
-	"strings"
 )
 
 func GetFuncMap(wfc *WfCase) map[string]interface{} {
@@ -88,6 +89,7 @@ func GetFuncMap(wfc *WfCase) map[string]interface{} {
 	builtins["amtAdd"] = amt.AmtAdd
 	builtins["amtDiff"] = amt.AmtDiff
 	builtins["amtFmt"] = amt.Format
+	builtins["amtFmtConv"] = amt.AmtFmtConv
 	builtins["padLeft"] = purefuncs.PadLeft
 	builtins["left"] = purefuncs.Left
 	builtins["right"] = purefuncs.Right

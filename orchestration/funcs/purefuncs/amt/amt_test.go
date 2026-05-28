@@ -2,9 +2,11 @@ package amt_test
 
 import (
 	"fmt"
+	"math"
+	"testing"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/funcs/purefuncs/amt"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 type amountFormatInputWanted struct {
@@ -83,6 +85,167 @@ func TestAddAndDiff(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, input.wanted, news, fmt.Sprintf("error on funcs.AmtConv [%d]", i))
 	}
+}
+
+type amtFmtConvCase struct {
+	value     interface{}
+	srcFmt    string
+	dstFmt    string
+	decimals  int
+	decSep    string
+	wanted    string
+	wantError bool
+}
+
+func TestAmtFmtConv(t *testing.T) {
+	cases := []amtFmtConvCase{
+		// ── intN → intN ──────────────────────────────────────────────────────
+		{"710", amt.NumFmtInt2, amt.NumFmtInt3, 0, "", "7100", false},
+		{"7100", amt.NumFmtInt3, amt.NumFmtInt2, 0, "", "710", false},
+		{"7155", amt.NumFmtInt3, amt.NumFmtInt2, 0, "", "715", false},  // troncamento
+		{"1", amt.NumFmtInt2, amt.NumFmtInt6, 0, "", "10000", false},
+		{"10000", amt.NumFmtInt6, amt.NumFmtInt2, 0, "", "1", false},
+		{"100", amt.NumFmtInt3, amt.NumFmtInt2, 0, "", "10", false},
+		{"10", amt.NumFmtInt3, amt.NumFmtInt3, 0, "", "10", false},
+
+		// ── decimal → intN ───────────────────────────────────────────────────
+		{"7.10", amt.NumFmtDecimal, amt.NumFmtInt3, 0, "", "7100", false},
+		{"7,10", amt.NumFmtDecimal, amt.NumFmtInt3, 0, "", "7100", false},  // virgola in input
+		{"7", amt.NumFmtDecimal, amt.NumFmtInt6, 0, "", "7000000", false},
+		{"1500", amt.NumFmtDecimal, amt.NumFmtInt2, 0, "", "150000", false},
+		{"1500.00", amt.NumFmtDecimal, amt.NumFmtInt2, 0, "", "150000", false},
+		{"-0.50", amt.NumFmtDecimal, amt.NumFmtInt2, 0, "", "-50", false},
+		{"-7.10", amt.NumFmtDecimal, amt.NumFmtInt3, 0, "", "-7100", false},
+		{"00000000015", amt.NumFmtDecimal, amt.NumFmtInt3, 0, "", "15000", false},  // leading zeros
+
+		// ── intN → decimal (numero fisso di decimali) ─────────────────────────
+		{"710", amt.NumFmtInt2, amt.NumFmtDecimal, 2, ".", "7.10", false},
+		{"710", amt.NumFmtInt2, amt.NumFmtDecimal, 2, ",", "7,10", false},
+		{"-150000", amt.NumFmtInt2, amt.NumFmtDecimal, 2, ".", "-1500.00", false},
+		{"1", amt.NumFmtInt2, amt.NumFmtDecimal, 2, ".", "0.01", false},
+
+		// ── decimal → decimal ────────────────────────────────────────────────
+		{"7,10", amt.NumFmtDecimal, amt.NumFmtDecimal, 4, ".", "7.1000", false},
+		{"7.10", amt.NumFmtDecimal, amt.NumFmtDecimal, 2, ".", "7.10", false},
+		{"7.10", amt.NumFmtDecimal, amt.NumFmtDecimal, 2, ",", "7,10", false},
+		{"7.1", amt.NumFmtDecimal, amt.NumFmtDecimal, 4, ".", "7.1000", false},
+		{"0", amt.NumFmtDecimal, amt.NumFmtDecimal, 2, ".", "0.00", false},
+		{"1500", amt.NumFmtDecimal, amt.NumFmtDecimal, 2, ".", "1500.00", false},
+		{"00000000015", amt.NumFmtDecimal, amt.NumFmtDecimal, 0, ".", "15", false},  // leading zeros
+
+		// ── tipi numerici nativi come input ───────────────────────────────────
+		{710, amt.NumFmtInt2, amt.NumFmtInt3, 0, "", "7100", false},
+		{int64(710), amt.NumFmtInt2, amt.NumFmtInt3, 0, "", "7100", false},
+		{float64(7.10), amt.NumFmtDecimal, amt.NumFmtInt3, 0, "", "7100", false},
+		{float64(-0.5), amt.NumFmtDecimal, amt.NumFmtInt2, 0, "", "-50", false},
+
+		// ── decimals=-1 → precisione naturale senza zeri finali ───────────────
+		{"12350", amt.NumFmtInt3, amt.NumFmtDecimal, -1, ",", "12,35", false},
+		{"12300", amt.NumFmtInt3, amt.NumFmtDecimal, -1, ",", "12,3", false},
+		{"12000", amt.NumFmtInt3, amt.NumFmtDecimal, -1, ",", "12", false},
+		{"7,10", amt.NumFmtDecimal, amt.NumFmtDecimal, -1, ".", "7.1", false},
+		{"1500.00", amt.NumFmtDecimal, amt.NumFmtDecimal, -1, ".", "1500", false},
+		{"-12350", amt.NumFmtInt3, amt.NumFmtDecimal, -1, ".", "-12.35", false},
+		{"500", amt.NumFmtInt3, amt.NumFmtDecimal, -1, ".", "0.5", false},
+	}
+
+	for i, c := range cases {
+		got, err := amt.AmtFmtConv(c.value, c.srcFmt, c.dstFmt, c.decimals, c.decSep)
+		require.NoError(t, err, "[%d] value=%v src=%s dst=%s", i, c.value, c.srcFmt, c.dstFmt)
+		require.Equal(t, c.wanted, got, "[%d] value=%v src=%s dst=%s", i, c.value, c.srcFmt, c.dstFmt)
+	}
+}
+
+func TestAmtFmtConvErrors(t *testing.T) {
+	// formato sorgente sconosciuto
+	_, err := amt.AmtFmtConv("10", "unknown", amt.NumFmtInt2, 0, "")
+	require.Error(t, err)
+
+	// formato destinazione sconosciuto
+	_, err = amt.AmtFmtConv("10", amt.NumFmtInt2, "unknown", 0, "")
+	require.Error(t, err)
+
+	// valore non numerico
+	_, err = amt.AmtFmtConv("abc", amt.NumFmtInt2, amt.NumFmtInt3, 0, "")
+	require.Error(t, err)
+
+	// separatore decimale in un formato integrale → errore
+	_, err = amt.AmtFmtConv("7.10", amt.NumFmtInt2, amt.NumFmtInt3, 0, "")
+	require.Error(t, err, "atteso errore per valore decimale passato come integrale")
+
+	_, err = amt.AmtFmtConv("7,10", amt.NumFmtInt2, amt.NumFmtInt3, 0, "")
+	require.Error(t, err, "atteso errore per valore decimale (virgola) passato come integrale")
+
+	// separatore output non valido
+	_, err = amt.AmtFmtConv("710", amt.NumFmtInt2, amt.NumFmtDecimal, 2, ";")
+	require.Error(t, err, "atteso errore per decSep non valido")
+
+	// parte decimale non numerica
+	_, err = amt.AmtFmtConv("7.abc", amt.NumFmtDecimal, amt.NumFmtInt2, 0, "")
+	require.Error(t, err, "atteso errore per parte decimale non numerica")
+
+	// stringa vuota
+	_, err = amt.AmtFmtConv("", amt.NumFmtInt2, amt.NumFmtInt3, 0, "")
+	require.Error(t, err, "atteso errore per stringa vuota")
+
+	// valori molto grandi: ok con implementazione string-based
+	got, err := amt.AmtFmtConv("999999999999999999", amt.NumFmtInt2, amt.NumFmtInt3, 0, "")
+	require.NoError(t, err)
+	require.Equal(t, "9999999999999999990", got)
+
+	got, err = amt.AmtFmtConv(float64(1e13), amt.NumFmtDecimal, amt.NumFmtInt2, 0, "")
+	require.NoError(t, err)
+	require.Equal(t, "1000000000000000", got)
+}
+
+func TestAmtFmtConvNegativeZero(t *testing.T) {
+	cases := []struct {
+		value  interface{}
+		src    string
+		dst    string
+		dec    int
+		sep    string
+		wanted string
+	}{
+		{"-0", amt.NumFmtDecimal, amt.NumFmtInt2, 0, "", "0"},
+		{"-0.00", amt.NumFmtDecimal, amt.NumFmtInt2, 0, "", "0"},
+		{"-0.000", amt.NumFmtDecimal, amt.NumFmtDecimal, 2, ".", "0.00"},
+		{"-000", amt.NumFmtInt3, amt.NumFmtDecimal, 2, ".", "0.00"},
+		{"-0", amt.NumFmtInt2, amt.NumFmtInt3, 0, "", "0"},
+		{int(-0), amt.NumFmtDecimal, amt.NumFmtDecimal, 2, ".", "0.00"},
+		{int64(-0), amt.NumFmtDecimal, amt.NumFmtDecimal, 2, ".", "0.00"},
+		{float64(-0.0), amt.NumFmtDecimal, amt.NumFmtDecimal, 2, ".", "0.00"},
+	}
+	for i, c := range cases {
+		got, err := amt.AmtFmtConv(c.value, c.src, c.dst, c.dec, c.sep)
+		require.NoError(t, err, "[%d]", i)
+		require.Equal(t, c.wanted, got, "[%d] value=%v src=%s dst=%s", i, c.value, c.src, c.dst)
+	}
+}
+
+func TestAmtFmtConvMinInt64(t *testing.T) {
+	got, err := amt.AmtFmtConv(int64(math.MinInt64), amt.NumFmtDecimal, amt.NumFmtDecimal, 0, ".")
+	require.NoError(t, err)
+	require.Equal(t, "-9223372036854775808", got)
+
+	got, err = amt.AmtFmtConv(int(math.MinInt64), amt.NumFmtDecimal, amt.NumFmtDecimal, 0, ".")
+	require.NoError(t, err)
+	require.Equal(t, "-9223372036854775808", got)
+}
+
+func TestAmtFmtConvRounding(t *testing.T) {
+	// troncamento verso zero (non arrotondamento)
+	got, err := amt.AmtFmtConv("7155", amt.NumFmtInt3, amt.NumFmtInt2, 0, "")
+	require.NoError(t, err)
+	require.Equal(t, "715", got, "7.155 troncato a int2 deve essere 715")
+
+	got, err = amt.AmtFmtConv("7159", amt.NumFmtInt3, amt.NumFmtInt2, 0, "")
+	require.NoError(t, err)
+	require.Equal(t, "715", got)
+
+	got, err = amt.AmtFmtConv("-7155", amt.NumFmtInt3, amt.NumFmtInt2, 0, "")
+	require.NoError(t, err)
+	require.Equal(t, "-715", got)
 }
 
 type amountCompareInputWanted struct {
