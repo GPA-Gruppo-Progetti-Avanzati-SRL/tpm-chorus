@@ -3,17 +3,27 @@ package examples_test
 import (
 	"os"
 	"testing"
+	"tpm-symphony/linkedservices"
 
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelksregistry"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms/kz"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-http-client/restclient"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-kafka-common/kafkalks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-mongo-common/mongolks"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
 )
 
+type Config struct {
+	RestClient *restclient.Config       `json:"rest-client" yaml:"rest-client" mapstructure:"rest-client"`
+	Kafka      []kafkalks.Config        `json:"kafka" yaml:"kafka" mapstructure:"kafka"`
+	Redis      *cachelksregistry.Config `json:"cache" yaml:"cache" mapstructure:"cache"`
+	MongoDb    []mongolks.Config        `mapstructure:"mongo-db,omitempty"  json:"mongo-db,omitempty" yaml:"mongo-db,omitempty"`
+}
 type AppConfig struct {
-	Services *linkedservices.Config                `yaml:"linked-services" mapstructure:"linked-services" json:"linked-services"`
+	Services *Config                               `yaml:"linked-services" mapstructure:"linked-services" json:"linked-services"`
 	Metrics  map[string]promutil.MetricGroupConfig `yaml:"metrics,omitempty" mapstructure:"metrics,omitempty" json:"metrics,omitempty"`
 }
 
@@ -244,6 +254,36 @@ metrics:
              default-value: "ND"
 `)
 
+func InitRegistry(cfg *Config) error {
+
+	const semLogContext = "service-registry::initialize"
+	log.Info().Msg(semLogContext)
+
+	//err := initializeRestClientProvider(cfg.RestClient)
+	//if err != nil {
+	//	return err
+	//}
+	_, err := restclient.Initialize(cfg.RestClient)
+	_, err = kafkalks.Initialize(cfg.Kafka)
+	if err != nil {
+		return err
+	}
+
+	if cfg.Redis != nil {
+		_, err = cachelksregistry.Initialize(*cfg.Redis)
+		if err != nil {
+			return err
+		}
+	}
+
+	_, err = mongolks.Initialize(cfg.MongoDb)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func TestMain(m *testing.M) {
 
 	const semLogContext = "examples::test-main"
@@ -265,7 +305,7 @@ func TestMain(m *testing.M) {
 		log.Fatal().Err(err).Msg(semLogContext)
 	}
 
-	err = linkedservices.InitRegistry(cfg.Services)
+	err = InitRegistry(cfg.Services)
 	if nil != err {
 		log.Fatal().Err(err).Msg(semLogContext + " linked services initialization error")
 	}

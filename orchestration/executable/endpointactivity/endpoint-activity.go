@@ -10,7 +10,6 @@ import (
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cacheoperation"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/constants"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/linkedservices"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/wfcase"
@@ -377,7 +376,7 @@ func (a *EndpointActivity) Invoke(wfc *wfcase.WfCase, ep Endpoint, req *har.Requ
 		opts = append(opts, restclient.WithRetryOnHttpError(ep.Definition.HttpClientOptions.RetryOnHttpError))
 	}
 
-	cli, err := linkedservices.GetRestClientProvider(opts...)
+	cli, err := restclient.GetRestClientProvider(opts...)
 	if err != nil {
 		return nil, err
 	}
