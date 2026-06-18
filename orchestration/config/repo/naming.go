@@ -1,11 +1,12 @@
 package repo
 
 import (
-	"github.com/rs/zerolog/log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 )
 
 const (

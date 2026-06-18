@@ -4,11 +4,11 @@ import (
 	_ "embed"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks"
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
@@ -16,22 +16,21 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-type Type string
-
 const (
-	RequestActivityType             Type = "request-activity"
-	NopActivityType                 Type = "nop-activity"
-	EchoActivityType                Type = "echo-activity"
-	EndpointActivityType            Type = "rest-activity"
-	ResponseActivityType            Type = "response-activity"
-	KafkaActivityType               Type = "kafka-activity"
-	NestedOrchestrationActivityType Type = "nested-orchestration-activity"
-	MongoActivityType               Type = "mongo-activity"
-	TransformActivityType           Type = "transform-activity"
-	ScriptActivityType              Type = "script-activity"
-	JsonSchemaActivityType          Type = "json-schema-activity"
-	LoopActivityType                Type = "loop-activity"
-	CacheActivityType               Type = "cache-activity"
+	RequestActivityType             = "request-activity"
+	NopActivityType                 = "nop-activity"
+	EchoActivityType                = "echo-activity"
+	EndpointActivityType            = "rest-activity"
+	ResponseActivityType            = "response-activity"
+	KafkaActivityType               = "kafka-activity"
+	NestedOrchestrationActivityType = "nested-orchestration-activity"
+	MongoActivityType               = "mongo-activity"
+	TransformActivityType           = "transform-activity"
+	ScriptActivityType              = "script-activity"
+	JsonSchemaActivityType          = "json-schema-activity"
+	LoopActivityType                = "loop-activity"
+	CacheActivityType               = "cache-activity"
+	GenericActivityType             = "generic-activity"
 
 	MongoDbActor    = "MongoDB"
 	WebServiceActor = "WebService"
@@ -39,12 +38,12 @@ const (
 )
 
 type ActivityTypeRegistryEntry struct {
-	Tp                 Type
+	Tp                 string
 	UnmarshallFromJSON func(raw json.RawMessage) (Configurable, error)
 	UnmarshalFromYAML  func(b []byte /* mp interface{} */) (Configurable, error)
 }
 
-var activityTypeRegistry = map[Type]ActivityTypeRegistryEntry{
+var activityTypeRegistry = map[string]ActivityTypeRegistryEntry{
 	RequestActivityType:             {Tp: RequestActivityType, UnmarshallFromJSON: NewRequestActivityFromJSON, UnmarshalFromYAML: NewRequestActivityFromYAML},
 	ResponseActivityType:            {Tp: ResponseActivityType, UnmarshallFromJSON: NewResponseActivityFromJSON, UnmarshalFromYAML: NewResponseActivityFromYAML},
 	EchoActivityType:                {Tp: EchoActivityType, UnmarshallFromJSON: NewEchoActivityFromJSON, UnmarshalFromYAML: NewEchoActivityFromYAML},
@@ -58,6 +57,7 @@ var activityTypeRegistry = map[Type]ActivityTypeRegistryEntry{
 	JsonSchemaActivityType:          {Tp: JsonSchemaActivityType, UnmarshallFromJSON: NewJsonSchemaActivityFromJSON, UnmarshalFromYAML: NewJsonSchemaActivityFromYAML},
 	LoopActivityType:                {Tp: LoopActivityType, UnmarshallFromJSON: NewLoopActivityFromJSON, UnmarshalFromYAML: NewLoopActivityFromYAML},
 	CacheActivityType:               {Tp: CacheActivityType, UnmarshallFromJSON: NewCacheActivityFromJSON, UnmarshalFromYAML: NewCacheActivityFromYAML},
+	GenericActivityType:             {Tp: GenericActivityType, UnmarshallFromJSON: NewGenericActivityFromJSON, UnmarshalFromYAML: NewGenericActivityFromYAML},
 }
 
 type Guarded interface {
@@ -66,7 +66,7 @@ type Guarded interface {
 
 type Configurable interface {
 	Name() string
-	Type() Type
+	Type() string
 	Enabled() string
 	ActorWithDefault(defActor string) string
 	Actor() string
@@ -78,24 +78,48 @@ type Configurable interface {
 	ExpressionContextNameStringReference() string
 }
 
-func NewActivityFromJSON(t Type, message json.RawMessage) (Configurable, error) {
-
-	if e, ok := activityTypeRegistry[t]; ok {
-		c, err := e.UnmarshallFromJSON(message)
-		return c, err
+func NewActivityFromJSON(t string, message json.RawMessage) (Configurable, error) {
+	const semLogContext = "activity::new-activity-from-json"
+	var err error
+	var e ActivityTypeRegistryEntry
+	var ok bool
+	if e, ok = activityTypeRegistry[t]; !ok {
+		if _, ok = orchestration.GetRegisteredActivityFactory(t); !ok {
+			err = errors.New("unknown activity type")
+			log.Error().Err(err).Str("activity-type", t).Msg(semLogContext)
+			return nil, err
+		}
+		e, _ = activityTypeRegistry[GenericActivityType]
 	}
 
-	return nil, fmt.Errorf("unknown activity type %s", t)
+	c, err := e.UnmarshallFromJSON(message)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil // fmt.Errorf("unknown activity type %s", t)
 }
 
-func NewActivityFromYAML(t Type, b []byte /* m interface{} */) (Configurable, error) {
-
-	if e, ok := activityTypeRegistry[t]; ok {
-		c, err := e.UnmarshalFromYAML(b)
-		return c, err
+func NewActivityFromYAML(t string, b []byte /* m interface{} */) (Configurable, error) {
+	const semLogContext = "activity::new-activity-from-yaml"
+	var err error
+	var e ActivityTypeRegistryEntry
+	var ok bool
+	if e, ok = activityTypeRegistry[t]; !ok {
+		if _, ok = orchestration.GetRegisteredActivityFactory(t); !ok {
+			err = errors.New("unknown activity type")
+			log.Error().Err(err).Str("activity-type", t).Msg(semLogContext)
+			return nil, err
+		}
+		e, _ = activityTypeRegistry[GenericActivityType]
 	}
 
-	return nil, fmt.Errorf("unknown activity type %s", t)
+	c, err := e.UnmarshalFromYAML(b)
+	if err != nil {
+		return nil, err
+	}
+
+	return c, nil // fmt.Errorf("unknown activity type %s", t)
 }
 
 const (
@@ -158,7 +182,7 @@ func (ap ActivityProperty) IsValid() error {
 
 type Activity struct {
 	Nm              string                          `yaml:"name,omitempty" mapstructure:"name,omitempty" json:"name,omitempty"`
-	Tp              Type                            `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
+	Tp              string                          `yaml:"type,omitempty" mapstructure:"type,omitempty" json:"type,omitempty"`
 	Cm              string                          `yaml:"description,omitempty" mapstructure:"description,omitempty" json:"description,omitempty"`
 	Actr            string                          `yaml:"actor,omitempty" mapstructure:"actor,omitempty" json:"actor,omitempty"`
 	BndryName       string                          `yaml:"boundary-name,omitempty" mapstructure:"boundary-name,omitempty" json:"boundary-name,omitempty"`
@@ -223,7 +247,7 @@ func (c *Activity) Actor() string {
 	return c.Actr
 }
 
-func (c *Activity) Type() Type {
+func (c *Activity) Type() string {
 	return c.Tp
 }
 

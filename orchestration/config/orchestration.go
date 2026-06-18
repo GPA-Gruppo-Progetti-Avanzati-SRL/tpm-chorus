@@ -3,15 +3,16 @@ package config
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"time"
+
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config/repo"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/fileutil"
 	"github.com/rs/zerolog/log"
 	"gopkg.in/yaml.v3"
-	"os"
-	"path/filepath"
-	"strings"
-	"time"
 )
 
 /*
@@ -493,7 +494,7 @@ func (o *Orchestration) UnmarshalYAML(unmarshal func(interface{}) error) error {
 			return err
 		}
 
-		i, err := NewActivityFromYAML(Type(a["type"].(string)), b)
+		i, err := NewActivityFromYAML(a["type"].(string), b)
 		if err != nil {
 			log.Error().Err(err).Msgf(semLogContext)
 			return err

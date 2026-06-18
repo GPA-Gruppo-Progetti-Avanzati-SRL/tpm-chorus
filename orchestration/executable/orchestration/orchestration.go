@@ -3,6 +3,8 @@ package orchestration
 import (
 	"errors"
 	"fmt"
+
+	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/config"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/executable/cacheactivity"
@@ -77,7 +79,13 @@ func NewOrchestration(cfg *config.Orchestration) (Orchestration, error) {
 		case config.CacheActivityType:
 			ex, err = cacheactivity.NewCacheActivity(cfgItem, cfg.References)
 		default:
-			panic(fmt.Errorf("this should not happen %s, unrecognized sctivity type", cfgItem.Type()))
+			_, ok := orchestration.GetRegisteredActivityFactory(cfgItem.Type())
+			if !ok {
+				panic(fmt.Errorf("this should not happen %s, unrecognized activity type", cfgItem.Type()))
+			} else {
+				panic("not yet implemented")
+			}
+
 		}
 
 		if err != nil {

@@ -20,7 +20,7 @@ type Executable interface {
 	AddInput(p Path) error
 	AddOutput(p Path) error
 	IsValid() bool
-	Type() config.Type
+	Type() string
 	Name() string
 	Boundary() string
 	IsEnabled(wfc *wfcase.WfCase) bool
@@ -37,7 +37,7 @@ func (a *Activity) Name() string {
 	return a.Cfg.Name()
 }
 
-func (a *Activity) Type() config.Type {
+func (a *Activity) Type() string {
 	return a.Cfg.Type()
 }
 
