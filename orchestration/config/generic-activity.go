@@ -21,6 +21,11 @@ func (c *GenericActivity) WithDescription(n string) *GenericActivity {
 	return c
 }
 
+func (c *GenericActivity) WithRefDefinition(n string) *GenericActivity {
+	c.Definition = n
+	return c
+}
+
 func (c *GenericActivity) Dup(newName string) *GenericActivity {
 	actNew := GenericActivity{
 		Activity: c.Activity.Dup(newName),
@@ -37,11 +42,11 @@ func GenericActivity() *GenericActivity {
 }
 */
 
-func NewGenericActivity() *GenericActivity {
+func NewGenericActivity(actualType string) *GenericActivity {
 	s := GenericActivity{
 		Activity: Activity{
 			Nm: util.NewUUID(),
-			Tp: NopActivityType,
+			Tp: actualType,
 			Cm: "nop activity",
 		},
 	}
@@ -50,7 +55,7 @@ func NewGenericActivity() *GenericActivity {
 }
 
 func NewGenericActivityFromJSON(message json.RawMessage) (Configurable, error) {
-	i := NewGenericActivity()
+	i := NewGenericActivity(GenericActivityType)
 	err := json.Unmarshal(message, i)
 	if err != nil {
 		return nil, err
@@ -60,7 +65,7 @@ func NewGenericActivityFromJSON(message json.RawMessage) (Configurable, error) {
 }
 
 func NewGenericActivityFromYAML(b []byte /* mp interface{}*/) (Configurable, error) {
-	sa := NewGenericActivity()
+	sa := NewGenericActivity(GenericActivityType)
 	// err := mapstructure.Decode(mp, sa)
 	err := yaml.Unmarshal(b, sa)
 	if err != nil {

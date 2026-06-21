@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-cache-common/cachelks"
-	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-chorus/orchestration/xforms"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util"
 	"github.com/GPA-Gruppo-Progetti-Avanzati-SRL/tpm-common/util/promutil"
@@ -31,6 +30,7 @@ const (
 	LoopActivityType                = "loop-activity"
 	CacheActivityType               = "cache-activity"
 	GenericActivityType             = "generic-activity"
+	DatabricksActivityType          = "databricks-activity"
 
 	MongoDbActor    = "MongoDB"
 	WebServiceActor = "WebService"
@@ -57,7 +57,7 @@ var activityTypeRegistry = map[string]ActivityTypeRegistryEntry{
 	JsonSchemaActivityType:          {Tp: JsonSchemaActivityType, UnmarshallFromJSON: NewJsonSchemaActivityFromJSON, UnmarshalFromYAML: NewJsonSchemaActivityFromYAML},
 	LoopActivityType:                {Tp: LoopActivityType, UnmarshallFromJSON: NewLoopActivityFromJSON, UnmarshalFromYAML: NewLoopActivityFromYAML},
 	CacheActivityType:               {Tp: CacheActivityType, UnmarshallFromJSON: NewCacheActivityFromJSON, UnmarshalFromYAML: NewCacheActivityFromYAML},
-	GenericActivityType:             {Tp: GenericActivityType, UnmarshallFromJSON: NewGenericActivityFromJSON, UnmarshalFromYAML: NewGenericActivityFromYAML},
+	DatabricksActivityType:          {Tp: DatabricksActivityType, UnmarshallFromJSON: NewGenericActivityFromJSON, UnmarshalFromYAML: NewGenericActivityFromYAML},
 }
 
 type Guarded interface {
@@ -84,16 +84,14 @@ func NewActivityFromJSON(t string, message json.RawMessage) (Configurable, error
 	var e ActivityTypeRegistryEntry
 	var ok bool
 	if e, ok = activityTypeRegistry[t]; !ok {
-		if _, ok = orchestration.GetRegisteredActivityFactory(t); !ok {
-			err = errors.New("unknown activity type")
-			log.Error().Err(err).Str("activity-type", t).Msg(semLogContext)
-			return nil, err
-		}
-		e, _ = activityTypeRegistry[GenericActivityType]
+		err = errors.New("unknown activity type")
+		log.Error().Err(err).Str("activity-type", t).Msg(semLogContext)
+		return nil, err
 	}
 
 	c, err := e.UnmarshallFromJSON(message)
 	if err != nil {
+		log.Error().Err(err).Str("activity-type", t).Msg(semLogContext)
 		return nil, err
 	}
 
@@ -106,16 +104,14 @@ func NewActivityFromYAML(t string, b []byte /* m interface{} */) (Configurable, 
 	var e ActivityTypeRegistryEntry
 	var ok bool
 	if e, ok = activityTypeRegistry[t]; !ok {
-		if _, ok = orchestration.GetRegisteredActivityFactory(t); !ok {
-			err = errors.New("unknown activity type")
-			log.Error().Err(err).Str("activity-type", t).Msg(semLogContext)
-			return nil, err
-		}
-		e, _ = activityTypeRegistry[GenericActivityType]
+		err = errors.New("unknown activity type")
+		log.Error().Err(err).Str("activity-type", t).Msg(semLogContext)
+		return nil, err
 	}
 
 	c, err := e.UnmarshalFromYAML(b)
 	if err != nil {
+		log.Error().Err(err).Str("activity-type", t).Msg(semLogContext)
 		return nil, err
 	}
 
